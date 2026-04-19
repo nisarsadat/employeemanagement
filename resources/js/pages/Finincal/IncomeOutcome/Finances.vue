@@ -1,4 +1,9 @@
 <template>
+  <AppBar :title="t('حساب مالي')" @toggle-drawer="drawer = !drawer">
+    <template #actions>
+      <v-btn icon />
+    </template>
+  </AppBar>
   <v-container fluid class="pt-6 page-bg" :dir="rtl ? 'rtl' : 'ltr'">
     <!-- ✅ SUMMARY CARDS -->
     <v-row class="mb-4" dense>
@@ -61,39 +66,22 @@
     <v-card rounded="xl" class="shadow-sm mb-4 filters-card">
       <v-card-text class="pa-4">
         <v-row dense class="align-center">
-          <!-- Search Column -->
-          <v-col cols="12" sm="12" md="3">
-            <v-select
-              v-model="searchField"
-              :items="searchColumnItems"
-              item-title="title"
-              item-value="value"
-              density="comfortable"
-              variant="outlined"
-              color="primary"
-              rounded="lg"
-              hide-details
-              clearable
-              :label="t('ستون جستجو')"
-              class="bg-white"
-            />
-          </v-col>
-
-          <!-- Search -->
-          <v-col cols="12" sm="12" md="3">
-            <v-text-field
-              v-model.trim="repo.financesSearch"
-              :label="t('common.search')"
-              density="comfortable"
-              prepend-inner-icon="mdi-magnify"
-              variant="outlined"
-              color="primary"
-              rounded="lg"
-              hide-details
-              clearable
-              @keyup.enter="applyFilters"
-              @click:clear="clearSearch"
-              class="bg-white search-field"
+          <!-- Search Column Filter -->
+          <v-col cols="12" sm="12" md="8">
+            <SearchColumnFilter
+              v-model:modelSearch="repo.financesSearch"
+              v-model:modelColumn="searchField"
+              v-model:modelSelectedValue="selectedColumnValue"
+              :headers="headersFT"
+              :search-label="t('common.search')"
+              :column-label="t('ستون جستجو')"
+              :all-columns-label="t('همه ستون‌ها')"
+              :value-label="t('ارزش ستون')"
+              :exclude-keys="['expense_result']"
+              :fetch-column-values="fetchColumnValues"
+              @search="applyFilters"
+              @clearSearch="clearSearch"
+              @clearSelectedValue="clearSelectedValue"
             />
           </v-col>
 
@@ -132,7 +120,7 @@
           </v-col>
 
           <!-- Apply -->
-          <v-col cols="12" sm="4" md="1">
+          <v-col cols="12" sm="6" md="1">
             <v-btn
               color="primary"
               variant="flat"
@@ -147,7 +135,7 @@
           </v-col>
 
           <!-- Reset -->
-          <v-col cols="12" sm="4" md="1">
+          <v-col cols="12" sm="6" md="1">
             <v-btn
               color="orange"
               rounded="lg"
@@ -223,6 +211,28 @@
                 @click:close="clearSearch"
               >
                 {{ repo.financesSearch }}
+              </v-chip>
+
+              <v-chip
+                v-if="normalizedSearchField"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-table-column"
+                closable
+                @click:close="clearSelectedValue"
+              >
+                {{ headersFT.find((h) => h.key === normalizedSearchField)?.title ?? normalizedSearchField }}
+              </v-chip>
+
+              <v-chip
+                v-if="normalizedSearchValue"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-filter-outline"
+                closable
+                @click:close="clearSelectedValue"
+              >
+                {{ normalizedSearchValue }}
               </v-chip>
 
               <v-chip
@@ -390,6 +400,8 @@ import GlobalPagination from '@/components/GlobalPagination.vue';
 import FinanceFormDialog from './FinancesFormDialog.vue';
 import { useFinanceRepository } from '@/stores/FinanceRepository';
 import { usePageRefresh } from '@/composables/usePageRefresh';
+import AppBar from '@/components/AppBar.vue';
+import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
 
 const { t, locale } = useI18n();
 const repo = useFinanceRepository();
@@ -416,9 +428,24 @@ function getRow(payload) {
 const selectedYear = ref(null);
 const selectedMonth = ref(null);
 const searchField = ref(null);
+const selectedColumnValue = ref(null);
 
 const yearItems = ref([]);
 const monthItems = ref([]);
+
+const normalizedSearchField = computed(() => {
+  const v = searchField.value;
+  if (!v) return null;
+  if (typeof v === 'string') return v;
+  return v.key ?? v.value ?? null;
+});
+
+const normalizedSearchValue = computed(() => {
+  const v = selectedColumnValue.value;
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'string' || typeof v === 'number') return v;
+  return v.value ?? v.title ?? null;
+});
 
 async function fetchYearItemsFromDb() {
   try {
@@ -470,21 +497,28 @@ const headersFT = computed(() => [
   { title: t('finances.table.employeePhone'), key: 'employee_phone', sortable: false },
   { title: t('finances.table.expenseReason'), key: 'expense_result', sortable: false },
   { title: t('finances.table.payer'), key: 'payer', sortable: true },
+  { title: t('finances.table.account'), key: 'account_name', sortable: true },
   { title: t('finances.table.notes'), key: 'notes', sortable: true },
 ]);
 
-const searchColumnItems = computed(() => {
-  const excluded = ['expense_result'];
+async function fetchColumnValues(field, q = '') {
+  try {
+    const normalizedField =
+      typeof field === 'string' ? field : field?.key ?? field?.value ?? null;
 
-  const items = headersFT.value
-    .filter((h) => h?.key && !excluded.includes(h.key))
-    .map((h) => ({
-      title: h.title,
-      value: h.key,
-    }));
+    if (!normalizedField) return [];
 
-  return [{ title: t('همه ستون‌ها'), value: null }, ...items];
-});
+    const res = await repo.FetchFinanceFilterOptions?.({
+      field: normalizedField,
+      q,
+    });
+
+    return res?.data?.data?.options || [];
+  } catch (e) {
+    console.error('fetchColumnValues error', e);
+    return [];
+  }
+}
 
 function toDate10(v) {
   return (v ?? '').toString().slice(0, 10);
@@ -526,6 +560,8 @@ const rowsFT = computed(() => {
       notes: it?.notes ?? '',
       date: toDate10(it?.date),
       signature: it?.signature ?? '—',
+      account_name: it?.account?.name ?? '—',
+      account: it?.account?.name ?? '—',
     };
   });
 });
@@ -546,6 +582,8 @@ function fmtMoney(v) {
 const hasAnyFilter = computed(() => {
   return !!(
     repo.financesSearch ||
+    normalizedSearchField.value ||
+    normalizedSearchValue.value ||
     selectedYear.value ||
     selectedMonth.value ||
     repo.financesAccountId ||
@@ -574,7 +612,8 @@ function fetchAll() {
     page: repo.financesPage,
     perPage: repo.financesPerPage,
     search: repo.financesSearch,
-    search_field: searchField.value,
+    search_field: normalizedSearchField.value,
+    search_value: normalizedSearchValue.value,
     account_id: repo.financesAccountId,
     office_employee_id: repo.financesOfficeEmployeeId,
     year: selectedYear.value,
@@ -592,6 +631,12 @@ function applyFilters() {
 
 function clearSearch() {
   repo.financesSearch = '';
+  repo.financesPage = 1;
+  fetchAll();
+}
+
+function clearSelectedValue() {
+  selectedColumnValue.value = null;
   repo.financesPage = 1;
   fetchAll();
 }
@@ -661,6 +706,7 @@ function resetFilters() {
   selectedYear.value = null;
   selectedMonth.value = null;
   searchField.value = null;
+  selectedColumnValue.value = null;
 
   if (typeof repo.ResetFinancesFilters === 'function') {
     repo.ResetFinancesFilters();
@@ -694,7 +740,8 @@ async function downloadExcel() {
 
     await repo.DownloadFinancesExcel({
       search: repo.financesSearch || '',
-      search_field: searchField.value,
+      search_field: normalizedSearchField.value,
+      search_value: normalizedSearchValue.value,
       account_id: repo.financesAccountId,
       office_employee_id: repo.financesOfficeEmployeeId,
       year: selectedYear.value,
@@ -740,6 +787,7 @@ function buildExportHtml(rows, title) {
       <th rowspan="2">${t('finances.export.employeePhone')}</th>
       <th rowspan="2">${t('finances.export.expenseReason')}</th>
       <th rowspan="2">${t('finances.export.signature')}</th>
+      <th rowspan="2">${t('finances.export.account')}</th>
       <th rowspan="2">${t('finances.export.notes')}</th>
     </tr>
     <tr>
@@ -770,6 +818,7 @@ function buildExportHtml(rows, title) {
         <td>${esc(r.employee_phone)}</td>
         <td>${esc(r.expense_result)}</td>
         <td>${esc(r.signature)}</td>
+        <td>${esc(r.account)}</td>
         <td>${esc(r.notes)}</td>
       </tr>
     `

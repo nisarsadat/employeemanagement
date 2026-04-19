@@ -11,34 +11,46 @@ use Illuminate\Support\Facades\DB;
 
 class IncomeOilController extends Controller
 {
-    public function index(Request $request)
+    private function searchableColumns(): array
     {
-        $request->validate([
-            'perPage' => ['nullable', 'integer', 'min:1', 'max:1000'],
-            'search'  => ['nullable', 'string', 'max:255'],
+        return [
+            'account_name',
+            'oil_quantity',
+            'source',
+            'date',
+            'note',
+        ];
+    }
 
-            // existing range filters
-            'from'    => ['nullable', 'date'],
-            'to'      => ['nullable', 'date'],
+    private function resolveSearchField(?string $field): ?string
+    {
+        $field = trim((string) $field);
 
-            // ✅ NEW: year / month
-            'year'    => ['nullable', 'integer', 'min:2000', 'max:2100'],
-            'month'   => ['nullable', 'integer', 'min:1', 'max:12'],
+        return in_array($field, $this->searchableColumns(), true) ? $field : null;
+    }
 
-            // optional
-            'oil_account_id' => ['nullable', 'integer', 'exists:oil_accounts,id'],
-        ]);
+    private function applyIncomeOilSearch($query, string $search = '', ?string $searchField = null, string $searchValue = '')
+    {
+        $searchField = $this->resolveSearchField($searchField);
+        $value = trim($searchValue) !== '' ? trim($searchValue) : trim($search);
 
-        $perPage = (int)($request->integer('perPage') ?: 15);
-        $search  = trim((string)$request->get('search', ''));
-        $from    = $request->date('from'); // YYYY-MM-DD
-        $to      = $request->date('to');
+        if ($searchField) {
+            if ($value === '') {
+                return $query;
+            }
 
-        $year    = $request->integer('year');
-        $month   = $request->integer('month');
-        $accountId = $request->integer('oil_account_id');
+            switch ($searchField) {
+                case 'account_name':
+                    $query->whereHas('account', fn ($q) => $q->where('name', 'like', "%{$value}%"));
+                    break;
 
-        $query = IncomeOil::query()->with(['account:id,name,quantity']);
+                default:
+                    $query->where($searchField, 'like', "%{$value}%");
+                    break;
+            }
+
+            return $query;
+        }
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -47,45 +59,150 @@ class IncomeOilController extends Controller
             });
         }
 
+        return $query;
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = $this->resolveSearchField($request->query('field'));
+        $q = trim((string) $request->query('q', ''));
+
+        if (!$field) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $options = match ($field) {
+            'account_name' => DB::table('income_oils')
+                ->join('oil_accounts', 'income_oils.oil_account_id', '=', 'oil_accounts.id')
+                ->select('oil_accounts.name as value')
+                ->whereNotNull('oil_accounts.name')
+                ->where('oil_accounts.name', '!=', '')
+                ->when($q !== '', fn ($query) => $query->where('oil_accounts.name', 'like', "%{$q}%"))
+                ->distinct()
+                ->orderBy('oil_accounts.name')
+                ->limit(50)
+                ->pluck('value'),
+
+            default => IncomeOil::query()
+                ->select($field . ' as value')
+                ->whereNotNull($field)
+                ->where($field, '!=', '')
+                ->when($q !== '', fn ($query) => $query->where($field, 'like', "%{$q}%"))
+                ->distinct()
+                ->orderBy($field)
+                ->limit(50)
+                ->pluck('value'),
+        };
+
+        return response()->json([
+            'data' => [
+                'options' => collect($options)
+                    ->filter(fn ($value) => $value !== null && trim((string) $value) !== '')
+                    ->map(fn ($value) => [
+                        'title' => (string) $value,
+                        'value' => (string) $value,
+                    ])
+                    ->values(),
+            ],
+        ]);
+    }
+
+    public function index(Request $request)
+    {
+        $request->validate([
+            'perPage'        => ['nullable', 'integer', 'min:1', 'max:1000'],
+            'search'         => ['nullable', 'string', 'max:255'],
+            'search_field'   => ['nullable', 'string'],
+            'search_value'   => ['nullable', 'string'],
+
+            // existing range filters
+            'from'           => ['nullable', 'date'],
+            'to'             => ['nullable', 'date'],
+
+            // ✅ NEW: year / month
+            'year'           => ['nullable', 'integer', 'min:2000', 'max:2100'],
+            'month'          => ['nullable', 'integer', 'min:1', 'max:12'],
+
+            // optional
+            'oil_account_id' => ['nullable', 'integer', 'exists:oil_accounts,id'],
+        ]);
+
+        $perPage = (int)($request->integer('perPage') ?: 15);
+        $search = trim((string)$request->get('search', ''));
+        $searchField = $this->resolveSearchField($request->get('search_field'));
+        $searchValue = trim((string)$request->get('search_value', ''));
+        $from = $request->date('from');
+        $to = $request->date('to');
+
+        $year = $request->integer('year');
+        $month = $request->integer('month');
+        $accountId = $request->integer('oil_account_id');
+
+        $query = IncomeOil::query()->with(['account:id,name,quantity']);
+
+        $this->applyIncomeOilSearch($query, $search, $searchField, $searchValue);
+
         if ($accountId) {
             $query->where('oil_account_id', $accountId);
         }
 
-        // ✅ NEW: year/month filter on income_oils.date
-        if ($year)  $query->whereYear('date', $year);
-        if ($month) $query->whereMonth('date', $month);
+        if ($year) {
+            $query->whereYear('date', $year);
+        }
 
-        // keep your from/to too (intersection is fine)
-        if ($from && $to)      { $query->whereBetween('date', [$from, $to]); }
-        elseif ($from)         { $query->whereDate('date', '>=', $from); }
-        elseif ($to)           { $query->whereDate('date', '<=', $to); }
+        if ($month) {
+            $query->whereMonth('date', $month);
+        }
+
+        if ($from && $to) {
+            $query->whereBetween('date', [$from, $to]);
+        } elseif ($from) {
+            $query->whereDate('date', '>=', $from);
+        } elseif ($to) {
+            $query->whereDate('date', '<=', $to);
+        }
 
         $query->orderByDesc('date')->orderByDesc('id');
 
-        // =========================
-        // ✅ SUMMARY (cards)
-        // =========================
         $totalQuantityAllAccounts = (string) OilAccount::query()->sum('quantity');
 
         $incomeTotalQuery = IncomeOil::query();
-        if ($year)  $incomeTotalQuery->whereYear('date', $year);
-        if ($month) $incomeTotalQuery->whereMonth('date', $month);
-        if ($from)  $incomeTotalQuery->whereDate('date', '>=', $from);
-        if ($to)    $incomeTotalQuery->whereDate('date', '<=', $to);
+        if ($year) {
+            $incomeTotalQuery->whereYear('date', $year);
+        }
+        if ($month) {
+            $incomeTotalQuery->whereMonth('date', $month);
+        }
+        if ($from) {
+            $incomeTotalQuery->whereDate('date', '>=', $from);
+        }
+        if ($to) {
+            $incomeTotalQuery->whereDate('date', '<=', $to);
+        }
         $totalIncomeQuantity = (string) $incomeTotalQuery->sum('oil_quantity');
 
         $filteredIncomeQuery = IncomeOil::query();
-        if ($search !== '') {
-            $filteredIncomeQuery->where(function ($q) use ($search) {
-                $q->where('source', 'like', "%{$search}%")
-                  ->orWhere('note', 'like', "%{$search}%");
-            });
+        $this->applyIncomeOilSearch($filteredIncomeQuery, $search, $searchField, $searchValue);
+
+        if ($accountId) {
+            $filteredIncomeQuery->where('oil_account_id', $accountId);
         }
-        if ($accountId) $filteredIncomeQuery->where('oil_account_id', $accountId);
-        if ($year)  $filteredIncomeQuery->whereYear('date', $year);
-        if ($month) $filteredIncomeQuery->whereMonth('date', $month);
-        if ($from)  $filteredIncomeQuery->whereDate('date', '>=', $from);
-        if ($to)    $filteredIncomeQuery->whereDate('date', '<=', $to);
+        if ($year) {
+            $filteredIncomeQuery->whereYear('date', $year);
+        }
+        if ($month) {
+            $filteredIncomeQuery->whereMonth('date', $month);
+        }
+        if ($from) {
+            $filteredIncomeQuery->whereDate('date', '>=', $from);
+        }
+        if ($to) {
+            $filteredIncomeQuery->whereDate('date', '<=', $to);
+        }
 
         $filteredIncomeQuantity = (string) $filteredIncomeQuery->sum('oil_quantity');
 
@@ -108,7 +225,6 @@ class IncomeOilController extends Controller
 
             $income = IncomeOil::create($payload);
 
-            // increase account quantity
             $account->quantity = bcadd((string)$account->quantity, (string)$payload['oil_quantity'], 3);
             $account->save();
 
@@ -129,15 +245,12 @@ class IncomeOilController extends Controller
         $payload = $request->validated();
 
         $updated = DB::transaction(function () use ($payload, $income_oil) {
-            // revert previous account effect
             $oldAccount = OilAccount::lockForUpdate()->findOrFail($income_oil->oil_account_id);
             $oldAccount->quantity = bcsub((string)$oldAccount->quantity, (string)$income_oil->oil_quantity, 3);
             $oldAccount->save();
 
-            // apply new payload
             $income_oil->update($payload);
 
-            // apply new effect (same record's oil_account_id/oil_quantity after update)
             $newAccount = OilAccount::lockForUpdate()->findOrFail($income_oil->oil_account_id);
             $newAccount->quantity = bcadd((string)$newAccount->quantity, (string)$income_oil->oil_quantity, 3);
             $newAccount->save();
@@ -161,7 +274,6 @@ class IncomeOilController extends Controller
         return response()->noContent();
     }
 
-    // ✅ years endpoint for dropdown
     public function years()
     {
         return IncomeOil::query()

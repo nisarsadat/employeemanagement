@@ -1078,24 +1078,37 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     },
     // ====================== CAPTIVE DELIVERIES ======================
     // --- Captive Delivery list fetch (you already have this) ---
+    // ====================== CAPTIVE DELIVERIES ======================
     async FetchCaptiveDeliveriesData(params = {}) {
       this.loading = true;
 
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
+        const baseParams = buildListParams(this, params, {
           includeSearch: true,
           includePagination: true,
           includeDateFilter: false,
         });
 
+        const queryParams = {
+          ...baseParams,
+          stat: params.stat ?? 'all',
+
+          ...(params?.search !== undefined ? { search: params.search } : {}),
+          ...(params?.search_field !== undefined ? { search_field: params.search_field } : {}),
+          ...(params?.search_value !== undefined ? { search_value: params.search_value } : {}),
+
+          // related route/map filters
+          ...(params?.fifty_six_format_id !== undefined
+            ? { fifty_six_format_id: params.fifty_six_format_id }
+            : {}),
+          ...(params?.source !== undefined ? { source: params.source } : {}),
+          ...(params?.open !== undefined ? { open: params.open } : {}),
+        };
+
         const res = await axios.get('/captive-deliveries', {
-          params: {
-            ...queryParams,
-            stat: params.stat ?? 'all',
-            search_field: params.search_field ?? undefined,
-          },
+          params: queryParams,
         });
 
         applyPaginatedResponse(this, res, 'CaptiveDeliveries');
@@ -1123,20 +1136,37 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         this.loading = false;
       }
     },
+
+    async FetchCaptiveDeliveryFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get('/captive-deliveries/filter-options', {
+          params,
+        });
+
+        return data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        return { data: { options: [] } };
+      }
+    },
+
     async FetchCaptiveDeliveryData(id) {
       this.loading = true;
       try {
         const { data } = await axios.get(`captive-deliveries/${id}`);
 
-        // 🔹 Support BOTH shapes: { data: {...} } OR {...}
         const record = data?.data ?? data;
 
-        this.CaptiveDelivery = record; // 👈 store a SINGLE object
+        this.CaptiveDelivery = record;
         this.totalItems = 1;
       } finally {
         this.loading = false;
       }
     },
+
     async DeleteCaptiveDelivery(id) {
       try {
         await axios.delete(`/captive-deliveries/${id}`);
@@ -1156,7 +1186,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       try {
         setContentType('application/json');
 
-        const queryParams = buildListParams(this, params, {
+        const baseParams = buildListParams(this, params, {
           includeSearch: true,
           includePagination: false,
           includeDateFilter: false,
@@ -1164,9 +1194,11 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
 
         const res = await axios.get('/captive-deliveries/export/excel', {
           params: {
-            ...queryParams,
+            ...baseParams,
             stat: params.stat ?? 'all',
+            search: params.search ?? this.Search ?? '',
             search_field: params.search_field ?? undefined,
+            search_value: params.search_value ?? undefined,
             date_field: params.date_field ?? 'captive_date',
           },
           responseType: 'blob',
@@ -1187,14 +1219,13 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'دانلود اکسل ناکام شد'));
+        toast.error('دانلود اکسل ناکام شد');
         throw e;
       }
     },
-    // --- CREATE with progress ---
+
     async CreateCaptiveDelivery(formData, onProgress) {
       try {
-        // Let the browser set multipart boundary
         delete axios.defaults.headers.common['Content-Type'];
 
         const { data } = await axios.post(`/captive-deliveries`, formData, {
@@ -1217,7 +1248,6 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       }
     },
 
-    // --- UPDATE with progress ---
     async UpdateCaptiveDelivery(id, formDataOrJson, onProgress) {
       try {
         let res;
@@ -1250,7 +1280,6 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       }
     },
 
-    // --- ZIP download (already done for other modules; reuse for Captive) ---
     async DownloadCaptiveDeliveryZip(id, filename) {
       const res = await axios.get(`/captive-deliveries/${id}/documents/zip`, {
         responseType: 'blob',
@@ -1268,6 +1297,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       a.remove();
       URL.revokeObjectURL(url);
     },
+
     // ✅ Add THESE actions inside: actions: { ... }  (no design changes — same HTML/CSS you provided)
 
     escapeHtml(v) {

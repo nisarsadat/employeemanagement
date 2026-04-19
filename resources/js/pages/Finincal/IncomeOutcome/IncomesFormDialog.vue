@@ -59,7 +59,7 @@
               density="compact"
               variant="outlined"
               prepend-inner-icon="mdi-currency-usd"
-              :rules="[rules.requiredNumber]"
+              :rules="[rules.required]"
             />
 
             <!-- Received at with DateInput -->

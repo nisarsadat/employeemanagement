@@ -1,5 +1,10 @@
 <!-- src/pages/Oil/OilAccounts/OilAccountsIndex.vue -->
 <template>
+  <AppBar :title="t('حساب مالي')" @toggle-drawer="drawer = !drawer">
+    <template #actions>
+      <v-btn icon />
+    </template>
+  </AppBar>
   <v-container fluid class="pt-4" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- ✅ TOP SUMMARY CARDS (Finance style - on every page) -->
     <v-row class="mb-4" dense :dir="isRtl ? 'rtl' : 'ltr'">
@@ -8,7 +13,9 @@
           <div class="d-flex align-center justify-space-between">
             <div>
               <div class="text-caption text-medium-emphasis">{{ t('ټول مصرف') }}</div>
-              <div class="text-h6 font-weight-bold mt-1">{{ money(repo.summary?.totalExpense) }}</div>
+              <div class="text-h6 font-weight-bold mt-1">
+                {{ money(repo.summary?.totalExpense) }}
+              </div>
               <div class="text-caption mt-1">
                 {{ t('ریکارډونه') }}: <strong>{{ repo.summary?.expenseCount ?? 0 }}</strong>
               </div>
@@ -25,7 +32,9 @@
           <div class="d-flex align-center justify-space-between">
             <div>
               <div class="text-caption text-medium-emphasis">{{ t('ټول عاید') }}</div>
-              <div class="text-h6 font-weight-bold mt-1">{{ money(repo.summary?.totalIncome) }}</div>
+              <div class="text-h6 font-weight-bold mt-1">
+                {{ money(repo.summary?.totalIncome) }}
+              </div>
               <div class="text-caption mt-1">
                 {{ t('ریکارډونه') }}: <strong>{{ repo.summary?.incomeCount ?? 0 }}</strong>
               </div>
@@ -42,9 +51,12 @@
           <div class="d-flex align-center justify-space-between">
             <div>
               <div class="text-caption text-medium-emphasis">{{ t('ټول تېل (موجود)') }}</div>
-              <div class="text-h6 font-weight-bold mt-1">{{ liters(repo.summary?.totalOilQuantity) }}</div>
+              <div class="text-h6 font-weight-bold mt-1">
+                {{ liters(repo.summary?.totalOilQuantity) }}
+              </div>
               <div class="text-caption mt-1">
-                {{ t('حسابونه') }}: <strong>{{ repo.summary?.oilAccountsCount ?? repo.totalItems ?? 0 }}</strong>
+                {{ t('حسابونه') }}:
+                <strong>{{ repo.summary?.oilAccountsCount ?? repo.totalItems ?? 0 }}</strong>
               </div>
             </div>
             <v-avatar size="44" class="elevation-1">
@@ -56,7 +68,7 @@
     </v-row>
 
     <!-- ✅ Top Bar (Finance style: Search + Year + Month + Create) -->
-    <v-row class=" mb-4" dense>
+    <v-row class="mb-4" dense>
       <v-col cols="12" md="10">
         <v-text-field
           v-model.trim="repo.Search"
@@ -66,7 +78,12 @@
           density="compact"
           clearable
           @keyup.enter="applyFilters"
-          @click:clear="() => { repo.Search=''; applyFilters(); }"
+          @click:clear="
+            () => {
+              repo.Search = '';
+              applyFilters();
+            }
+          "
         />
       </v-col>
 
@@ -183,158 +200,160 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useOilRepository } from '@/stores/OilRepository'
-import OilAccountFormDialog from './OilAccountFormDialog.vue'
-import FilterableTable from '@/components/FilterableTable.vue'
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue'
-import GlobalPagination from '@/components/GlobalPagination.vue'
+  import { ref, reactive, computed, onMounted } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useOilRepository } from '@/stores/OilRepository';
+  import OilAccountFormDialog from './OilAccountFormDialog.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
+  import AppBar from '@/components/AppBar.vue';
+  const repo = useOilRepository();
+  const { t, locale } = useI18n();
+  const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
 
-const repo = useOilRepository()
-const { t, locale } = useI18n()
-const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''))
+  const monthOptions = computed(() => [
+    { title: t('جنوري'), value: 1 },
+    { title: t('فبروري'), value: 2 },
+    { title: t('مارچ'), value: 3 },
+    { title: t('اپریل'), value: 4 },
+    { title: t('می'), value: 5 },
+    { title: t('جون'), value: 6 },
+    { title: t('جولای'), value: 7 },
+    { title: t('اګست'), value: 8 },
+    { title: t('سپتمبر'), value: 9 },
+    { title: t('اکتوبر'), value: 10 },
+    { title: t('نومبر'), value: 11 },
+    { title: t('ډسمبر'), value: 12 },
+  ]);
 
-const monthOptions = computed(() => ([
-  { title: t('جنوري'), value: 1 },
-  { title: t('فبروري'), value: 2 },
-  { title: t('مارچ'), value: 3 },
-  { title: t('اپریل'), value: 4 },
-  { title: t('می'), value: 5 },
-  { title: t('جون'), value: 6 },
-  { title: t('جولای'), value: 7 },
-  { title: t('اګست'), value: 8 },
-  { title: t('سپتمبر'), value: 9 },
-  { title: t('اکتوبر'), value: 10 },
-  { title: t('نومبر'), value: 11 },
-  { title: t('ډسمبر'), value: 12 },
-]))
-
-function getRow(payload) {
-  return payload?.raw ?? payload
-}
-
-const headersFT = computed(() => [
-  { title: t('نوم'), key: 'name', sortable: false },
-  { title: t('موجوده مقدار (L)'), key: 'quantity', sortable: false },
-  { title: t('تفصیل'), key: 'details', sortable: false },
-])
-
-const rowsFT = computed(() => {
-  return (repo.OilAccounts || []).map((it, i) => ({
-    ...it,
-    index: i + 1,
-    name: it?.name ?? '',
-    quantity: qty(it?.quantity),
-    details: it?.details ?? '',
-  }))
-})
-
-const filters = []
-const topGroups = []
-
-const dialog = ref(false)
-const editMode = ref(false)
-
-const deleteDialog = ref(false)
-const deleteTarget = ref(null)
-
-const draft = reactive({ id: null, name: '', details: '' })
-
-const fetchAll = async () => {
-  await repo.FetchOilAccounts({ page: repo.page, itemsPerPage: repo.itemsPerPage })
-  if (repo.FetchOilSummary) await repo.FetchOilSummary()
-}
-
-const applyFilters = async () => {
-  repo.page = 1
-  await fetchAll()
-}
-
-const onPage = async (p) => {
-  repo.page = p || 1
-  await fetchAll()
-}
-
-const onItemsPerPage = async (pp) => {
-  repo.itemsPerPage = pp || 10
-  repo.page = 1
-  await fetchAll()
-}
-
-const openCreate = () => {
-  editMode.value = false
-  Object.assign(draft, { id: null, name: '', details: '' })
-  dialog.value = true
-}
-
-const startEdit = async (payload) => {
-  const row = getRow(payload)
-  const id = row?.id
-  if (!id) return
-
-  editMode.value = true
-  await repo.FetchOilAccount(id)
-
-  const d = repo.OilAccount || {}
-  Object.assign(draft, {
-    id: d.id ?? null,
-    name: d.name ?? '',
-    details: d.details ?? '',
-  })
-  dialog.value = true
-}
-
-const onSave = async (payload) => {
-  if (editMode.value && payload.id) await repo.UpdateOilAccount(payload.id, payload)
-  else await repo.CreateOilAccount(payload)
-
-  dialog.value = false
-  await fetchAll()
-}
-
-function openDeleteDialog(payload) {
-  const row = getRow(payload)
-  if (!row?.id) return
-  deleteTarget.value = row
-  deleteDialog.value = true
-}
-
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value
-  if (!row?.id) {
-    deleteDialog.value = false
-    deleteTarget.value = null
-    return
+  function getRow(payload) {
+    return payload?.raw ?? payload;
   }
 
-  try {
-    await repo.DeleteOilAccount(row.id)
-    await fetchAll()
-  } finally {
-    deleteDialog.value = false
-    deleteTarget.value = null
+  const headersFT = computed(() => [
+    { title: t('نوم'), key: 'name', sortable: false },
+    { title: t('موجوده مقدار (L)'), key: 'quantity', sortable: false },
+    { title: t('تفصیل'), key: 'details', sortable: false },
+  ]);
+
+  const rowsFT = computed(() => {
+    return (repo.OilAccounts || []).map((it, i) => ({
+      ...it,
+      index: i + 1,
+      name: it?.name ?? '',
+      quantity: qty(it?.quantity),
+      details: it?.details ?? '',
+    }));
+  });
+
+  const filters = [];
+  const topGroups = [];
+
+  const dialog = ref(false);
+  const editMode = ref(false);
+
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
+
+  const draft = reactive({ id: null, name: '', details: '' });
+
+  const fetchAll = async () => {
+    await repo.FetchOilAccounts({ page: repo.page, itemsPerPage: repo.itemsPerPage });
+    if (repo.FetchOilSummary) await repo.FetchOilSummary();
+  };
+
+  const applyFilters = async () => {
+    repo.page = 1;
+    await fetchAll();
+  };
+
+  const onPage = async (p) => {
+    repo.page = p || 1;
+    await fetchAll();
+  };
+
+  const onItemsPerPage = async (pp) => {
+    repo.itemsPerPage = pp || 10;
+    repo.page = 1;
+    await fetchAll();
+  };
+
+  const openCreate = () => {
+    editMode.value = false;
+    Object.assign(draft, { id: null, name: '', details: '' });
+    dialog.value = true;
+  };
+
+  const startEdit = async (payload) => {
+    const row = getRow(payload);
+    const id = row?.id;
+    if (!id) return;
+
+    editMode.value = true;
+    await repo.FetchOilAccount(id);
+
+    const d = repo.OilAccount || {};
+    Object.assign(draft, {
+      id: d.id ?? null,
+      name: d.name ?? '',
+      details: d.details ?? '',
+    });
+    dialog.value = true;
+  };
+
+  const onSave = async (payload) => {
+    if (editMode.value && payload.id) await repo.UpdateOilAccount(payload.id, payload);
+    else await repo.CreateOilAccount(payload);
+
+    dialog.value = false;
+    await fetchAll();
+  };
+
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
   }
-}
 
-const qty = (n) =>
-  Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    if (!row?.id) {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+      return;
+    }
 
-const money = (n) => Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })
-const liters = (n) =>
-  `${Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 3 })} L`
+    try {
+      await repo.DeleteOilAccount(row.id);
+      await fetchAll();
+    } finally {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+    }
+  }
 
-onMounted(async () => {
-  if (repo.FetchYears) await repo.FetchYears('oil-accounts')
-  await fetchAll()
-})
-  usePageRefresh('/app/finincalindex', fetchAll);
+  const qty = (n) =>
+    Number(n ?? 0).toLocaleString(undefined, {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3,
+    });
 
+  const money = (n) => Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  const liters = (n) =>
+    `${Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 3 })} L`;
+
+  onMounted(async () => {
+    if (repo.FetchYears) await repo.FetchYears('oil-accounts');
+    await fetchAll();
+  });
+  usePageRefresh('/app/finance/oil/accounts', fetchAll);
 </script>
 
 <style scoped>
-.icon-btn {
-  border-radius: 10px;
-}
+  .icon-btn {
+    border-radius: 10px;
+  }
 </style>

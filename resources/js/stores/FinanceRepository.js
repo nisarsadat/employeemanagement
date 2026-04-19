@@ -92,12 +92,11 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
   const incomes = ref([]);
   const income = ref(null);
   const incomesTotalItems = ref(0);
-
   const incomesPage = ref(1);
   const incomesPerPage = ref(10);
   const incomesSearch = ref('');
   const incomesAccountId = ref(null);
-
+  const incomesSearchValue = ref(null);
   const incomesYear = ref(null);
   const incomesMonth = ref(null);
 
@@ -114,6 +113,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
   const financesSearchField = ref(null);
   const financesAccountId = ref(null);
   const financesOfficeEmployeeId = ref(null);
+  const financesSearchValue = ref(null);
 
   const availableYears = ref([]);
   const yearsLoading = ref(false);
@@ -196,6 +196,8 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     page = incomesPage.value,
     perPage = incomesPerPage.value,
     search = incomesSearch.value,
+    search_field = null,
+    search_value = incomesSearchValue.value,
     account_id = incomesAccountId.value,
     year = incomesYear.value,
     month = incomesMonth.value,
@@ -205,6 +207,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
       incomesPage.value = page;
       incomesPerPage.value = perPage;
       incomesSearch.value = search;
+      incomesSearchValue.value = search_value ?? null;
       incomesAccountId.value = account_id ?? null;
       incomesYear.value = year ?? null;
       incomesMonth.value = month ?? null;
@@ -214,6 +217,8 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
           page,
           perPage,
           search,
+          search_field: search_field ?? undefined,
+          search_value: search_value ?? undefined,
           account_id: account_id ?? undefined,
           year: year ?? undefined,
           month: month ?? undefined,
@@ -226,6 +231,9 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     } finally {
       loading.value = false;
     }
+  }
+  async function FetchIncomeFilterOptions(params = {}) {
+    return await axios.get('/incomes/filter-options', { params });
   }
 
   async function FetchIncomeData(id) {
@@ -252,6 +260,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     incomesPage.value = 1;
     incomesPerPage.value = 10;
     incomesSearch.value = '';
+    incomesSearchValue.value = null;
     incomesAccountId.value = null;
     incomesYear.value = null;
     incomesMonth.value = null;
@@ -265,6 +274,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     perPage = financesPerPage.value,
     search = financesSearch.value,
     search_field = financesSearchField.value,
+    search_value = financesSearchValue.value,
     account_id = financesAccountId.value,
     office_employee_id = financesOfficeEmployeeId.value,
     year = financesYear.value,
@@ -277,6 +287,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
       financesPerPage.value = perPage;
       financesSearch.value = search;
       financesSearchField.value = search_field ?? null;
+      financesSearchValue.value = search_value ?? null;
       financesAccountId.value = account_id ?? null;
       financesOfficeEmployeeId.value = office_employee_id ?? null;
       financesYear.value = year ?? null;
@@ -288,6 +299,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
           perPage,
           search,
           search_field: search_field ?? undefined,
+          search_value: search_value ?? undefined,
           account_id: account_id ?? undefined,
           office_employee_id: office_employee_id ?? undefined,
           year: year ?? undefined,
@@ -313,7 +325,9 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
       loading.value = false;
     }
   }
-
+  async function FetchFinanceFilterOptions(params = {}) {
+    return await axios.get('/finances/filter-options', { params });
+  }
   async function FetchFinanceDateOptions(params = {}) {
     return await axios.get('/finances/date-options', { params });
   }
@@ -321,6 +335,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
   async function DownloadFinancesExcel({
     search = '',
     search_field = null,
+    search_value = null,
     account_id = null,
     office_employee_id = null,
     year = null,
@@ -332,6 +347,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
       params: {
         search,
         search_field,
+        search_value,
         account_id,
         office_employee_id,
         year,
@@ -368,7 +384,6 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
 
     return response;
   }
-
   async function FetchFinanceData(id) {
     const resp = await axios.get(`/finances/${id}`);
     finance.value = resp.data?.data ?? resp.data;
@@ -398,6 +413,7 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     financesOfficeEmployeeId.value = null;
     financesYear.value = null;
     financesMonth.value = null;
+    financesSearchValue.value = null;
 
     financesSummary.value = {
       total_balance_all_accounts: '0.00',
@@ -472,7 +488,8 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     UpdateIncome,
     DeleteIncome,
     ResetIncomesFilters,
-
+    incomesSearchValue,
+    FetchIncomeFilterOptions,
     // Finances
     finances,
     finance,
@@ -494,7 +511,8 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     UpdateFinance,
     DeleteFinance,
     ResetFinancesFilters,
-
+    financesSearchValue,
+    FetchFinanceFilterOptions,
     availableYears,
     yearsLoading,
     FetchYears,

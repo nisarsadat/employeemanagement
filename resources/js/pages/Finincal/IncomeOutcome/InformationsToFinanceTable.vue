@@ -1,4 +1,9 @@
 <template>
+  <AppBar :title="t('حساب مالي')" @toggle-drawer="drawer = !drawer">
+    <template #actions>
+      <v-btn icon />
+    </template>
+  </AppBar>
   <div class="pa-4">
     <v-card rounded="xl" class="pa-4">
       <div class="d-flex align-center justify-space-between mb-3">
@@ -94,6 +99,8 @@
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import FinanceFormDialog from './FinancesFormDialog.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
+  import AppBar from '@/components/AppBar.vue';
+import { useI18n } from 'vue-i18n';
 
   const dbRepo = useDatabaseRepository();
   const financeDialog = ref(false);
@@ -103,6 +110,7 @@
   const totalItems = ref(Number(dbRepo.totalItems || 0));
 
   const itemsPerPageOptions = [5, 10, 20, 50, 100];
+const { t, locale } = useI18n();
 
   const headers = [
     { title: 'ID', key: 'id', sortable: true },
@@ -151,13 +159,7 @@
     });
 
     totalItems.value =
-      Number(
-        res?.meta?.total ??
-          res?.total ??
-          dbRepo.totalItems ??
-          dbRepo.meta?.total ??
-          0
-      ) || 0;
+      Number(res?.meta?.total ?? res?.total ?? dbRepo.totalItems ?? dbRepo.meta?.total ?? 0) || 0;
   }
 
   function onOptionsChange(options) {

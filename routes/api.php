@@ -485,11 +485,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('wakilanos', WakilanoController::class);
 
     // ---------------------- Finance ----------------------
+    Route::get('expense-oils/filter-options', [ExpenseOilController::class, 'filterOptions']);
+    Route::get('incomes/filter-options', [IncomeController::class, 'filterOptions']);
     Route::get('/accounts/date-options', [AccountController::class, 'dateOptions']);
     Route::get('/accounts/years', [AccountController::class, 'years']);
 
     Route::get('/incomes/years', [IncomeController::class, 'years']);
 
+    Route::get('finances/filter-options', [FinanceController::class, 'filterOptions']);
     Route::get('/finances/years', [FinanceController::class, 'years']);
     Route::get('/finances/date-options', [FinanceController::class, 'dateOptions']);
     Route::get('/finances/export/excel', [FinanceController::class, 'exportExcel']);

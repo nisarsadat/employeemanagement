@@ -103,6 +103,18 @@ const SuperMarkets = () => import('@/pages/FiftyFormats/SuperMarket.vue');
 // Finance
 const finincalIndex = () => import('@/pages/Finincal/finincalIndex.vue');
 
+// Finance
+const FinincalHome = () => import('@/pages/Finincal/finincalIndex.vue');
+const AccountsIndex = () => import('@/pages/Finincal/Accounts/AccountsIndex.vue');
+const EventsToFinanceTable = () =>
+  import('@/pages/Finincal/IncomeOutcome/EventsToFinanceTable.vue');
+const InformationsToFinanceTable = () =>
+  import('@/pages/Finincal/IncomeOutcome/InformationsToFinanceTable.vue');
+const IncomesIndex = () => import('@/pages/Finincal/IncomeOutcome/IncomesIndex.vue');
+const Finances = () => import('@/pages/Finincal/IncomeOutcome/Finances.vue');
+const OilIndex = () => import('@/pages/Finincal/oil/oilIndex.vue');
+const OilIncomeIndex = () => import('@/pages/Finincal/oil/oilIncomeIndex.vue');
+const OilExpenseIndex = () => import('@/pages/Finincal/oil/expenseOil.vue');
 // Inline info
 const Inlineinfoindex = () => import('@/pages/InlineInfo/inlineinfoindex.vue');
 const ResourceInfo = () => import('@/pages/InlineInfo/ResourceInfo.vue');
@@ -1429,9 +1441,59 @@ const router = createRouter({
         },
 
         // Finance
+        // Finance
         {
           path: 'finincalindex',
-          component: finincalIndex,
+          name: 'finincalindex',
+          component: FinincalHome,
+          meta: { requiresAuth: true, perm: permFor('finincalindex') },
+        },
+        {
+          path: 'finance/accounts',
+          name: 'FinanceAccounts',
+          component: AccountsIndex,
+          meta: { requiresAuth: true, perm: permFor('finincalindex') },
+        },
+        {
+          path: 'finance/messages/events',
+          name: 'FinanceEventsMessages',
+          component: EventsToFinanceTable,
+          meta: { requiresAuth: true, perm: permFor('finincalindex') },
+        },
+        {
+          path: 'finance/messages/informations',
+          name: 'FinanceInformationsMessages',
+          component: InformationsToFinanceTable,
+          meta: { requiresAuth: true, perm: permFor('finincalindex') },
+        },
+        {
+          path: 'finance/cashflow/income',
+          name: 'FinanceIncome',
+          component: IncomesIndex,
+          meta: { requiresAuth: true, perm: permFor('finincalindex') },
+        },
+        {
+          path: 'finance/cashflow/expense',
+          name: 'FinanceExpense',
+          component: Finances,
+          meta: { requiresAuth: true, perm: permFor('finincalindex') },
+        },
+        {
+          path: 'finance/oil/accounts',
+          name: 'FinanceOilAccounts',
+          component: OilIndex,
+          meta: { requiresAuth: true, perm: permFor('finincalindex') },
+        },
+        {
+          path: 'finance/oil/income',
+          name: 'FinanceOilIncome',
+          component: OilIncomeIndex,
+          meta: { requiresAuth: true, perm: permFor('finincalindex') },
+        },
+        {
+          path: 'finance/oil/expense',
+          name: 'FinanceOilExpense',
+          component: OilExpenseIndex,
           meta: { requiresAuth: true, perm: permFor('finincalindex') },
         },
 

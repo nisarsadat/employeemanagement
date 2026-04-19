@@ -1,5 +1,10 @@
 <!-- src/pages/Incomes/IncomesIndex.vue -->
 <template>
+  <AppBar :title="t('حساب مالي')" @toggle-drawer="drawer = !drawer">
+    <template #actions>
+      <v-btn icon />
+    </template>
+  </AppBar>
   <v-container fluid class="pt-6 page-bg" :dir="rtl ? 'rtl' : 'ltr'">
     <!-- ✅ SAME SUMMARY CARDS (localized) -->
     <v-row class="mb-4" dense>
@@ -62,65 +67,29 @@
     <v-card rounded="xl" class="shadow-sm mb-4 filters-card">
       <v-card-text class="pa-4">
         <v-row dense class="align-center">
-          <!-- Search -->
+          <!-- Search Column Filter -->
           <v-col cols="12" md="8" lg="8">
-            <v-text-field
-              v-model="repo.incomesSearch"
-              :label="t('common.search')"
-              density="comfortable"
-              variant="outlined"
-              rounded="lg"
-              prepend-inner-icon="mdi-magnify"
-              clearable
-              hide-details="auto"
-              class="filter-input"
-              @keyup.enter="applyFilters"
-              @click:clear="clearSearch"
+            <SearchColumnFilter
+              v-model:modelSearch="repo.incomesSearch"
+              v-model:modelColumn="incomesSearchField"
+              v-model:modelSelectedValue="selectedColumnValue"
+              :headers="headersFT"
+              :search-label="t('common.search')"
+              :column-label="t('ستون جستجو')"
+              :all-columns-label="t('همه ستون‌ها')"
+              :value-label="t('ارزش ستون')"
+              :exclude-keys="[]"
+              :fetch-column-values="fetchColumnValues"
+              @search="applyFilters"
+              @clearSearch="clearSearch"
+              @clearSelectedValue="clearSelectedValue"
             />
           </v-col>
-
-          <!-- Year/Month -->
-          <!-- <v-col cols="12" md="4" lg="4">
-            <div class="d-flex ga-2 flex-wrap">
-              <v-select
-                v-model="selectedYear"
-                :items="yearItems"
-                item-title="title"
-                item-value="value"
-                :label="t('common.year')"
-                density="comfortable"
-                variant="outlined"
-                rounded="lg"
-                clearable
-                hide-details="auto"
-                class="filter-input"
-                prepend-inner-icon="mdi-calendar"
-                @update:modelValue="onYearMonthChanged"
-              />
-
-              <v-select
-                v-model="selectedMonth"
-                :items="monthOptions"
-                item-title="title"
-                item-value="value"
-                :label="t('common.month')"
-                density="comfortable"
-                variant="outlined"
-                rounded="lg"
-                clearable
-                hide-details="auto"
-                class="filter-input"
-                prepend-inner-icon="mdi-calendar-month"
-                :disabled="!selectedYear"
-                @update:modelValue="onYearMonthChanged"
-              />
-            </div>
-          </v-col> -->
 
           <!-- Actions -->
           <v-col cols="12" md="4" lg="4" class="d-flex justify-end">
             <div class="d-flex ga-2 flex-wrap w-100 justify-end">
-              <!-- <v-btn
+              <v-btn
                 variant="tonal"
                 color="primary"
                 class="text-none"
@@ -138,7 +107,7 @@
                 @click="resetFilters"
               >
                 {{ t('common.resetFilters') }}
-              </v-btn> -->
+              </v-btn>
 
               <v-btn color="success" class="text-none" prepend-icon="mdi-plus" @click="openCreate">
                 {{ t('incomes.actions.create') }}
@@ -166,6 +135,30 @@
                 closable
               >
                 {{ repo.incomesSearch }}
+              </v-chip>
+
+              <v-chip
+                v-if="normalizedSearchField"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-table-column"
+                closable
+                @click:close="clearSelectedValue"
+              >
+                {{
+                  headersFT.find((h) => h.key === normalizedSearchField)?.title ?? normalizedSearchField
+                }}
+              </v-chip>
+
+              <v-chip
+                v-if="normalizedSearchValue"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-filter-outline"
+                closable
+                @click:close="clearSelectedValue"
+              >
+                {{ normalizedSearchValue }}
               </v-chip>
 
               <v-chip
@@ -272,6 +265,9 @@
   import IncomeFormDialog from './IncomesFormDialog.vue';
   import { useFinanceRepository } from '@/stores/FinanceRepository';
   import { useCalendar } from '../../../../composables/useCalendar';
+  import AppBar from '@/components/AppBar.vue';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
+  import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
 
   const { t } = useI18n();
 
@@ -284,6 +280,9 @@
   const deleteDialog = ref(false);
   const deleteTarget = ref(null);
 
+  const incomesSearchField = ref(null);
+  const selectedColumnValue = ref(null);
+
   function getRow(payload) {
     return payload?.raw ?? payload;
   }
@@ -295,6 +294,20 @@
     { title: t('incomes.table.receivedAt'), key: 'received_at', sortable: true },
     { title: t('incomes.table.note'), key: 'note', sortable: false },
   ]);
+
+  const normalizedSearchField = computed(() => {
+    const v = incomesSearchField.value;
+    if (!v) return null;
+    if (typeof v === 'string') return v;
+    return v.key ?? v.value ?? null;
+  });
+
+  const normalizedSearchValue = computed(() => {
+    const v = selectedColumnValue.value;
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof v === 'string' || typeof v === 'number') return v;
+    return v.value ?? v.title ?? null;
+  });
 
   const rowsFT = computed(() => {
     const startIndex = (repo.incomesPage - 1) * repo.incomesPerPage;
@@ -349,18 +362,38 @@
   const { yearItemsFromGregorianYears } = useCalendar();
   const yearItems = computed(() => yearItemsFromGregorianYears(repo.availableYears, 'fa'));
 
+  async function fetchColumnValues(field, q = '') {
+    try {
+      const normalizedField =
+        typeof field === 'string' ? field : field?.key ?? field?.value ?? null;
+
+      if (!normalizedField) return [];
+
+      const res = await repo.FetchIncomeFilterOptions?.({
+        field: normalizedField,
+        q,
+      });
+
+      return res?.data?.data?.options || [];
+    } catch (e) {
+      console.error('fetchColumnValues error', e);
+      return [];
+    }
+  }
+
   function fetchAll() {
     repo.FetchIncomesData({
       page: repo.incomesPage,
       perPage: repo.incomesPerPage,
       search: repo.incomesSearch,
+      search_field: normalizedSearchField.value,
+      search_value: normalizedSearchValue.value,
       account_id: repo.incomesAccountId,
       year: selectedYear.value,
       month: selectedMonth.value,
     });
   }
 
-  // ✅ cards follow filters
   function refreshCardsWithFilters() {
     repo.FetchFinancesData({
       year: selectedYear.value,
@@ -384,7 +417,16 @@
 
   function clearSearch() {
     repo.incomesSearch = '';
-    applyFilters();
+    repo.incomesPage = 1;
+    fetchAll();
+    refreshCardsWithFilters();
+  }
+
+  function clearSelectedValue() {
+    selectedColumnValue.value = null;
+    repo.incomesPage = 1;
+    fetchAll();
+    refreshCardsWithFilters();
   }
 
   function clearYear() {
@@ -401,6 +443,9 @@
   function resetFilters() {
     selectedYear.value = null;
     selectedMonth.value = null;
+    incomesSearchField.value = null;
+    selectedColumnValue.value = null;
+
     if (typeof repo.ResetIncomesFilters === 'function') repo.ResetIncomesFilters();
     else {
       repo.incomesSearch = '';
@@ -474,6 +519,7 @@
     await repo.FetchYears('incomes');
     applyFilters();
   });
+  usePageRefresh('/app/finance/cashflow/income', fetchAll);
 </script>
 
 <style scoped>

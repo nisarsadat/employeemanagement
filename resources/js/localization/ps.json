@@ -5224,7 +5224,8 @@
       "employeePhone": "د کارمند تلیفون",
       "expenseReason": "د مصرف علت",
       "payer": "د پیسو ورکونکی",
-      "notes": "ملاحظات"
+      "notes": "ملاحظات",
+      "account": "د بودیجې نوعیت"
     },
     "export": {
       "title": "د اوپراتیفي پیسو د مصرفي جدول",
@@ -5245,7 +5246,8 @@
       "signTrusted": "د معتمد لاسلیک",
       "signManager": "د مدیر/آمر لاسلیک",
       "signChief": "د ریس لاسلیک",
-      "signAudit": "د اوپراتیفي تفتیش هیئت لاسلیک"
+      "signAudit": "د اوپراتیفي تفتیش هیئت لاسلیک",
+      "account": "د بودیجې نوعیت"
     }
   },
 
@@ -5279,9 +5281,17 @@
       "account": "حساب",
       "amount": "مبلغ",
       "receivedAt": "د پیسو د اخیستو نیټه",
-      "note": "ملاحظات"
+      "note": "ملاحظات",
+      "amount_by_word": "مبلغ په حروفو"
     }
   },
+  
+  "Money / Cash Finance": "نغدي / مالي حساب",
+  "Accounts, budget / income, and expenses": "حسابونه، بودیجه / عایدات، او مصارف",
+  "Oil Finance": "د تیلو مالي برخه",
+  "Oil accounts, oil income, and oil expenses": "د تیلو حسابونه، د تیلو داخل، او د تیلو مصارف",
+  "Messages": "پیغامونه",
+  "Information and event messages": "د اطلاعاتو او پیښو پیغامونه",
   "Report Notes": "د راپور ملاحظات",
   "Manage notes for reports": "د راپورونو لپاره ملاحظات مدیریت کړئ",
   "Manage notes for daily / weekly / monthly / quarter / yearly reports": "د ورځني، اوونیز، میاشتنۍ، رُبع‌وار او کلني راپورونو لپاره ملاحظات مدیریت کړئ",

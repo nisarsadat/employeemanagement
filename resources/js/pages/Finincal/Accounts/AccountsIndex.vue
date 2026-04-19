@@ -1,5 +1,10 @@
 <!-- src/pages/Accounts/AccountsIndex.vue -->
 <template>
+  <AppBar :title="t('حساب مالي')" @toggle-drawer="drawer = !drawer">
+    <template #actions>
+      <v-btn icon />
+    </template>
+  </AppBar>
   <v-container fluid class="pt-6 page-bg" :dir="rtl ? 'rtl' : 'ltr'">
     <!-- ✅ SUMMARY CARDS -->
     <v-row class="mb-4" dense>
@@ -267,8 +272,8 @@
   import { useFinanceRepository } from '@/stores/FinanceRepository';
   import { useCalendar } from '../../../../composables/useCalendar';
   import { usePageRefresh } from '@/composables/usePageRefresh';
+  import AppBar from '@/components/AppBar.vue';
 
-  usePageRefresh('/app/finincalindex', fetchAll);
   const { t } = useI18n();
 
   const rtl = ref(true);
@@ -460,6 +465,7 @@
     await repo.FetchYears('accounts');
     applyFilters();
   });
+  usePageRefresh('/app/finance/accounts', fetchAll);
 </script>
 
 <style scoped>

@@ -44,37 +44,46 @@ class ExpenseOilController extends Controller
         return in_array($field, $this->searchableColumns(), true) ? $field : null;
     }
 
-    private function applyExpenseOilSearch(Builder $query, string $search, ?string $searchField = null): Builder
-    {
-        if ($search === '') {
-            return $query;
-        }
-
+    private function applyExpenseOilSearch(
+        Builder $query,
+        string $search = '',
+        ?string $searchField = null,
+        string $searchValue = ''
+    ): Builder {
         $searchField = $this->resolveSearchField($searchField);
+        $value = trim($searchValue) !== '' ? trim($searchValue) : trim($search);
 
         if ($searchField) {
+            if ($value === '') {
+                return $query;
+            }
+
             switch ($searchField) {
                 case 'employee_code':
-                    $query->whereHas('employee', fn ($q) => $q->where('code_number', 'like', "%{$search}%"));
+                    $query->whereHas('employee', fn ($q) => $q->where('code_number', 'like', "%{$value}%"));
                     break;
 
                 case 'employee_name':
-                    $query->whereHas('employee', fn ($q) => $q->where('name', 'like', "%{$search}%"));
+                    $query->whereHas('employee', fn ($q) => $q->where('name', 'like', "%{$value}%"));
                     break;
 
                 case 'employee_phone':
-                    $query->whereHas('employee', fn ($q) => $q->where('phone_number', 'like', "%{$search}%"));
+                    $query->whereHas('employee', fn ($q) => $q->where('phone_number', 'like', "%{$value}%"));
                     break;
 
                 case 'account_name':
-                    $query->whereHas('account', fn ($q) => $q->where('name', 'like', "%{$search}%"));
+                    $query->whereHas('account', fn ($q) => $q->where('name', 'like', "%{$value}%"));
                     break;
 
                 default:
-                    $query->where($searchField, 'like', "%{$search}%");
+                    $query->where($searchField, 'like', "%{$value}%");
                     break;
             }
 
+            return $query;
+        }
+
+        if ($search === '') {
             return $query;
         }
 
@@ -98,6 +107,91 @@ class ExpenseOilController extends Controller
         });
 
         return $query;
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = $this->resolveSearchField($request->query('field'));
+        $q = trim((string) $request->query('q', ''));
+
+        if (!$field) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $options = match ($field) {
+            'employee_code' => DB::table('expense_oils')
+            ->join('office_employees', 'expense_oils.employee_id', '=', 'office_employees.id')
+            ->select('office_employees.code_number as value')
+            ->whereNotNull('office_employees.code_number')
+            ->where('office_employees.code_number', '!=', '')
+            ->when($q !== '', fn ($query) => $query->where('office_employees.code_number', 'like', "%{$q}%"))
+            ->distinct()
+            ->orderBy('office_employees.code_number')
+            ->limit(50)
+            ->pluck('value'),
+
+          
+            'employee_name' => DB::table('expense_oils')
+                ->join('office_employees', 'expense_oils.employee_id', '=', 'office_employees.id')
+                ->select('office_employees.name as value')
+                ->whereNotNull('office_employees.name')
+                ->where('office_employees.name', '!=', '')
+                ->when($q !== '', fn ($query) => $query->where('office_employees.name', 'like', "%{$q}%"))
+                ->distinct()
+                ->orderBy('office_employees.name')
+                ->limit(50)
+                ->pluck('value'),
+
+           
+                'employee_phone' => DB::table('expense_oils')
+                ->join('office_employees', 'expense_oils.employee_id', '=', 'office_employees.id')
+                ->select('office_employees.phone_number as value')
+                ->whereNotNull('office_employees.phone_number')
+                ->where('office_employees.phone_number', '!=', '')
+                ->when($q !== '', fn ($query) => $query->where('office_employees.phone_number', 'like', "%{$q}%"))
+                ->distinct()
+                ->orderBy('office_employees.phone_number')
+                ->limit(50)
+                ->pluck('value'),
+
+          
+                'account_name' => DB::table('expense_oils')
+                ->join('oil_accounts', 'expense_oils.oil_account_id', '=', 'oil_accounts.id')
+                ->select('oil_accounts.name as value')
+                ->whereNotNull('oil_accounts.name')
+                ->where('oil_accounts.name', '!=', '')
+                ->when($q !== '', fn ($query) => $query->where('oil_accounts.name', 'like', "%{$q}%"))
+                ->distinct()
+                ->orderBy('oil_accounts.name')
+                ->limit(50)
+                ->pluck('value'),
+
+            default => ExpenseOil::query()
+                ->select($field . ' as value')
+                ->whereNotNull($field)
+                ->where($field, '!=', '')
+                ->when($q !== '', fn ($query) => $query->where($field, 'like', "%{$q}%"))
+                ->distinct()
+                ->orderBy($field)
+                ->limit(50)
+                ->pluck('value'),
+        };
+
+        return response()->json([
+            'data' => [
+                'options' => collect($options)
+                    ->filter(fn ($value) => $value !== null && trim((string) $value) !== '')
+                    ->map(fn ($value) => [
+                        'title' => (string) $value,
+                        'value' => (string) $value,
+                    ])
+                    ->values(),
+            ],
+        ]);
     }
 
     private function gregorianToJalali(int $gy, int $gm, int $gd): array
@@ -264,6 +358,7 @@ class ExpenseOilController extends Controller
             'page'           => ['nullable', 'integer', 'min:1'],
             'search'         => ['nullable', 'string'],
             'search_field'   => ['nullable', 'string'],
+            'search_value'   => ['nullable', 'string'],
             'oil_account_id' => ['nullable', 'integer', 'exists:oil_accounts,id'],
             'employee_id'    => ['nullable', 'integer', 'exists:office_employees,id'],
             'year'           => ['nullable', 'integer', 'min:1', 'max:2500'],
@@ -275,6 +370,7 @@ class ExpenseOilController extends Controller
         $page    = (int) ($request->get('page', 1));
         $search  = trim((string) $request->get('search', ''));
         $searchField = $this->resolveSearchField($request->get('search_field'));
+        $searchValue = trim((string) $request->get('search_value', ''));
 
         $year  = $request->filled('year') ? (int) $request->get('year') : null;
         $month = $request->filled('month') ? (int) $request->get('month') : null;
@@ -289,7 +385,7 @@ class ExpenseOilController extends Controller
 
         $baseQuery = ExpenseOil::query();
 
-        $this->applyExpenseOilSearch($baseQuery, $search, $searchField);
+        $this->applyExpenseOilSearch($baseQuery, $search, $searchField, $searchValue);
 
         if (is_numeric($accountId) && (int) $accountId > 0) {
             $baseQuery->where('oil_account_id', (int) $accountId);
@@ -303,6 +399,8 @@ class ExpenseOilController extends Controller
 
         $hasAnyFilter =
             ($search !== '') ||
+            ($searchField !== null) ||
+            ($searchValue !== '') ||
             ($year !== null) ||
             ($month !== null) ||
             (is_numeric($accountId) && (int) $accountId > 0) ||
@@ -349,7 +447,7 @@ class ExpenseOilController extends Controller
             ])
             ->orderByDesc('id');
 
-        $this->applyExpenseOilSearch($q, $search, $searchField);
+        $this->applyExpenseOilSearch($q, $search, $searchField, $searchValue);
 
         if (is_numeric($accountId) && (int) $accountId > 0) {
             $q->where('oil_account_id', (int) $accountId);
@@ -458,6 +556,7 @@ class ExpenseOilController extends Controller
     {
         $search = trim((string) $request->get('search', ''));
         $searchField = $this->resolveSearchField($request->get('search_field'));
+        $searchValue = trim((string) $request->get('search_value', ''));
 
         $year  = $request->filled('year') ? (int) $request->get('year') : null;
         $month = $request->filled('month') ? (int) $request->get('month') : null;
@@ -476,6 +575,7 @@ class ExpenseOilController extends Controller
             new ExpenseOilsExport(
                 $search,
                 $searchField,
+                $searchValue,
                 $year,
                 $month,
                 $accountId,

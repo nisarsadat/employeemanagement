@@ -22,42 +22,40 @@ class CaptiveDeliveryController extends Controller
     private function searchableColumns(): array
     {
         return [
-             'name',
-        'father_name',
-        'grand_father_name',
-        'nickname',
-        'tazkira',
-        'age',
-        'halat_madani',
-        'criminal_history',
-        'old_job',
-        'new_job',
-        'language',
-        'picture',
-        'scientific_level',
-        'main_province',
-        'main_district',
-        'main_village',
-        'now_province',
-        'now_district',
-        'now_village',
-        'captive_place',
-        'coordinates',
-        'captive_marja',
-        'captive_date',
-        'captive_hour',
-        'suspect_type',
-        'phone_number',
-        'captive_halat',
-        'suspect_tools',
-        'notes',
-        'captive_reason',
-        'taslimi_warkawonky_person',
-        'taslimi_akhistonky_person',
-        'taslimi_akhistonky_organ',
-        'maznonyat_type',
-        'Province_addr',
-        'picture',
+            'name',
+            'father_name',
+            'grand_father_name',
+            'nickname',
+            'tazkira',
+            'age',
+            'halat_madani',
+            'criminal_history',
+            'old_job',
+            'new_job',
+            'language',
+            'scientific_level',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_district',
+            'now_village',
+            'captive_place',
+            'coordinates',
+            'captive_marja',
+            'captive_date',
+            'captive_hour',
+            'suspect_type',
+            'phone_number',
+            'captive_halat',
+            'suspect_tools',
+            'notes',
+            'captive_reason',
+            'taslimi_warkawonky_person',
+            'taslimi_akhistonky_person',
+            'taslimi_akhistonky_organ',
+            'maznonyat_type',
+            'Province_addr',
         ];
     }
 
@@ -199,6 +197,9 @@ class CaptiveDeliveryController extends Controller
             'search_field' => 'nullable|string',
             'search_value' => 'nullable|string',
             'stat' => 'nullable|string|in:all,spy,saeen,sharFasad,today',
+            'fifty_six_format_id' => 'nullable',
+            'source' => 'nullable|string',
+            'open' => 'nullable|string',
         ]);
 
         $search = $request->input('search');
@@ -207,11 +208,19 @@ class CaptiveDeliveryController extends Controller
         $stat = $request->input('stat', 'all');
         $rawPerPage = $request->input('perPage', null);
         $page = (int) $request->input('page', 1);
+        $fiftySixFormatId = $request->input('fifty_six_format_id');
 
         $cardCounts = $this->buildCardCounts($search, $searchField, $searchValue);
 
         $query = $this->baseListQuery();
         $this->applyCommonFilters($query, $search, $searchField, $searchValue, $stat);
+
+        $query->when(
+            is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0,
+            function (Builder $q) use ($fiftySixFormatId) {
+                $q->where('id', (int) $fiftySixFormatId);
+            }
+        );
 
         $query->latest('id');
 
@@ -490,6 +499,7 @@ class CaptiveDeliveryController extends Controller
         $request->validate([
             'search' => 'nullable|string',
             'search_field' => 'nullable|string',
+            'search_value' => 'nullable|string',
             'stat' => 'nullable|string|in:all,spy,saeen,sharFasad,today',
             'date_field' => 'nullable|string|in:captive_date,created_at,updated_at',
         ]);
@@ -498,6 +508,7 @@ class CaptiveDeliveryController extends Controller
             new CaptiveDeliveriesExport(
                 search: $request->input('search'),
                 searchField: $request->input('search_field'),
+                searchValue: $request->input('search_value'),
                 stat: $request->input('stat', 'all'),
                 dateField: $request->input('date_field', 'captive_date'),
             ),

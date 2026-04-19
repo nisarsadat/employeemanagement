@@ -22,25 +22,30 @@ class CaptiveDeliveriesExport implements FromQuery, WithHeadings, WithMapping, W
 
     protected ?string $search;
     protected ?string $searchField;
+    protected ?string $searchValue;
     protected string $stat;
     protected string $dateField;
 
+   
     public function __construct(
-        ?string $search = null,
-        ?string $searchField = null,
-        ?string $stat = 'all',
-        ?string $dateField = 'captive_date'
-    ) {
-        $this->search = trim((string) $search) ?: null;
-        $this->searchField = trim((string) $searchField) ?: null;
-        $this->stat = in_array($stat, ['all', 'spy', 'saeen', 'sharFasad', 'today'], true)
-            ? $stat
-            : 'all';
+    ?string $search = null,
+    ?string $searchField = null,
+    ?string $searchValue = null,
+    ?string $stat = 'all',
+    ?string $dateField = 'captive_date'
+) {
+    $this->search = trim((string) $search) ?: null;
+    $this->searchField = trim((string) $searchField) ?: null;
+    $this->searchValue = trim((string) $searchValue) ?: null;
 
-        $this->dateField = in_array($dateField, ['captive_date', 'created_at', 'updated_at'], true)
-            ? $dateField
-            : 'captive_date';
-    }
+    $this->stat = in_array($stat, ['all', 'spy', 'saeen', 'sharFasad', 'today'], true)
+        ? $stat
+        : 'all';
+
+    $this->dateField = in_array($dateField, ['captive_date', 'created_at', 'updated_at'], true)
+        ? $dateField
+        : 'captive_date';
+}
 
     private function searchableColumns(): array
     {
@@ -130,22 +135,32 @@ class CaptiveDeliveriesExport implements FromQuery, WithHeadings, WithMapping, W
                 'created_at',
                 'updated_at',
             ])
-            ->when($this->search, function (Builder $q) use ($searchField) {
-                if ($searchField) {
-                    $q->where($searchField, 'like', '%' . $this->search . '%');
-                    return;
-                }
+            ->when(
+    $searchField,
+    function (Builder $q) use ($searchField) {
+        $value = $this->searchValue !== null && $this->searchValue !== ''
+            ? $this->searchValue
+            : $this->search;
 
-                $q->where(function (Builder $sub) {
-                    foreach ($this->searchableColumns() as $index => $column) {
-                        if ($index === 0) {
-                            $sub->where($column, 'like', '%' . $this->search . '%');
-                        } else {
-                            $sub->orWhere($column, 'like', '%' . $this->search . '%');
-                        }
-                    }
-                });
-            })
+        if ($value !== null && $value !== '') {
+            $q->where($searchField, 'like', '%' . $value . '%');
+        }
+    }
+)
+->when(
+    !$searchField && $this->search,
+    function (Builder $q) {
+        $q->where(function (Builder $sub) {
+            foreach ($this->searchableColumns() as $index => $column) {
+                if ($index === 0) {
+                    $sub->where($column, 'like', '%' . $this->search . '%');
+                } else {
+                    $sub->orWhere($column, 'like', '%' . $this->search . '%');
+                }
+            }
+        });
+    }
+)
             ->when($this->stat === 'spy', function (Builder $q) {
                 $q->where(function (Builder $sub) {
                     $sub->where('maznonyat_type', 'جاسوسی')

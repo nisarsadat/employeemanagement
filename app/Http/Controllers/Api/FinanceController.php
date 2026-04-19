@@ -47,45 +47,54 @@ class FinanceController extends Controller
         return in_array($field, $this->searchableColumns(), true) ? $field : null;
     }
 
-    private function applyFinanceSearch(Builder $query, string $search, ?string $searchField = null): Builder
-    {
-        if ($search === '') {
-            return $query;
-        }
-
+    private function applyFinanceSearch(
+        Builder $query,
+        string $search = '',
+        ?string $searchField = null,
+        string $searchValue = ''
+    ): Builder {
         $searchField = $this->resolveSearchField($searchField);
+        $value = trim($searchValue) !== '' ? trim($searchValue) : trim($search);
 
         if ($searchField) {
+            if ($value === '') {
+                return $query;
+            }
+
             switch ($searchField) {
                 case 'employee_code':
-                    $query->whereHas('officeEmployee', fn ($q) => $q->where('code_number', 'like', "%{$search}%"));
+                    $query->whereHas('officeEmployee', fn ($q) => $q->where('code_number', 'like', "%{$value}%"));
                     break;
 
                 case 'employee_name':
-                    $query->whereHas('officeEmployee', fn ($q) => $q->where('name', 'like', "%{$search}%"));
+                    $query->whereHas('officeEmployee', fn ($q) => $q->where('name', 'like', "%{$value}%"));
                     break;
 
                 case 'resource_nick_name':
-                    $query->whereHas('resource', fn ($q) => $q->where('nick_name', 'like', "%{$search}%"));
+                    $query->whereHas('resource', fn ($q) => $q->where('nick_name', 'like', "%{$value}%"));
                     break;
 
                 case 'source_code':
-                    $query->whereHas('resource', fn ($q) => $q->where('code_number', 'like', "%{$search}%"));
+                    $query->whereHas('resource', fn ($q) => $q->where('code_number', 'like', "%{$value}%"));
                     break;
 
                 case 'employee_phone':
-                    $query->whereHas('officeEmployee', fn ($q) => $q->where('phone_number', 'like', "%{$search}%"));
+                    $query->whereHas('officeEmployee', fn ($q) => $q->where('phone_number', 'like', "%{$value}%"));
                     break;
 
                 case 'account_name':
-                    $query->whereHas('account', fn ($q) => $q->where('name', 'like', "%{$search}%"));
+                    $query->whereHas('account', fn ($q) => $q->where('name', 'like', "%{$value}%"));
                     break;
 
                 default:
-                    $query->where($searchField, 'like', "%{$search}%");
+                    $query->where($searchField, 'like', "%{$value}%");
                     break;
             }
 
+            return $query;
+        }
+
+        if (trim($search) === '') {
             return $query;
         }
 
@@ -114,6 +123,132 @@ class FinanceController extends Controller
         });
 
         return $query;
+    }
+
+    public function filterOptions(Request $request)
+    {
+        $field = $this->resolveSearchField($request->query('field'));
+        $q = trim((string) $request->query('q', ''));
+
+        if (!$field) {
+            return response()->json([
+                'data' => [
+                    'options' => [],
+                ],
+            ]);
+        }
+
+        $options = match ($field) {
+           
+
+        'employee_code' => DB::table('finances')
+            ->join('office_employees', 'finances.office_employee_id', '=', 'office_employees.id')
+            ->select('office_employees.code_number as value')
+            ->whereNotNull('office_employees.code_number')
+            ->where('office_employees.code_number', '!=', '')
+            ->when($q !== '', fn ($query) => $query->where('office_employees.code_number', 'like', "%{$q}%"))
+            ->distinct()
+            ->orderBy('office_employees.code_number')
+            ->limit(50)
+            ->pluck('value'),
+
+        'employee_name' => DB::table('finances')
+            ->join('office_employees', 'finances.office_employee_id', '=', 'office_employees.id')
+            ->select('office_employees.name as value')
+            ->whereNotNull('office_employees.name')
+            ->where('office_employees.name', '!=', '')
+            ->when($q !== '', fn ($query) => $query->where('office_employees.name', 'like', "%{$q}%"))
+            ->distinct()
+            ->orderBy('office_employees.name')
+            ->limit(50)
+            ->pluck('value'),
+
+        'employee_phone' => DB::table('finances')
+            ->join('office_employees', 'finances.office_employee_id', '=', 'office_employees.id')
+            ->select('office_employees.phone_number as value')
+            ->whereNotNull('office_employees.phone_number')
+            ->where('office_employees.phone_number', '!=', '')
+            ->when($q !== '', fn ($query) => $query->where('office_employees.phone_number', 'like', "%{$q}%"))
+            ->distinct()
+            ->orderBy('office_employees.phone_number')
+            ->limit(50)
+            ->pluck('value'),
+
+        'resource_nick_name' => DB::table('finances')
+            ->join('resources', 'finances.resource_id', '=', 'resources.id')
+            ->select('resources.nick_name as value')
+            ->whereNotNull('resources.nick_name')
+            ->where('resources.nick_name', '!=', '')
+            ->when($q !== '', fn ($query) => $query->where('resources.nick_name', 'like', "%{$q}%"))
+            ->distinct()
+            ->orderBy('resources.nick_name')
+            ->limit(50)
+            ->pluck('value'),
+
+        'source_code' => DB::table('finances')
+            ->join('resources', 'finances.resource_id', '=', 'resources.id')
+            ->select('resources.code_number as value')
+            ->whereNotNull('resources.code_number')
+            ->where('resources.code_number', '!=', '')
+            ->when($q !== '', fn ($query) => $query->where('resources.code_number', 'like', "%{$q}%"))
+            ->distinct()
+            ->orderBy('resources.code_number')
+            ->limit(50)
+            ->pluck('value'),
+
+        'account_name' => DB::table('finances')
+            ->join('accounts', 'finances.account_id', '=', 'accounts.id')
+            ->select('accounts.name as value')
+            ->whereNotNull('accounts.name')
+            ->where('accounts.name', '!=', '')
+            ->when($q !== '', fn ($query) => $query->where('accounts.name', 'like', "%{$q}%"))
+            ->distinct()
+            ->orderBy('accounts.name')
+            ->limit(50)
+            ->pluck('value'),
+
+            'account_name' => DB::table('accounts')
+                ->select('name as value')
+                ->whereNotNull('name')
+                ->where('name', '!=', '')
+                ->when($q !== '', fn ($query) => $query->where('name', 'like', "%{$q}%"))
+                ->distinct()
+                ->orderBy('name')
+                ->limit(50)
+                ->pluck('value'),
+
+            'employee_phone' => DB::table('office_employees')
+                ->select('phone_number as value')
+                ->whereNotNull('phone_number')
+                ->where('phone_number', '!=', '')
+                ->when($q !== '', fn ($query) => $query->where('phone_number', 'like', "%{$q}%"))
+                ->distinct()
+                ->orderBy('phone_number')
+                ->limit(50)
+                ->pluck('value'),
+
+            default => Finance::query()
+                ->select($field . ' as value')
+                ->whereNotNull($field)
+                ->where($field, '!=', '')
+                ->when($q !== '', fn ($query) => $query->where($field, 'like', "%{$q}%"))
+                ->distinct()
+                ->orderBy($field)
+                ->limit(50)
+                ->pluck('value'),
+        };
+
+        return response()->json([
+            'data' => [
+                'options' => collect($options)
+                    ->filter(fn ($value) => $value !== null && trim((string) $value) !== '')
+                    ->map(fn ($value) => [
+                        'title' => (string) $value,
+                        'value' => (string) $value,
+                    ])
+                    ->values(),
+            ],
+        ]);
     }
 
     private function gregorianToJalali(int $gy, int $gm, int $gd): array
@@ -280,6 +415,7 @@ class FinanceController extends Controller
             'page'               => ['nullable', 'integer', 'min:1'],
             'search'             => ['nullable', 'string'],
             'search_field'       => ['nullable', 'string'],
+            'search_value'       => ['nullable', 'string'],
             'account_id'         => ['nullable', 'integer', 'exists:accounts,id'],
             'office_employee_id' => ['nullable', 'integer', 'exists:office_employees,id'],
             'year'               => ['nullable', 'integer', 'min:1', 'max:2500'],
@@ -291,6 +427,7 @@ class FinanceController extends Controller
         $page    = (int) ($request->get('page', 1));
         $search  = trim((string) $request->get('search', ''));
         $searchField = $this->resolveSearchField($request->get('search_field'));
+        $searchValue = trim((string) $request->get('search_value', ''));
 
         $year  = $request->filled('year') ? (int) $request->get('year') : null;
         $month = $request->filled('month') ? (int) $request->get('month') : null;
@@ -305,7 +442,7 @@ class FinanceController extends Controller
 
         $baseQuery = Finance::query();
 
-        $this->applyFinanceSearch($baseQuery, $search, $searchField);
+        $this->applyFinanceSearch($baseQuery, $search, $searchField, $searchValue);
 
         if (is_numeric($accountId) && (int) $accountId > 0) {
             $baseQuery->where('account_id', (int) $accountId);
@@ -319,6 +456,8 @@ class FinanceController extends Controller
 
         $hasAnyFilter =
             ($search !== '') ||
+            ($searchField !== null) ||
+            ($searchValue !== '') ||
             ($year !== null) ||
             ($month !== null) ||
             (is_numeric($accountId) && (int) $accountId > 0) ||
@@ -389,7 +528,7 @@ class FinanceController extends Controller
             ])
             ->orderByDesc('id');
 
-        $this->applyFinanceSearch($q, $search, $searchField);
+        $this->applyFinanceSearch($q, $search, $searchField, $searchValue);
 
         if (is_numeric($accountId) && (int) $accountId > 0) {
             $q->where('account_id', (int) $accountId);
@@ -511,6 +650,7 @@ class FinanceController extends Controller
     {
         $search = trim((string) $request->get('search', ''));
         $searchField = $this->resolveSearchField($request->get('search_field'));
+        $searchValue = trim((string) $request->get('search_value', ''));
 
         $year  = $request->filled('year') ? (int) $request->get('year') : null;
         $month = $request->filled('month') ? (int) $request->get('month') : null;
@@ -529,6 +669,7 @@ class FinanceController extends Controller
             new FinancesExport(
                 $search,
                 $searchField,
+                $searchValue,
                 $year,
                 $month,
                 $accountId,

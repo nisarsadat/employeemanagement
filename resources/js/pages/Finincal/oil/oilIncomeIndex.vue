@@ -1,5 +1,10 @@
 <!-- src/pages/Oil/IncomeOils/IncomeOilsIndex.vue -->
 <template>
+  <AppBar :title="t('حساب مالي')" @toggle-drawer="drawer = !drawer">
+    <template #actions>
+      <v-btn icon />
+    </template>
+  </AppBar>
   <v-container fluid class="pt-4" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- ✅ TOP SUMMARY CARDS (Finance style - on every page) -->
     <v-row class="mb-4" dense :dir="isRtl ? 'rtl' : 'ltr'">
@@ -8,7 +13,9 @@
           <div class="d-flex align-center justify-space-between">
             <div>
               <div class="text-caption text-medium-emphasis">{{ t('ټول مصرف') }}</div>
-              <div class="text-h6 font-weight-bold mt-1">{{ money(repo.summary?.totalExpense) }}</div>
+              <div class="text-h6 font-weight-bold mt-1">
+                {{ money(repo.summary?.totalExpense) }}
+              </div>
               <div class="text-caption mt-1">
                 {{ t('ریکارډونه') }}: <strong>{{ repo.summary?.expenseCount ?? 0 }}</strong>
               </div>
@@ -25,7 +32,9 @@
           <div class="d-flex align-center justify-space-between">
             <div>
               <div class="text-caption text-medium-emphasis">{{ t('ټول عاید') }}</div>
-              <div class="text-h6 font-weight-bold mt-1">{{ money(repo.summary?.totalIncome) }}</div>
+              <div class="text-h6 font-weight-bold mt-1">
+                {{ money(repo.summary?.totalIncome) }}
+              </div>
               <div class="text-caption mt-1">
                 {{ t('ریکارډونه') }}:
                 <strong>{{ repo.summary?.incomeCount ?? repo.totalItems ?? 0 }}</strong>
@@ -43,7 +52,9 @@
           <div class="d-flex align-center justify-space-between">
             <div>
               <div class="text-caption text-medium-emphasis">{{ t('ټول تېل (موجود)') }}</div>
-              <div class="text-h6 font-weight-bold mt-1">{{ liters(repo.summary?.totalOilQuantity) }}</div>
+              <div class="text-h6 font-weight-bold mt-1">
+                {{ liters(repo.summary?.totalOilQuantity) }}
+              </div>
               <div class="text-caption mt-1">
                 {{ t('حسابونه') }}: <strong>{{ repo.summary?.oilAccountsCount ?? 0 }}</strong>
               </div>
@@ -56,58 +67,27 @@
       </v-col>
     </v-row>
 
-    <!-- ✅ Top Bar (Finance style: Search + Year + Month + Create) -->
-    <v-row class=" mb-4" dense>
-      <v-col cols="12" md="10 ">
-        <v-text-field
-          v-model.trim="repo.Search"
-          :label="t('د راتلونکو تېلو لټون')"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          density="compact"
-          clearable
-          @keyup.enter="applyFilters"
-          @click:clear="
-            () => {
-              repo.Search = '';
-              applyFilters();
-            }
-          "
+    <!-- ✅ Top Bar -->
+    <v-row class="mb-4" dense>
+      <v-col cols="12" md="10">
+        <SearchColumnFilter
+          v-model:modelSearch="repo.Search"
+          v-model:modelColumn="searchField"
+          v-model:modelSelectedValue="selectedColumnValue"
+          :headers="headersFT"
+          :search-label="t('د راتلونکو تېلو لټون')"
+          :column-label="t('ستون جستجو')"
+          :all-columns-label="t('همه ستون‌ها')"
+          :value-label="t('ارزش ستون')"
+          :exclude-keys="[]"
+          :fetch-column-values="fetchColumnValues"
+          @search="applyFilters"
+          @clearSearch="clearSearch"
+          @clearSelectedValue="clearSelectedValue"
         />
       </v-col>
 
-      <!-- ✅ Year / Month (✅ same calendar-aware logic as Finances) -->
-      <!-- <v-col cols="12" md="3">
-        <v-select
-          v-model="selectedYear"
-          :items="yearItems"
-          item-title="title"
-          item-value="value"
-          :label="t('کال')"
-          variant="outlined"
-          density="compact"
-          clearable
-          :loading="repo.yearsLoading"
-          @update:modelValue="onYearMonthChanged"
-        />
-      </v-col>
-
-      <v-col cols="12" md="3">
-        <v-select
-          v-model="selectedMonth"
-          :items="monthOptions"
-          item-title="title"
-          item-value="value"
-          :label="t('میاشت')"
-          variant="outlined"
-          density="compact"
-          clearable
-          :disabled="!selectedYear"
-          @update:modelValue="onYearMonthChanged"
-        />
-      </v-col> -->
-
-      <v-col cols="12" md="2" class="text-md-right align-center  ">
+      <v-col cols="12" md="2" class="text-md-right align-center">
         <v-btn color="primary" class="mt-2" prepend-icon="mdi-plus" block @click="openCreate">
           {{ t('نوی د تيلو داخلول') }}
         </v-btn>
@@ -188,280 +168,359 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
+  import { ref, reactive, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import dayjs from 'dayjs';
+  import AppBar from '@/components/AppBar.vue';
 
-import { useOilRepository } from '@/stores/OilRepository'
-import IncomeOilFormDialog from './IncomeOilFormDialog.vue'
-import FilterableTable from '@/components/FilterableTable.vue'
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue'
-import GlobalPagination from '@/components/GlobalPagination.vue'
-import { useCalendar } from '../../../../composables/useCalendar'
+  import { useOilRepository } from '@/stores/OilRepository';
+  import IncomeOilFormDialog from './IncomeOilFormDialog.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
+  import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
+  import { useCalendar } from '../../../../composables/useCalendar';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
-const repo = useOilRepository()
-const { t, locale } = useI18n()
+  const repo = useOilRepository();
+  const { t, locale } = useI18n();
 
-/* ===== RTL ===== */
-const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''))
+  const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''));
 
-function getRow(payload) {
-  return payload?.raw ?? payload
-}
+  function getRow(payload) {
+    return payload?.raw ?? payload;
+  }
 
-/* ===== Calendar (same as Finances) ===== */
-const { calendar, formatYearDisplay, toIso } = useCalendar()
+  const { calendar, formatYearDisplay, toIso } = useCalendar();
 
-/* ===== Year/Month filters (values stay Gregorian) ===== */
-const selectedYear = ref(null)  // sent to backend (gregorian)
-const selectedMonth = ref(null) // sent to backend (gregorian 1..12)
+  const selectedYear = ref(null);
+  const selectedMonth = ref(null);
 
-/* ===== ✅ Year items from backend, titles follow calendar mode ===== */
-const yearItems = ref([])
-const yearNumbers = ref([])
+  const searchField = ref(null);
+  const selectedColumnValue = ref(null);
 
-function rebuildYearItems() {
-  if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return
-  yearItems.value = yearNumbers.value.map((y) => ({
-    value: y,
-    title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
-  }))
-}
+  const normalizedSearchField = computed(() => {
+    const v = searchField.value;
+    if (!v) return null;
+    if (typeof v === 'string') return v;
+    return v.key ?? v.value ?? null;
+  });
 
-async function fetchYearItemsFromRepo() {
-  const years = Array.isArray(repo.availableYears) ? repo.availableYears : []
-  yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n))
-  rebuildYearItems()
-}
+  const normalizedSearchValue = computed(() => {
+    const v = selectedColumnValue.value;
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof v === 'string' || typeof v === 'number') return v;
+    return v.value ?? v.title ?? null;
+  });
 
-/* update year titles when calendar/locale changes (selected value stays same) */
-watch([calendar, locale], () => rebuildYearItems())
+  const yearItems = ref([]);
+  const yearNumbers = ref([]);
 
-/* ===== ✅ Month titles follow calendar mode, values stay gregorian 1..12 ===== */
-const JALALI_MONTHS_FA = ['حمل', 'ثور', 'جوزا', 'سرطان', 'اسد', 'سنبله', 'میزان', 'عقرب', 'قوس', 'جدی', 'دلو', 'حوت']
+  function rebuildYearItems() {
+    if (!Array.isArray(yearNumbers.value) || yearNumbers.value.length === 0) return;
+    yearItems.value = yearNumbers.value.map((y) => ({
+      value: y,
+      title: typeof formatYearDisplay === 'function' ? formatYearDisplay(y) : String(y),
+    }));
+  }
 
-const HIJRI_QAMARI_MONTHS_FA = [
-  'محرم',
-  'صفر',
-  'ربیع‌الاول',
-  'ربیع‌الثانی',
-  'جمادی‌الاول',
-  'جمادی‌الثانی',
-  'رجب',
-  'شعبان',
-  'رمضان',
-  'شوال',
-  'ذوالقعده',
-  'ذوالحجه',
-]
+  async function fetchYearItemsFromRepo() {
+    const years = Array.isArray(repo.availableYears) ? repo.availableYears : [];
+    yearNumbers.value = years.map((y) => Number(y)).filter((n) => Number.isFinite(n));
+    rebuildYearItems();
+  }
 
-function monthTitleFromGregorianMonth(gYear, gMonth) {
-  const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`
+  watch([calendar, locale], () => rebuildYearItems());
 
-  if (calendar.value === 'gregorian') {
+  const JALALI_MONTHS_FA = [
+    'حمل',
+    'ثور',
+    'جوزا',
+    'سرطان',
+    'اسد',
+    'سنبله',
+    'میزان',
+    'عقرب',
+    'قوس',
+    'جدی',
+    'دلو',
+    'حوت',
+  ];
+
+  const HIJRI_QAMARI_MONTHS_FA = [
+    'محرم',
+    'صفر',
+    'ربیع‌الاول',
+    'ربیع‌الثانی',
+    'جمادی‌الاول',
+    'جمادی‌الثانی',
+    'رجب',
+    'شعبان',
+    'رمضان',
+    'شوال',
+    'ذوالقعده',
+    'ذوالحجه',
+  ];
+
+  function monthTitleFromGregorianMonth(gYear, gMonth) {
+    const iso = `${gYear || dayjs().year()}-${String(gMonth).padStart(2, '0')}-15`;
+
+    if (calendar.value === 'gregorian') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt);
+      } catch {
+        return String(gMonth);
+      }
+    }
+
+    if (calendar.value === 'jalali') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        const fmt = new Intl.DateTimeFormat(locale.value, {
+          calendar: 'persian',
+          month: 'numeric',
+        });
+        const parts = fmt.formatToParts(dt);
+        const m = Number(parts.find((p) => p.type === 'month')?.value);
+        if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1];
+      } catch {}
+      return JALALI_MONTHS_FA[(gMonth - 1) % 12];
+    }
+
+    if (calendar.value === 'hijri') {
+      try {
+        const dt = new Date(iso + 'T00:00:00');
+        const fmt = new Intl.DateTimeFormat('ar', {
+          calendar: 'islamic-umalqura',
+          month: 'numeric',
+        });
+        const parts = fmt.formatToParts(dt);
+        const m = Number(parts.find((p) => p.type === 'month')?.value);
+        if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1];
+      } catch {}
+      return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12];
+    }
+
+    return String(gMonth);
+  }
+
+  const monthOptions = computed(() => {
+    const y = selectedYear.value || dayjs().year();
+    return Array.from({ length: 12 }).map((_, i) => {
+      const m = i + 1;
+      return { value: m, title: monthTitleFromGregorianMonth(y, m) };
+    });
+  });
+
+  function onYearMonthChanged() {
+    if (!selectedYear.value) selectedMonth.value = null;
+    applyFilters();
+  }
+
+  const headersFT = computed(() => [
+    { title: t('حساب'), key: 'account_name', sortable: false },
+    { title: t('مقدار (L)'), key: 'oil_quantity', sortable: false },
+    { title: t('د تیلو د عاید نیټه'), key: 'date', sortable: false },
+    { title: t('سرچینه'), key: 'source', sortable: false },
+    { title: t('یادونه'), key: 'note', sortable: false },
+  ]);
+
+  async function fetchColumnValues(field, q = '') {
     try {
-      const dt = new Date(iso + 'T00:00:00')
-      return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(dt)
-    } catch {
-      return String(gMonth)
+      const normalizedField =
+        typeof field === 'string' ? field : field?.key ?? field?.value ?? null;
+
+      if (!normalizedField) return [];
+
+      const res = await repo.FetchIncomeOilFilterOptions?.({
+        field: normalizedField,
+        q,
+      });
+
+      return res?.data?.data?.options || [];
+    } catch (e) {
+      console.error('fetchColumnValues error', e);
+      return [];
     }
   }
 
-  if (calendar.value === 'jalali') {
-    try {
-      const dt = new Date(iso + 'T00:00:00')
-      const fmt = new Intl.DateTimeFormat(locale.value, { calendar: 'persian', month: 'numeric' })
-      const parts = fmt.formatToParts(dt)
-      const m = Number(parts.find((p) => p.type === 'month')?.value)
-      if (m >= 1 && m <= 12) return JALALI_MONTHS_FA[m - 1]
-    } catch {}
-    return JALALI_MONTHS_FA[(gMonth - 1) % 12]
-  }
+  const qty = (n) => Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 3 });
 
-  if (calendar.value === 'hijri') {
-    try {
-      const dt = new Date(iso + 'T00:00:00')
-      const fmt = new Intl.DateTimeFormat('ar', { calendar: 'islamic-umalqura', month: 'numeric' })
-      const parts = fmt.formatToParts(dt)
-      const m = Number(parts.find((p) => p.type === 'month')?.value)
-      if (m >= 1 && m <= 12) return HIJRI_QAMARI_MONTHS_FA[m - 1]
-    } catch {}
-    return HIJRI_QAMARI_MONTHS_FA[(gMonth - 1) % 12]
-  }
+  const rowsFT = computed(() => {
+    return (repo.IncomeOils || []).map((it, i) => ({
+      ...it,
+      idOrTmp: it?.id ?? `tmp-${i}`,
+      index: i + 1,
+      oil_quantity: qty(it?.oil_quantity),
+      account_name: it?.account?.name ?? '—',
+      account: it?.account?.name ?? '—',
+      date: it?.date ?? null,
+      source: it?.source ?? '',
+      note: it?.note ?? '',
+      raw: it,
+    }));
+  });
 
-  return String(gMonth)
-}
+  const filters = [];
+  const topGroups = [];
 
-const monthOptions = computed(() => {
-  const y = selectedYear.value || dayjs().year()
-  return Array.from({ length: 12 }).map((_, i) => {
-    const m = i + 1
-    return { value: m, title: monthTitleFromGregorianMonth(y, m) }
-  })
-})
+  const dialog = ref(false);
+  const editMode = ref(false);
 
-function onYearMonthChanged() {
-  if (!selectedYear.value) selectedMonth.value = null
-  applyFilters()
-}
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
 
-/* ===== Headers / rows ===== */
-const headersFT = computed(() => [
-  { title: t('حساب'), key: 'account', sortable: false },
-  { title: t('مقدار (L)'), key: 'oil_quantity', sortable: false },
-  { title: t('د تیلو د عاید نیټه'), key: 'date', sortable: false },
-  { title: t('یادونه'), key: 'note', sortable: false },
-])
-
-const qty = (n) =>
-  Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 3 })
-
-// ✅ IMPORTANT: add idOrTmp + keep date RAW (let FilterableTable format it)
-const rowsFT = computed(() => {
-  return (repo.IncomeOils || []).map((it, i) => ({
-    ...it,
-    idOrTmp: it?.id ?? `tmp-${i}`,
-    index: i + 1,
-    oil_quantity: qty(it?.oil_quantity),
-    account: it?.account?.name ?? '—',
-    date: it?.date ?? null, // ✅ raw
-    note: it?.note ?? '',
-    raw: it,
-  }))
-})
-
-const filters = []
-const topGroups = []
-
-/* ===== Dialog / CRUD ===== */
-const dialog = ref(false)
-const editMode = ref(false)
-
-const deleteDialog = ref(false)
-const deleteTarget = ref(null)
-
-const draft = reactive({
-  id: null,
-  oil_account_id: null,
-  date: null,
-  oil_quantity: 0,
-  source: '',
-  note: '',
-})
-
-/* ===== Fetch / filters (✅ now includes search + year + month) ===== */
-const fetchAll = async () => {
-  await repo.FetchIncomeOils({
-    page: repo.page,
-    itemsPerPage: repo.itemsPerPage,
-    search: repo.Search,
-    year: selectedYear.value,
-    month: selectedMonth.value,
-  })
-  if (repo.FetchOilSummary) await repo.FetchOilSummary()
-}
-
-const applyFilters = async () => {
-  repo.page = 1
-  await fetchAll()
-}
-
-const handlePageChange = async (p) => {
-  repo.page = p || 1
-  await fetchAll()
-}
-
-const handlePerPageChange = async (pp) => {
-  repo.itemsPerPage = pp || 10
-  repo.page = 1
-  await fetchAll()
-}
-
-const openCreate = () => {
-  editMode.value = false
-  Object.assign(draft, {
+  const draft = reactive({
     id: null,
     oil_account_id: null,
     date: null,
     oil_quantity: 0,
     source: '',
     note: '',
-  })
-  dialog.value = true
-}
+  });
 
-const startEdit = async (payload) => {
-  const row = getRow(payload)
-  const id = row?.id
-  if (!id) return
+  const fetchAll = async () => {
+    await repo.FetchIncomeOils({
+      page: repo.page,
+      itemsPerPage: repo.itemsPerPage,
+      search: repo.Search,
+      search_field: normalizedSearchField.value,
+      search_value: normalizedSearchValue.value,
+      year: selectedYear.value,
+      month: selectedMonth.value,
+    });
+    if (repo.FetchOilSummary) await repo.FetchOilSummary();
+  };
 
-  editMode.value = true
-  await repo.FetchIncomeOil(id)
+  const applyFilters = async () => {
+    repo.page = 1;
+    await fetchAll();
+  };
 
-  const d = repo.IncomeOil || {}
-  Object.assign(draft, {
-    id: d.id ?? null,
-    oil_account_id: d.oil_account_id ?? d.account?.id ?? null,
-    date: d.date ?? null,
-    oil_quantity: d.oil_quantity ?? 0,
-    source: d.source ?? '',
-    note: d.note ?? '',
-  })
-
-  dialog.value = true
-}
-
-const onSave = async (payload) => {
-  if (payload?.date) payload.date = toIso(payload.date)
-
-  if (editMode.value && payload.id) await repo.UpdateIncomeOil(payload.id, payload)
-  else await repo.CreateIncomeOil(payload)
-
-  dialog.value = false
-  await fetchAll()
-}
-
-function openDeleteDialog(payload) {
-  const row = getRow(payload)
-  if (!row?.id) return
-  deleteTarget.value = row
-  deleteDialog.value = true
-}
-
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value
-  if (!row?.id) {
-    deleteDialog.value = false
-    deleteTarget.value = null
-    return
+  function clearSearch() {
+    repo.Search = '';
+    repo.page = 1;
+    fetchAll();
   }
 
-  try {
-    await repo.DeleteIncomeOil(row.id)
-    await fetchAll()
-  } finally {
-    deleteDialog.value = false
-    deleteTarget.value = null
+  function clearSelectedValue() {
+    selectedColumnValue.value = null;
+    repo.page = 1;
+    fetchAll();
   }
-}
-  usePageRefresh('/app/finincalindex', fetchAll);
 
-/* ===== Formatters ===== */
-const money = (n) => Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })
-const liters = (n) =>
-  `${Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 3 })} L`
+  const handlePageChange = async (p) => {
+    repo.page = p || 1;
+    await fetchAll();
+  };
 
-/* ===== Init ===== */
-onMounted(async () => {
-  if (repo.FetchYears) await repo.FetchYears('income-oils') // fills repo.availableYears
-  await fetchYearItemsFromRepo()
-  await fetchAll()
-})
+  const handlePerPageChange = async (pp) => {
+    repo.itemsPerPage = pp || 10;
+    repo.page = 1;
+    await fetchAll();
+  };
+
+  const openCreate = () => {
+    editMode.value = false;
+    Object.assign(draft, {
+      id: null,
+      oil_account_id: null,
+      date: null,
+      oil_quantity: 0,
+      source: '',
+      note: '',
+    });
+    dialog.value = true;
+  };
+
+  const startEdit = async (payload) => {
+    const row = getRow(payload);
+    const id = row?.id;
+    if (!id) return;
+
+    editMode.value = true;
+    await repo.FetchIncomeOil(id);
+
+    const d = repo.IncomeOil || {};
+    Object.assign(draft, {
+      id: d.id ?? null,
+      oil_account_id: d.oil_account_id ?? d.account?.id ?? null,
+      date: d.date ?? null,
+      oil_quantity: d.oil_quantity ?? 0,
+      source: d.source ?? '',
+      note: d.note ?? '',
+    });
+
+    dialog.value = true;
+  };
+
+  const onSave = async (payload) => {
+    if (payload?.date) payload.date = toIso(payload.date);
+
+    if (editMode.value && payload.id) await repo.UpdateIncomeOil(payload.id, payload);
+    else await repo.CreateIncomeOil(payload);
+
+    dialog.value = false;
+    await fetchAll();
+  };
+
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
+
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    if (!row?.id) {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+      return;
+    }
+
+    try {
+      await repo.DeleteIncomeOil(row.id);
+      await fetchAll();
+    } finally {
+      deleteDialog.value = false;
+      deleteTarget.value = null;
+    }
+  }
+
+  function resetFilters() {
+    selectedYear.value = null;
+    selectedMonth.value = null;
+    searchField.value = null;
+    selectedColumnValue.value = null;
+
+    repo.page = 1;
+    repo.itemsPerPage = 10;
+    repo.Search = '';
+    repo.searchField = null;
+    repo.searchValue = null;
+    repo.year = null;
+    repo.month = null;
+
+    applyFilters();
+  }
+
+  usePageRefresh('/app/finance/oil/income', fetchAll);
+
+  const money = (n) => Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  const liters = (n) =>
+    `${Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 3 })} L`;
+
+  onMounted(async () => {
+    if (repo.FetchYears) await repo.FetchYears('income-oils');
+    await fetchYearItemsFromRepo();
+    await fetchAll();
+  });
 </script>
 
 <style scoped>
-.icon-btn {
-  border-radius: 10px;
-}
+  .icon-btn {
+    border-radius: 10px;
+  }
 </style>

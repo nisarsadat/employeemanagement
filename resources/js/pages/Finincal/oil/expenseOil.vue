@@ -1,4 +1,9 @@
 <template>
+  <AppBar :title="t('حساب مالي')" @toggle-drawer="drawer = !drawer">
+    <template #actions>
+      <v-btn icon />
+    </template>
+  </AppBar>
   <v-container fluid class="pt-6 page-bg" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- SUMMARY -->
     <v-row class="mb-4" dense>
@@ -61,37 +66,21 @@
     <v-card rounded="xl" class="shadow-sm mb-4 filters-card">
       <v-card-text class="pa-4">
         <v-row dense class="align-center">
-          <v-col cols="12" sm="12" md="3">
-            <v-select
-              v-model="searchField"
-              :items="searchColumnItems"
-              item-title="title"
-              item-value="value"
-              density="comfortable"
-              variant="outlined"
-              color="primary"
-              rounded="lg"
-              hide-details
-              clearable
-              :label="t('ستون جستجو')"
-              class="bg-white"
-            />
-          </v-col>
-
-          <v-col cols="12" sm="12" md="3">
-            <v-text-field
-              v-model.trim="repo.Search"
-              :label="t('common.search')"
-              density="comfortable"
-              prepend-inner-icon="mdi-magnify"
-              variant="outlined"
-              color="primary"
-              rounded="lg"
-              hide-details
-              clearable
-              @keyup.enter="applyFilters"
-              @click:clear="clearSearch"
-              class="bg-white search-field"
+          <v-col cols="12" sm="12" md="8">
+            <SearchColumnFilter
+              v-model:modelSearch="repo.Search"
+              v-model:modelColumn="searchField"
+              v-model:modelSelectedValue="selectedColumnValue"
+              :headers="headersFT"
+              :search-label="t('common.search')"
+              :column-label="t('ستون جستجو')"
+              :all-columns-label="t('همه ستون‌ها')"
+              :value-label="t('ارزش ستون')"
+              :exclude-keys="[]"
+              :fetch-column-values="fetchColumnValues"
+              @search="applyFilters"
+              @clearSearch="clearSearch"
+              @clearSelectedValue="clearSelectedValue"
             />
           </v-col>
 
@@ -127,7 +116,7 @@
             />
           </v-col>
 
-          <v-col cols="12" sm="4" md="1">
+          <v-col cols="12" sm="6" md="1">
             <v-btn
               color="primary"
               variant="flat"
@@ -141,7 +130,7 @@
             </v-btn>
           </v-col>
 
-          <v-col cols="12" sm="4" md="1">
+          <v-col cols="12" sm="6" md="1">
             <v-btn
               color="orange"
               rounded="lg"
@@ -195,6 +184,28 @@
                 @click:close="clearSearch"
               >
                 {{ repo.Search }}
+              </v-chip>
+
+              <v-chip
+                v-if="normalizedSearchField"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-table-column"
+                closable
+                @click:close="clearSelectedValue"
+              >
+                {{ headersFT.find((h) => h.key === normalizedSearchField)?.title ?? normalizedSearchField }}
+              </v-chip>
+
+              <v-chip
+                v-if="normalizedSearchValue"
+                size="small"
+                variant="tonal"
+                prepend-icon="mdi-filter-outline"
+                closable
+                @click:close="clearSelectedValue"
+              >
+                {{ normalizedSearchValue }}
               </v-chip>
 
               <v-chip
@@ -338,14 +349,15 @@ import ExpenseOilFormDialog from './ExpenseOilFormDialog.vue'
 import FilterableTable from '@/components/FilterableTable.vue'
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue'
 import GlobalPagination from '@/components/GlobalPagination.vue'
+import SearchColumnFilter from '@/components/SearchColumnFilter.vue'
 import { usePageRefresh } from '@/composables/usePageRefresh'
 import { useCalendar } from '../../../../composables/useCalendar'
+import AppBar from '@/components/AppBar.vue';
 
 const repo = useOilRepository()
 const { t, locale } = useI18n()
 
 const isRtl = computed(() => /^ps|^fa|^ar/i.test(locale.value || ''))
-
 
 const dialog = ref(false)
 const editMode = ref(false)
@@ -360,16 +372,28 @@ const excelDownloading = ref(false)
 const selectedYear = ref(null)
 const selectedMonth = ref(null)
 const searchField = ref(null)
+const selectedColumnValue = ref(null)
+
+const normalizedSearchField = computed(() => {
+  const v = searchField.value
+  if (!v) return null
+  if (typeof v === 'string') return v
+  return v.key ?? v.value ?? null
+})
+
+const normalizedSearchValue = computed(() => {
+  const v = selectedColumnValue.value
+  if (v === null || v === undefined || v === '') return null
+  if (typeof v === 'string' || typeof v === 'number') return v
+  return v.value ?? v.title ?? null
+})
 
 const yearItems = ref([])
 const monthItems = ref([])
 
-
 function getRow(payload) {
   return payload?.raw ?? payload
 }
-
-
 
 async function fetchYearItemsFromDb() {
   try {
@@ -407,38 +431,48 @@ watch(selectedYear, async (newYear) => {
 });
 
 const headersFT = computed(() => [
-  { title: t('کود کارمند'), key: 'officeemployee', sortable: false },
+  { title: t('کود کارمند'), key: 'employee_code', sortable: false },
   { title: t('نام'), key: 'name', sortable: false },
   { title: t('نام پدر'), key: 'father_name', sortable: false },
   { title: t('نیټه'), key: 'date', sortable: false },
   { title: t('لیټر په عدد'), key: 'liter_in_number', sortable: false },
   { title: t('لیټر په حروف'), key: 'liter_in_words', sortable: false },
-  { title: t('نوعیت'), key: 'account', sortable: false },
+  { title: t('نوعیت'), key: 'account_name', sortable: false },
   { title: t('تفصیل'), key: 'tafseel', sortable: false },
   { title: t('پرداخت کننده'), key: 'payer', sortable: false },
   { title: t('اخیستونکی لاسلیک'), key: '', sortable: false },
   { title: t('ملاحظات'), key: 'note', sortable: false },
 ])
 
-const searchColumnItems = computed(() => {
-  const items = headersFT.value
-    .filter((h) => h?.key)
-    .map((h) => ({
-      title: h.title,
-      value: h.key,
-    }))
+async function fetchColumnValues(field, q = '') {
+  try {
+    const normalizedField =
+      typeof field === 'string' ? field : field?.key ?? field?.value ?? null
 
-  return [{ title: t('همه ستون‌ها'), value: null }, ...items]
-})
+    if (!normalizedField) return []
+
+    const res = await repo.FetchExpenseOilFilterOptions?.({
+      field: normalizedField,
+      q,
+    })
+
+    return res?.data?.data?.options || []
+  } catch (e) {
+    console.error('fetchColumnValues error', e)
+    return []
+  }
+}
 
 const rowsFT = computed(() => {
   return (repo.ExpenseOils || []).map((it, i) => ({
     ...it,
     idOrTmp: it?.id ?? `tmp-${i}`,
     index: i + 1,
+    account_name: it?.account?.name ?? it?.account ?? '—',
     account: it?.account?.name ?? it?.account ?? '—',
     name: it?.name ?? '—',
     father_name: it?.father_name ?? '—',
+    employee_code: it?.employee?.code_number ?? it?.office_employee?.code_number ?? '—',
     officeemployee: it?.employee?.code_number ?? it?.office_employee?.code_number ?? '—',
     payer: it?.payer ?? '—',
     liter_in_number: litersRaw(it?.liter_in_number ?? it?.oil_quantity ?? 0),
@@ -458,6 +492,8 @@ const summary = computed(() => repo.summary || {})
 const hasAnyFilter = computed(() => {
   return !!(
     repo.Search ||
+    normalizedSearchField.value ||
+    normalizedSearchValue.value ||
     selectedYear.value ||
     selectedMonth.value ||
     summary.value?.has_filters
@@ -471,9 +507,7 @@ const totalExpenseCardValue = computed(() =>
 )
 
 const totalIncomeCardValue = computed(() =>
-  hasAnyFilter.value
-    ? summary.value?.total_income_quantity
-    : summary.value?.total_income_quantity
+  summary.value?.total_income_quantity
 )
 
 const balanceCardValue = computed(() =>
@@ -501,13 +535,14 @@ const fetchAll = async () => {
     page: repo.page,
     itemsPerPage: repo.itemsPerPage,
     search: repo.Search,
-    search_field: searchField.value,
+    search_field: normalizedSearchField.value,
+    search_value: normalizedSearchValue.value,
     year: selectedYear.value,
     month: selectedMonth.value,
   })
 }
 
-usePageRefresh('/app/finincalindex', fetchAll)
+usePageRefresh('/app/finance/oil/expense', fetchAll)
 
 function applyFilters() {
   repo.page = 1
@@ -516,6 +551,12 @@ function applyFilters() {
 
 function clearSearch() {
   repo.Search = ''
+  repo.page = 1
+  fetchAll()
+}
+
+function clearSelectedValue() {
+  selectedColumnValue.value = null
   repo.page = 1
   fetchAll()
 }
@@ -535,6 +576,7 @@ function resetFilters() {
   selectedYear.value = null
   selectedMonth.value = null
   searchField.value = null
+  selectedColumnValue.value = null
 
   if (typeof repo.ResetExpenseOilsFilters === 'function') {
     repo.ResetExpenseOilsFilters()
@@ -543,6 +585,7 @@ function resetFilters() {
     repo.itemsPerPage = 10
     repo.Search = ''
     repo.searchField = null
+    repo.searchValue = null
     repo.year = null
     repo.month = null
   }
@@ -599,9 +642,9 @@ const startEdit = async (payload) => {
   dialog.value = true
 }
 
-const onSave = async (payload) => {
-  if (payload?.date) payload.date = toIso(payload.date)
+const { toIso } = useCalendar()
 
+const onSave = async (payload) => {
   if (editMode.value && payload.id) await repo.UpdateExpenseOil(payload.id, payload)
   else await repo.CreateExpenseOil(payload)
 
@@ -652,7 +695,8 @@ async function downloadExcel() {
 
     await repo.DownloadExpenseOilsExcel({
       search: repo.Search || '',
-      search_field: searchField.value,
+      search_field: normalizedSearchField.value,
+      search_value: normalizedSearchValue.value,
       year: selectedYear.value,
       month: selectedMonth.value,
       onDownloadProgress: (progressEvent) => {
