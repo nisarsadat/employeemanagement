@@ -84,7 +84,6 @@ class IncomeOilController extends Controller
                 ->when($q !== '', fn ($query) => $query->where('oil_accounts.name', 'like', "%{$q}%"))
                 ->distinct()
                 ->orderBy('oil_accounts.name')
-                ->limit(50)
                 ->pluck('value'),
 
             default => IncomeOil::query()
@@ -94,7 +93,6 @@ class IncomeOilController extends Controller
                 ->when($q !== '', fn ($query) => $query->where($field, 'like', "%{$q}%"))
                 ->distinct()
                 ->orderBy($field)
-                ->limit(50)
                 ->pluck('value'),
         };
 

@@ -149,7 +149,6 @@ class FinanceController extends Controller
             ->when($q !== '', fn ($query) => $query->where('office_employees.code_number', 'like', "%{$q}%"))
             ->distinct()
             ->orderBy('office_employees.code_number')
-            ->limit(50)
             ->pluck('value'),
 
         'employee_name' => DB::table('finances')
@@ -160,7 +159,6 @@ class FinanceController extends Controller
             ->when($q !== '', fn ($query) => $query->where('office_employees.name', 'like', "%{$q}%"))
             ->distinct()
             ->orderBy('office_employees.name')
-            ->limit(50)
             ->pluck('value'),
 
         'employee_phone' => DB::table('finances')
@@ -171,7 +169,6 @@ class FinanceController extends Controller
             ->when($q !== '', fn ($query) => $query->where('office_employees.phone_number', 'like', "%{$q}%"))
             ->distinct()
             ->orderBy('office_employees.phone_number')
-            ->limit(50)
             ->pluck('value'),
 
         'resource_nick_name' => DB::table('finances')
@@ -182,7 +179,6 @@ class FinanceController extends Controller
             ->when($q !== '', fn ($query) => $query->where('resources.nick_name', 'like', "%{$q}%"))
             ->distinct()
             ->orderBy('resources.nick_name')
-            ->limit(50)
             ->pluck('value'),
 
         'source_code' => DB::table('finances')
@@ -193,7 +189,6 @@ class FinanceController extends Controller
             ->when($q !== '', fn ($query) => $query->where('resources.code_number', 'like', "%{$q}%"))
             ->distinct()
             ->orderBy('resources.code_number')
-            ->limit(50)
             ->pluck('value'),
 
         'account_name' => DB::table('finances')
@@ -204,7 +199,6 @@ class FinanceController extends Controller
             ->when($q !== '', fn ($query) => $query->where('accounts.name', 'like', "%{$q}%"))
             ->distinct()
             ->orderBy('accounts.name')
-            ->limit(50)
             ->pluck('value'),
 
             'account_name' => DB::table('accounts')
@@ -214,8 +208,7 @@ class FinanceController extends Controller
                 ->when($q !== '', fn ($query) => $query->where('name', 'like', "%{$q}%"))
                 ->distinct()
                 ->orderBy('name')
-                ->limit(50)
-                ->pluck('value'),
+                    ->pluck('value'),
 
             'employee_phone' => DB::table('office_employees')
                 ->select('phone_number as value')
@@ -224,8 +217,7 @@ class FinanceController extends Controller
                 ->when($q !== '', fn ($query) => $query->where('phone_number', 'like', "%{$q}%"))
                 ->distinct()
                 ->orderBy('phone_number')
-                ->limit(50)
-                ->pluck('value'),
+                    ->pluck('value'),
 
             default => Finance::query()
                 ->select($field . ' as value')
@@ -234,8 +226,7 @@ class FinanceController extends Controller
                 ->when($q !== '', fn ($query) => $query->where($field, 'like', "%{$q}%"))
                 ->distinct()
                 ->orderBy($field)
-                ->limit(50)
-                ->pluck('value'),
+                    ->pluck('value'),
         };
 
         return response()->json([

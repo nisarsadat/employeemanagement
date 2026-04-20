@@ -162,7 +162,6 @@ class HosppitalController extends Controller
 
         $options = $query
             ->distinct()
-            ->limit(50)
             ->pluck($field)
             ->filter(fn ($v) => $v !== null && trim((string) $v) !== '')
             ->values()

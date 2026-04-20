@@ -777,7 +777,6 @@ class InformationController extends Controller
             ->select($field)
             ->distinct()
             ->orderBy($field)
-            ->limit(100)
             ->pluck($field)
             ->map(fn ($value) => [
                 'title' => (string) $value,
