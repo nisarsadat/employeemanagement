@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\FormatZone;
 use App\Http\Resources\FormatZoneResource;
-use App\Http\Requests\StoreFormatZoneRequest;
-use App\Http\Requests\UpdateFormatZoneRequest;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\QueryException;
+use App\Models\FormatZone;
 use App\Services\NotificationService;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FormatZoneController extends Controller
 {
@@ -19,33 +17,38 @@ class FormatZoneController extends Controller
         $page    = $request->query('page');
         $perPage = $request->query('perPage', $request->query('per_page'));
 
-        $isValidPage    = is_numeric($page) && (int)$page > 0;
-        $isValidPerPage = is_numeric($perPage) && (int)$perPage > 0;
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
-        $search = trim((string)$request->query('search', ''));
+        $search = trim((string) $request->query('search', ''));
 
         $q = FormatZone::query()
-            ->when($search !== '', fn ($x) =>
-                $x->where('name', 'like', "%{$search}%")
-            )
+            ->when($search !== '', fn ($x) => $x->where('name', 'like', "%{$search}%"))
             ->orderByDesc('id');
 
         if ($isValidPage && $isValidPerPage) {
             return FormatZoneResource::collection(
-                $q->paginate((int)$perPage, ['*'], 'page', (int)$page)
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
             );
         }
 
         return FormatZoneResource::collection($q->get());
     }
 
-    public function store(StoreFormatZoneRequest $request)
+    public function store(Request $request)
     {
         $user = $request->user();
 
+        $data = $request->validate([
+            'name' => ['required', 'unique:format_zones,name'],
+        ], [
+            'name.required' => 'د فارمت زون نوم ضروري دی.',
+            'name.unique'   => 'دا د فارمت زون نوم له مخکې نه موجود دی.',
+        ]);
+
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $item = FormatZone::create($request->validated());
+            return DB::transaction(function () use ($data, $user) {
+                $item = FormatZone::create($data);
 
                 NotificationService::record(
                     $user,
@@ -62,12 +65,15 @@ class FormatZoneController extends Controller
                 return FormatZoneResource::make($item);
             });
         } catch (QueryException $e) {
-            if ((int)($e->errorInfo[1] ?? 0) === 1062) {
+            if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
                 return response()->json([
-                    'message' => 'دا نوم له مخکې نه موجود دی.',
-                    'errors'  => ['name' => ['دا نوم له مخکې نه موجود دی.']],
+                    'message' => 'دا د فارمت زون نوم له مخکې نه موجود دی.',
+                    'errors'  => [
+                        'name' => ['دا د فارمت زون نوم له مخکې نه موجود دی.'],
+                    ],
                 ], 422);
             }
+
             throw $e;
         }
     }
@@ -77,31 +83,51 @@ class FormatZoneController extends Controller
         return FormatZoneResource::make($formatZone);
     }
 
-    public function update(UpdateFormatZoneRequest $request, FormatZone $formatZone)
+    public function update(Request $request, FormatZone $formatZone)
     {
         $user = $request->user();
 
-        return DB::transaction(function () use ($request, $formatZone, $user) {
-            $old = $formatZone->name;
+        $data = $request->validate([
+            'name' => ['required', 'unique:format_zones,name,' . $formatZone->id],
+        ], [
+            'name.required' => 'د فارمت زون نوم ضروري دی.',
+            'name.unique'   => 'دا د فارمت زون نوم له مخکې نه موجود دی.',
+        ]);
 
-            $formatZone->update($request->validated());
+        try {
+            return DB::transaction(function () use ($data, $formatZone, $user) {
+                $old = $formatZone->name;
 
-            NotificationService::record(
-                $user,
-                module: 'فارمت زون',
-                action: 'updated',
-                title: 'ریکارډ اصلاح شو',
-                message: 'نوم: ' . $formatZone->name,
-                routeName: 'format-zones',
-                routeParams: ['id' => $formatZone->id],
-                level: 'info',
-                changes: [
-                    'name' => ['old' => $old, 'new' => $formatZone->name],
-                ]
-            );
+                $formatZone->update($data);
 
-            return FormatZoneResource::make($formatZone);
-        });
+                NotificationService::record(
+                    $user,
+                    module: 'فارمت زون',
+                    action: 'updated',
+                    title: 'ریکارډ اصلاح شو',
+                    message: 'نوم: ' . $formatZone->name,
+                    routeName: 'format-zones',
+                    routeParams: ['id' => $formatZone->id],
+                    level: 'info',
+                    changes: [
+                        'name' => ['old' => $old, 'new' => $formatZone->name],
+                    ]
+                );
+
+                return FormatZoneResource::make($formatZone);
+            });
+        } catch (QueryException $e) {
+            if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
+                return response()->json([
+                    'message' => 'دا د فارمت زون نوم له مخکې نه موجود دی.',
+                    'errors'  => [
+                        'name' => ['دا د فارمت زون نوم له مخکې نه موجود دی.'],
+                    ],
+                ], 422);
+            }
+
+            throw $e;
+        }
     }
 
     public function destroy(Request $request, FormatZone $formatZone)

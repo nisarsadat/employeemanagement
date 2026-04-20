@@ -39,12 +39,7 @@ class DistrictController extends Controller
     {
         $data = $request->validate([
             'province_id' => ['required', 'integer', 'exists:provinces,id'],
-            'name'        => ['required', 'string', 'max:190'],
-        ]);
-
-        // unique per province
-        $request->validate([
-            'name' => ['unique:districts,name,NULL,id,province_id,' . $data['province_id']],
+            'name'        => ['required', 'string', 'max:190', 'unique:districts,name'],
         ]);
 
         $district = District::create($data);
@@ -59,12 +54,7 @@ class DistrictController extends Controller
     {
         $data = $request->validate([
             'province_id' => ['required', 'integer', 'exists:provinces,id'],
-            'name'        => ['required', 'string', 'max:190'],
-        ]);
-
-        // unique per province (ignore current district)
-        $request->validate([
-            'name' => ['unique:districts,name,' . $district->id . ',id,province_id,' . $data['province_id']],
+            'name'        => ['required', 'string', 'max:190', 'unique:districts,name,' . $district->id],
         ]);
 
         $district->update($data);
@@ -76,6 +66,6 @@ class DistrictController extends Controller
     public function destroy(District $district): JsonResponse
     {
         $district->delete();
-        return response()->json(['message' => 'Deleted']);
+        return response()->json(['message' => 'حذف شوو']);
     }
 }

@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreResourceActivityTypeRequest;
-use App\Http\Requests\UpdateResourceActivityTypeRequest;
 use App\Http\Resources\ResourceActivityTypeResource;
 use App\Models\ResourceActivityType;
 use Illuminate\Http\Request;
@@ -31,9 +29,17 @@ class ResourceActivityTypeController extends Controller
         );
     }
 
-    public function store(StoreResourceActivityTypeRequest $request)
+    public function store(Request $request)
     {
-        $item = ResourceActivityType::create($request->validated());
+        $data = $request->validate([
+            'name' => ['required', 'unique:resource_activity_types,name'],
+        ], [
+            'name.required' => 'د فعالیت ډول نوم ضروري دی.',
+            'name.unique'   => 'دا د فعالیت ډول نوم مخکې نه ثبت شوی دی.',
+        ]);
+
+        $item = ResourceActivityType::create($data);
+
         return new ResourceActivityTypeResource($item);
     }
 
@@ -42,15 +48,23 @@ class ResourceActivityTypeController extends Controller
         return new ResourceActivityTypeResource($resourceActivityType);
     }
 
-    public function update(UpdateResourceActivityTypeRequest $request, ResourceActivityType $resourceActivityType)
+    public function update(Request $request, ResourceActivityType $resourceActivityType)
     {
-        $resourceActivityType->update($request->validated());
+        $data = $request->validate([
+            'name' => ['required', 'unique:resource_activity_types,name,' . $resourceActivityType->id],
+        ], [
+            'name.required' => 'د فعالیت ډول نوم ضروري دی.',
+            'name.unique'   => 'دا د فعالیت ډول نوم مخکې نه ثبت شوی دی.',
+        ]);
+
+        $resourceActivityType->update($data);
+
         return new ResourceActivityTypeResource($resourceActivityType);
     }
 
     public function destroy(ResourceActivityType $resourceActivityType)
     {
         $resourceActivityType->delete();
-        return response()->json(['message' => 'Deleted successfully']);
+        return response()->json(['message' => 'په بریالیتوب سره حذف شو.']);
     }
 }

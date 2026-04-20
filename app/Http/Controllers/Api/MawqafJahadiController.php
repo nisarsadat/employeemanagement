@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreMawqafJahadiRequest;
-use App\Http\Requests\UpdateMawqafJahadiRequest;
 use App\Http\Resources\MawqafJahadiResource;
 use App\Models\MawqafJahadi;
 use Illuminate\Http\Request;
@@ -31,9 +29,17 @@ class MawqafJahadiController extends Controller
         );
     }
 
-    public function store(StoreMawqafJahadiRequest $request)
+    public function store(Request $request)
     {
-        $item = MawqafJahadi::create($request->validated());
+        $data = $request->validate([
+            'name' => ['required', 'unique:mawqaf_jahadis,name'],
+        ], [
+            'name.required' => 'د موقف جهادي نوم ضروري دی.',
+            'name.unique'   => 'دا د موقف جهادي نوم مخکې نه ثبت شوی دی.',
+        ]);
+
+        $item = MawqafJahadi::create($data);
+
         return new MawqafJahadiResource($item);
     }
 
@@ -42,15 +48,23 @@ class MawqafJahadiController extends Controller
         return new MawqafJahadiResource($mawqafJahadi);
     }
 
-    public function update(UpdateMawqafJahadiRequest $request, MawqafJahadi $mawqafJahadi)
+    public function update(Request $request, MawqafJahadi $mawqafJahadi)
     {
-        $mawqafJahadi->update($request->validated());
+        $data = $request->validate([
+            'name' => ['required', 'unique:mawqaf_jahadis,name,' . $mawqafJahadi->id],
+        ], [
+            'name.required' => 'د موقف جهادي نوم ضروري دی.',
+            'name.unique'   => 'دا د موقف جهادي نوم مخکې نه ثبت شوی دی.',
+        ]);
+
+        $mawqafJahadi->update($data);
+
         return new MawqafJahadiResource($mawqafJahadi);
     }
 
     public function destroy(MawqafJahadi $mawqafJahadi)
     {
         $mawqafJahadi->delete();
-        return response()->json(['message' => 'Deleted successfully']);
+        return response()->json(['message' => 'په بریالیتوب سره حذف شو.']);
     }
 }

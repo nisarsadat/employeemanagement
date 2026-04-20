@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Models\DocsType;
 use App\Http\Resources\DocsTypeResource;
-use App\Http\Requests\StoreDocsTypeRequest;
-use App\Http\Requests\UpdateDocsTypeRequest;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\QueryException;
+use App\Models\DocsType;
 use App\Services\NotificationService;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DocsTypeController extends Controller
 {
@@ -19,33 +16,38 @@ class DocsTypeController extends Controller
         $page    = $request->query('page');
         $perPage = $request->query('perPage', $request->query('per_page'));
 
-        $isValidPage    = is_numeric($page) && (int)$page > 0;
-        $isValidPerPage = is_numeric($perPage) && (int)$perPage > 0;
+        $isValidPage    = is_numeric($page) && (int) $page > 0;
+        $isValidPerPage = is_numeric($perPage) && (int) $perPage > 0;
 
-        $search = trim((string)$request->query('search', ''));
+        $search = trim((string) $request->query('search', ''));
 
         $q = DocsType::query()
-            ->when($search !== '', fn ($x) =>
-                $x->where('name', 'like', "%{$search}%")
-            )
+            ->when($search !== '', fn ($x) => $x->where('name', 'like', "%{$search}%"))
             ->orderByDesc('id');
 
         if ($isValidPage && $isValidPerPage) {
             return DocsTypeResource::collection(
-                $q->paginate((int)$perPage, ['*'], 'page', (int)$page)
+                $q->paginate((int) $perPage, ['*'], 'page', (int) $page)
             );
         }
 
         return DocsTypeResource::collection($q->get());
     }
 
-    public function store(StoreDocsTypeRequest $request)
+    public function store(Request $request)
     {
         $user = $request->user();
 
+        $data = $request->validate([
+            'name' => ['required', 'unique:docs_types,name'],
+        ], [
+            'name.required' => 'د سند ډول نوم ضروري دی.',
+            'name.unique'   => 'دا د سند ډول نوم له مخکې نه موجود دی.',
+        ]);
+
         try {
-            return DB::transaction(function () use ($request, $user) {
-                $item = DocsType::create($request->validated());
+            return DB::transaction(function () use ($data, $user) {
+                $item = DocsType::create($data);
 
                 NotificationService::record(
                     $user,
@@ -62,12 +64,15 @@ class DocsTypeController extends Controller
                 return DocsTypeResource::make($item);
             });
         } catch (QueryException $e) {
-            if ((int)($e->errorInfo[1] ?? 0) === 1062) {
+            if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
                 return response()->json([
-                    'message' => 'دا نوم له مخکې نه موجود دی.',
-                    'errors'  => ['name' => ['دا نوم له مخکې نه موجود دی.']],
+                    'message' => 'دا د سند ډول نوم له مخکې نه موجود دی.',
+                    'errors'  => [
+                        'name' => ['دا د سند ډول نوم له مخکې نه موجود دی.'],
+                    ],
                 ], 422);
             }
+
             throw $e;
         }
     }
@@ -77,31 +82,51 @@ class DocsTypeController extends Controller
         return DocsTypeResource::make($docsType);
     }
 
-    public function update(UpdateDocsTypeRequest $request, DocsType $docsType)
+    public function update(Request $request, DocsType $docsType)
     {
         $user = $request->user();
 
-        return DB::transaction(function () use ($request, $docsType, $user) {
-            $old = $docsType->name;
+        $data = $request->validate([
+            'name' => ['required', 'unique:docs_types,name,' . $docsType->id],
+        ], [
+            'name.required' => 'د سند ډول نوم ضروري دی.',
+            'name.unique'   => 'دا د سند ډول نوم له مخکې نه موجود دی.',
+        ]);
 
-            $docsType->update($request->validated());
+        try {
+            return DB::transaction(function () use ($data, $docsType, $user) {
+                $old = $docsType->name;
 
-            NotificationService::record(
-                $user,
-                module: 'نوع سند',
-                action: 'updated',
-                title: 'ریکارډ اصلاح شو',
-                message: 'نوم: ' . $docsType->name,
-                routeName: 'docs-types',
-                routeParams: ['id' => $docsType->id],
-                level: 'info',
-                changes: [
-                    'name' => ['old' => $old, 'new' => $docsType->name],
-                ]
-            );
+                $docsType->update($data);
 
-            return DocsTypeResource::make($docsType);
-        });
+                NotificationService::record(
+                    $user,
+                    module: 'نوع سند',
+                    action: 'updated',
+                    title: 'ریکارډ اصلاح شو',
+                    message: 'نوم: ' . $docsType->name,
+                    routeName: 'docs-types',
+                    routeParams: ['id' => $docsType->id],
+                    level: 'info',
+                    changes: [
+                        'name' => ['old' => $old, 'new' => $docsType->name],
+                    ]
+                );
+
+                return DocsTypeResource::make($docsType);
+            });
+        } catch (QueryException $e) {
+            if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
+                return response()->json([
+                    'message' => 'دا د سند ډول نوم له مخکې نه موجود دی.',
+                    'errors'  => [
+                        'name' => ['دا د سند ډول نوم له مخکې نه موجود دی.'],
+                    ],
+                ], 422);
+            }
+
+            throw $e;
+        }
     }
 
     public function destroy(Request $request, DocsType $docsType)

@@ -28,7 +28,10 @@ class ZoneController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required',  'unique:zones,name'],
+        ], [
+            'name.required' => 'د زون نوم ضروري دی.',
+            'name.unique'   => 'دا د زون نوم مخکې نه ثبت شوی دی.',
         ]);
 
         return response()->json([
@@ -46,7 +49,10 @@ class ZoneController extends Controller
     public function update(Request $request, Zone $zone)
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required',  'unique:zones,name,' . $zone->id],
+        ], [
+            'name.required' => 'د زون نوم ضروري دی.',
+            'name.unique'   => 'دا د زون نوم مخکې نه ثبت شوی دی.',
         ]);
 
         $zone->update($data);

@@ -18,7 +18,6 @@ class EventTypeController extends Controller
 
         $query = EventType::query()
             ->select('id', 'name')
-            // ✅ load specific types so frontend can show chips
             ->with(['specificTypes:id,event_type_id,name']);
 
         if ($search !== '') {
@@ -33,12 +32,14 @@ class EventTypeController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:190', 'unique:event_types,name'],
+            'name' => ['required', 'string', 'unique:event_types,name'],
+        ], [
+            'name.required' => 'د پېښې ډول نوم ضروري دی.',
+            'name.string'   => 'د پېښې ډول نوم باید متن وي.',
+            'name.unique'   => 'دا د پېښې ډول نوم مخکې نه ثبت شوی دی.',
         ]);
 
         $row = EventType::create($data);
-
-        // ✅ also load children after create (empty list, but consistent)
         $row->load(['specificTypes:id,event_type_id,name']);
 
         return response()->json([
@@ -60,9 +61,14 @@ class EventTypeController extends Controller
     {
         $data = $request->validate([
             'name' => [
-                'required', 'string', 'max:190',
+                'required',
+                'string',
                 Rule::unique('event_types', 'name')->ignore($eventType->id),
             ],
+        ], [
+            'name.required' => 'د پېښې ډول نوم ضروري دی.',
+            'name.string'   => 'د پېښې ډول نوم باید متن وي.',
+            'name.unique'   => 'دا د پېښې ډول نوم مخکې نه ثبت شوی دی.',
         ]);
 
         $eventType->update($data);
@@ -84,7 +90,6 @@ class EventTypeController extends Controller
         ]);
     }
 
-    // ✅ dropdown options for front
     public function options()
     {
         $rows = EventType::query()

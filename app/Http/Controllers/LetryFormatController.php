@@ -2,23 +2,43 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\LetryFormatResource;
 use App\Models\LetryFormat;
 use Illuminate\Http\Request;
-use App\Http\Resources\LetryFormatResource;
-use App\Http\Requests\StoreLetryFormatRequest;
-use App\Http\Requests\UpdateLetryFormatRequest;
 
 class LetryFormatController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $letryFormats = LetryFormat::latest()->get();
-        return LetryFormatResource::collection($letryFormats);
+        $perPage = (int) $request->query('perPage', 25);
+        $perPage = max(1, min(200, $perPage));
+
+        $search = trim((string) $request->query('search', ''));
+
+        $query = LetryFormat::query();
+
+        if ($search !== '') {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $query->latest('id');
+
+        return LetryFormatResource::collection(
+            $query->paginate($perPage)
+        );
     }
 
-    public function store(StoreLetryFormatRequest $request)
+    public function store(Request $request)
     {
-        $letryFormat = LetryFormat::create($request->validated());
+        $data = $request->validate([
+            'name' => ['required', 'unique:letry_formats,name'],
+        ], [
+            'name.required' => 'د لتري فارمت نوم ضروري دی.',
+            'name.unique'   => 'دا د لتري فارمت نوم له مخکې نه موجود دی.',
+        ]);
+
+        $letryFormat = LetryFormat::create($data);
+
         return new LetryFormatResource($letryFormat);
     }
 
@@ -27,17 +47,26 @@ class LetryFormatController extends Controller
         return new LetryFormatResource($letry_format);
     }
 
-    public function update(UpdateLetryFormatRequest $request, LetryFormat $letry_format)
+    public function update(Request $request, LetryFormat $letry_format)
     {
-        $letry_format->update($request->validated());
+        $data = $request->validate([
+            'name' => ['required', 'unique:letry_formats,name,' . $letry_format->id],
+        ], [
+            'name.required' => 'د لتري فارمت نوم ضروري دی.',
+            'name.unique'   => 'دا د لتري فارمت نوم له مخکې نه موجود دی.',
+        ]);
+
+        $letry_format->update($data);
+
         return new LetryFormatResource($letry_format);
     }
 
     public function destroy(LetryFormat $letry_format)
     {
         $letry_format->delete();
+
         return response()->json([
-            'message' => 'Deleted successfully'
+            'message' => 'په بریالیتوب سره حذف شو.',
         ]);
     }
 }

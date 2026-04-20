@@ -34,7 +34,13 @@ class HawzaController extends Controller
     {
         $data = $request->validate([
             'zone_id' => ['required', 'integer', 'exists:zones,id'],
-            'name'    => ['required', 'string', 'max:255'],
+            'name'    => ['required', 'string', 'unique:hawzas,name'],
+        ], [
+            'zone_id.required' => 'زون ټاکل ضروري دي.',
+            'zone_id.integer'  => 'زون باید سم عدد وي.',
+            'zone_id.exists'   => 'ټاکل شوی زون ونه موندل شو.',
+            'name.required'    => 'د حوزه نوم ضروري دی.',
+            'name.unique'      => 'دا د حوزه نوم مخکې نه ثبت شوی دی.',
         ]);
 
         $hawza = Hawza::create($data);
@@ -55,7 +61,13 @@ class HawzaController extends Controller
     {
         $data = $request->validate([
             'zone_id' => ['required', 'integer', 'exists:zones,id'],
-            'name'    => ['required', 'string', 'max:255'],
+            'name'    => ['required', 'unique:hawzas,name,' . $hawza->id],
+        ], [
+            'zone_id.required' => 'زون ټاکل ضروري دي.',
+            'zone_id.integer'  => 'زون باید سم عدد وي.',
+            'zone_id.exists'   => 'ټاکل شوی زون ونه موندل شو.',
+            'name.required'    => 'د حوزه نوم ضروري دی.',
+            'name.unique'      => 'دا د حوزه نوم مخکې نه ثبت شوی دی.',
         ]);
 
         $hawza->update($data);
