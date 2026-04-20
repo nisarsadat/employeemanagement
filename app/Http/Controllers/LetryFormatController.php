@@ -1,6 +1,6 @@
 <?php
 
-letry_format_namespace App\Http\Controllers;
+namespace App\Http\Controllers;
 
 use App\Http\Resources\LetryFormatResource;
 use App\Models\LetryFormat;
