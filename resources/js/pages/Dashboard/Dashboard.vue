@@ -844,8 +844,8 @@
                   :total-visible="6"
                   rounded="circle"
                   density="compact"
-                  :prev-icon="isRtl ? 'mdi-chevron-right' : 'mdi-chevron-left'"
-                  :next-icon="isRtl ? 'mdi-chevron-left' : 'mdi-chevron-right'"
+                  :prev-icon="isRtl ? 'mdi-chevron-right' : 'mdi-chevron-right'"
+                  :next-icon="isRtl ? 'mdi-chevron-left' : 'mdi-chevron-left'"
                 />
               </div>
             </div>

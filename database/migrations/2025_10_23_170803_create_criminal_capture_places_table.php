@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('criminal_capture_places', function (Blueprint $table) {
             $table->id();
-
+            $table->foreignId('event_id')->nullable()->unique()->constrained('events')->nullOnDelete();
             $table->string('name')->nullable();
             $table->string('father_name')->nullable();
             $table->string('job')->nullable();
