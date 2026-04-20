@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+letry_format_namespace App\Http\Controllers;
 
 use App\Http\Resources\LetryFormatResource;
 use App\Models\LetryFormat;
@@ -18,7 +18,7 @@ class LetryFormatController extends Controller
         $query = LetryFormat::query();
 
         if ($search !== '') {
-            $query->where('name', 'like', "%{$search}%");
+            $query->where('letry_format_name', 'like', "%{$search}%");
         }
 
         $query->latest('id');
@@ -31,10 +31,10 @@ class LetryFormatController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => ['required', 'unique:letry_formats,name'],
+            'letry_format_name' => ['required', 'unique:letry_formats,letry_format_name'],
         ], [
-            'name.required' => 'د لتري فارمت نوم ضروري دی.',
-            'name.unique'   => 'دا د لتري فارمت نوم له مخکې نه موجود دی.',
+            'letry_format_name.required' => 'د لتري فارمت نوم ضروري دی.',
+            'letry_format_name.unique'   => 'دا د لتري فارمت نوم له مخکې نه موجود دی.',
         ]);
 
         $letryFormat = LetryFormat::create($data);
@@ -50,10 +50,10 @@ class LetryFormatController extends Controller
     public function update(Request $request, LetryFormat $letry_format)
     {
         $data = $request->validate([
-            'name' => ['required', 'unique:letry_formats,name,' . $letry_format->id],
+            'letry_format_name' => ['required', 'unique:letry_formats,letry_format_name,' . $letry_format->id],
         ], [
-            'name.required' => 'د لتري فارمت نوم ضروري دی.',
-            'name.unique'   => 'دا د لتري فارمت نوم له مخکې نه موجود دی.',
+            'letry_format_name.required' => 'د لتري فارمت نوم ضروري دی.',
+            'letry_format_name.unique'   => 'دا د لتري فارمت نوم له مخکې نه موجود دی.',
         ]);
 
         $letry_format->update($data);
