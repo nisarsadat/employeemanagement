@@ -29,7 +29,6 @@
               'khayrat_reports_count',
               'fifty_six_formats_count',
               'payed_money',
-              'office_employee_id',
             ]"
             :fetch-column-values="fetchColumnValues"
             @search="fetchAll"
@@ -619,6 +618,7 @@
     { title: t('تعداد ۵۶ فارمت'), key: 'fifty_six_formats_count' },
     { title: t('۵۶ فارمټ'), key: 'letry_format_name' },
     { title: t('کارمند مربوطه'), key: 'office_employee_id' },
+    { title: t('کود کارمند مربوطه'), key: 'office_employee_code' },
     { title: t('رزیدنت مربوطه'), key: 'resedint_code' },
     { title: t('کود نمبر'), key: 'code_number' },
     { title: t('نام'), key: 'name' },

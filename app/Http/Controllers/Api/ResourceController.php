@@ -83,6 +83,7 @@ class ResourceController extends Controller
             'main_village',
             'now_province',
             'now_district',
+            'office_employee_code',
             'now_village',
             'now_specific_place',
             'now_street_number',
@@ -748,6 +749,8 @@ class ResourceController extends Controller
             'months'     => $months,
         ]);
     }
+
+
     private function applyCommonFilters(
     $query,
     ?string $search,
@@ -755,29 +758,51 @@ class ResourceController extends Controller
     $searchValue = null
 ) {
     $query
-        ->when($searchValue !== null && $searchValue !== '' && $searchField, function ($q) use ($searchField, $searchValue) {
-            $q->where($searchField, $searchValue);
-        })
+        ->when(
+            $searchValue !== null && $searchValue !== '' && $searchField,
+            function ($q) use ($searchField, $searchValue) {
+                if ($searchField === 'office_employee_code') {
+                    $q->whereHas('officeEmployee', function ($qq) use ($searchValue) {
+                        $qq->where('code_number', $searchValue);
+                    });
+                } else {
+                    $q->where($searchField, $searchValue);
+                }
+            }
+        )
         ->when($search, function ($q) use ($search, $searchField) {
             $resolvedField = $this->resolveSearchField($searchField);
 
-            if ($resolvedField) {
+            if ($resolvedField === 'office_employee_code') {
+                $q->whereHas('officeEmployee', function ($qq) use ($search) {
+                    $qq->where('code_number', 'like', "%{$search}%");
+                });
+            } elseif ($resolvedField) {
                 $q->where($resolvedField, 'like', "%{$search}%");
             } else {
                 $q->where(function ($qq) use ($search) {
                     foreach ($this->searchableColumns() as $index => $column) {
+                        if ($column === 'office_employee_code') {
+                            continue;
+                        }
+
                         if ($index === 0) {
                             $qq->where($column, 'like', "%{$search}%");
                         } else {
                             $qq->orWhere($column, 'like', "%{$search}%");
                         }
                     }
+
+                    $qq->orWhereHas('officeEmployee', function ($sub) use ($search) {
+                        $sub->where('code_number', 'like', "%{$search}%");
+                    });
                 });
             }
         });
 
     return $query;
 }
+
 public function filterOptions(Request $request)
 {
     $request->validate([
@@ -794,6 +819,28 @@ public function filterOptions(Request $request)
     }
 
     $q = trim((string) $request->input('q', ''));
+
+    if ($field === 'office_employee_code') {
+        $options = \App\Models\OfficeEmployee::query()
+            ->whereNotNull('code_number')
+            ->where('code_number', '!=', '')
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where('code_number', 'like', "%{$q}%");
+            })
+            ->select('code_number')
+            ->distinct()
+            ->orderBy('code_number')
+            ->pluck('code_number')
+            ->map(fn ($value) => [
+                'title' => (string) $value,
+                'value' => $value,
+            ])
+            ->values();
+
+        return response()->json([
+            'options' => $options,
+        ]);
+    }
 
     $query = Resource::query()
         ->whereNotNull($field)
