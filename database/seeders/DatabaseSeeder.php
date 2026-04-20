@@ -11,8 +11,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RbacSyncSeeder::class, // create roles/permissions FIRST
             UserSeeder::class,     // then create/assign the admin user
-            ProvinceSeeder::class,
-            DistrictSeeder::class,
+            // ProvinceSeeder::class,
+            // DistrictSeeder::class,
             // ResourceSeeder::class,
         ]);
     }
