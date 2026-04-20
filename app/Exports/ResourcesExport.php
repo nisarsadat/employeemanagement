@@ -25,25 +25,28 @@ class ResourcesExport implements FromQuery, WithHeadings, WithMapping, WithEvent
     protected ?int $year;
     protected ?int $month;
     protected string $stat;
+    protected ?string $searchValue;
     protected string $dateField;
 
-    public function __construct(
-        ?string $search = null,
-        ?string $searchField = null,
-        ?int $year = null,
-        ?int $month = null,
-        ?string $stat = 'all',
-        ?string $dateField = 'resource_saved_date'
-    ) {
-        $this->search = trim((string) $search) ?: null;
-        $this->searchField = trim((string) $searchField) ?: null;
-        $this->year = $year;
-        $this->month = $month;
-        $this->stat = in_array($stat, ['all', 'today', 'active', 'inactive'], true) ? $stat : 'all';
-        $this->dateField = in_array($dateField, ['resource_saved_date', 'created_at', 'updated_at'], true)
-            ? $dateField
-            : 'resource_saved_date';
-    }
+public function __construct(
+    ?string $search = null,
+    ?string $searchField = null,
+    ?int $year = null,
+    ?int $month = null,
+    ?string $searchValue = null,
+    ?string $stat = 'all',
+    ?string $dateField = 'resource_saved_date'
+) {
+    $this->search = trim((string) $search) ?: null;
+    $this->searchField = trim((string) $searchField) ?: null;
+    $this->year = $year;
+    $this->month = $month;
+    $this->searchValue = trim((string) $searchValue) ?: null;
+    $this->stat = in_array($stat, ['all', 'today', 'active', 'inactive'], true) ? $stat : 'all';
+    $this->dateField = in_array($dateField, ['resource_saved_date', 'created_at', 'updated_at'], true)
+        ? $dateField
+        : 'resource_saved_date';
+}
 
     private function searchableColumns(): array
     {
@@ -198,6 +201,9 @@ class ResourcesExport implements FromQuery, WithHeadings, WithMapping, WithEvent
             })
             ->when($this->stat === 'inactive', function (Builder $q) {
                 $q->where('activity', 'غیر فعال');
+            })
+            ->when($this->searchValue !== null && $this->searchValue !== '' && $searchField, function (Builder $q) use ($searchField) {
+                $q->where($searchField, $this->searchValue);
             })
             ->latest('id');
     }

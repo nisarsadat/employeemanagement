@@ -300,17 +300,17 @@ class Resource extends Model
 
 
     // ✅ NEW: instant flip employee to فعال when a new resource is created
-    // protected static function booted()
-    // {
-    //     static::created(function ($row) {
-    //         $empId = $row->office_employee_id ?? null;
-    //         if ($empId) {
-    //             OfficeEmployee::where('id', $empId)
-    //                 ->where('activity', '!=', OfficeEmployee::ACTIVE)
-    //                 ->update(['activity' => OfficeEmployee::ACTIVE]);
-    //         }
-    //     });
-    // }
+    protected static function booted()
+    {
+        static::created(function ($row) {
+            $empId = $row->office_employee_id ?? null;
+            if ($empId) {
+                OfficeEmployee::where('id', $empId)
+                    ->where('activity', '!=', OfficeEmployee::ACTIVE)
+                    ->update(['activity' => OfficeEmployee::ACTIVE]);
+            }
+        });
+    }
     public function finances()
     {
         return $this->hasMany(Finance::class, 'resource_id', 'id');
