@@ -13,6 +13,7 @@ class UpdateOfficeEmployeeRequest extends FormRequest
         return [
             'picture'                 => ['sometimes','nullable','image'],
 
+            'remove_picture' => ['sometimes', 'nullable', 'in:1'],
             'name'                    => ['sometimes','string'],
             'father_name'             => ['sometimes','nullable','string'],
             'grand_father_name'       => ['sometimes','nullable','string'],

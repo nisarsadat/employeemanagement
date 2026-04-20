@@ -197,6 +197,7 @@
                         >
                           <v-icon start>mdi-pencil</v-icon>{{ t('ویرایش') }}
                         </v-btn>
+
                         <v-btn
                           size="small"
                           color="secondary"
@@ -207,6 +208,16 @@
                           "
                         >
                           <v-icon start>mdi-eye</v-icon>{{ t('نمایش') }}
+                        </v-btn>
+
+                        <v-btn
+                          size="small"
+                          color="error"
+                          variant="flat"
+                          v-if="form.previewUrl || form.picture_url || form.picture"
+                          @click.stop="removePicture"
+                        >
+                          <v-icon start>mdi-delete</v-icon>{{ t('حذف') }}
                         </v-btn>
                       </div>
                     </div>
@@ -648,7 +659,7 @@
                   density="compact"
                   variant="outlined"
                   :rules="[rules.phone10]"
-                  maxLenght="10"
+                  maxlength="10"
                   :error="hasError('phone_number')"
                   :error-messages="getErrorMessages('phone_number')"
                 />
@@ -658,7 +669,7 @@
                   v-model="form.phone_number_1"
                   :label="t('شماره تماس ۱')"
                   density="compact"
-                  maxLenght="10"
+                  maxlength="10"
                   variant="outlined"
                   :rules="[rules.phone10]"
                   :error="hasError('phone_number_1')"
@@ -671,9 +682,8 @@
                   v-model="form.phone_number_2"
                   :label="t('شماره تماس ۲')"
                   density="compact"
-                  maxLenght="10"
                   variant="outlined"
-                  :rules="[rules.phone10]"
+                  maxlength="15"
                   :error="hasError('phone_number_2')"
                   :error-messages="getErrorMessages('phone_number_2')"
                 />
@@ -862,7 +872,7 @@
   const pictureInput = ref(null);
   const pictureFile = ref(null); // new image file
   const pictureChanged = ref(false); // track if user changed picture
-
+  const removePictureFlag = ref(false);
   function showErrorMessage(message) {
     errorMessage.value = message;
     showError.value = true;
@@ -968,12 +978,29 @@
   function triggerPicture() {
     pictureInput.value?.click();
   }
+  function removePicture() {
+    if (form.value.previewUrl && String(form.value.previewUrl).startsWith('blob:')) {
+      URL.revokeObjectURL(form.value.previewUrl);
+    }
+
+    pictureFile.value = null;
+    pictureChanged.value = false;
+    removePictureFlag.value = true;
+
+    form.value.previewUrl = null;
+    form.value.picture_url = null;
+    form.value.picture = null;
+
+    if (pictureInput.value) pictureInput.value.value = '';
+  }
   function onPickPicture(e) {
     const file = e.target.files?.[0] ?? null;
     pictureFile.value = file;
     pictureChanged.value = !!file;
 
     if (file) {
+      removePictureFlag.value = false;
+
       if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(form.value.previewUrl);
       }
@@ -981,6 +1008,7 @@
     } else {
       form.value.previewUrl = form.value.picture_url || form.value.picture || null;
     }
+
     if (e.target) e.target.value = '';
   }
   function normalizePicture(src) {
@@ -1111,11 +1139,8 @@
 
     delete payload.previewUrl;
     delete payload.picture_url;
-
-    // ✅ code_number is frozen (id)
     delete payload.code_number;
 
-    // we handle picture separately
     const picturePath = payload.picture;
     delete payload.picture;
 
@@ -1123,6 +1148,15 @@
 
     if (pictureChanged.value && pictureFile.value) {
       fd.append('picture', pictureFile.value);
+
+      if (picturePath && typeof picturePath === 'string') {
+        fd.append('old_picture', picturePath);
+      }
+    }
+
+    if (removePictureFlag.value) {
+      fd.append('remove_picture', '1');
+
       if (picturePath && typeof picturePath === 'string') {
         fd.append('old_picture', picturePath);
       }
@@ -1429,6 +1463,7 @@
     form.value = blankForm();
     pictureFile.value = null;
     pictureChanged.value = false;
+    removePictureFlag.value = false;
     formRef.value?.resetValidation?.();
     clearBackendErrors();
     showSuccessMessage(t('ورودی‌ها پاک شد'));
@@ -1443,6 +1478,7 @@
       form.value = blankForm();
       pictureFile.value = null;
       pictureChanged.value = false;
+      removePictureFlag.value = false;
       return;
     }
 
@@ -1454,13 +1490,13 @@
         form.value = mapped;
         pictureFile.value = null;
         pictureChanged.value = false;
+        removePictureFlag.value = false;
       }
     } catch (e) {
       console.error('loadForEdit error', e);
       showErrorMessage(t('خطا در دریافت معلومات منبع'));
     }
   }
-
   /* ===== INIT ===== */
   onMounted(async () => {
     await Promise.allSettled([

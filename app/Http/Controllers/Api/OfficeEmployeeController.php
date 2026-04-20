@@ -689,115 +689,106 @@ class OfficeEmployeeController extends Controller
         ], 500);
     }
 }
-    public function update(UpdateOfficeEmployeeRequest $request, $id)
-    {
-        DB::beginTransaction();
+public function update(UpdateOfficeEmployeeRequest $request, $id)
+{
+    DB::beginTransaction();
 
-        try {
-            $user = $request->user();
-            $officeEmployee = OfficeEmployee::with(['documents'])->findOrFail($id);
+    try {
+        $user = $request->user();
+        $officeEmployee = OfficeEmployee::with(['documents'])->findOrFail($id);
 
-            $original = $officeEmployee->getOriginal();
+        $original = $officeEmployee->getOriginal();
 
-            $data = $request->validated();
-            unset($data['code_number']);
+        $data = $request->validated();
+        unset($data['code_number']);
 
-            // this temporary
-            $data['activity'] = OfficeEmployee::ACTIVE;
+        // this temporary
+        $data['activity'] = OfficeEmployee::ACTIVE;
 
-            $officeEmployee->fill($data);
-
-            $dirty   = $officeEmployee->getDirty();
-            $changes = [];
-
-            foreach ($dirty as $field => $newValue) {
-                $changes[$field] = [
-                    'old' => $original[$field] ?? null,
-                    'new' => $newValue,
-                ];
+        if ($request->input('remove_picture') == '1') {
+            if ($officeEmployee->picture) {
+                Storage::disk('public')->delete($officeEmployee->picture);
             }
 
-            $officeEmployee->save();
-
-            if ($request->hasFile('picture')) {
-                if ($officeEmployee->picture) {
-                    Storage::disk('public')->delete($officeEmployee->picture);
-                }
-
-                $path = $request->file('picture')->store('uploads/office-employees', 'public');
-                $officeEmployee->update(['picture' => $path]);
-
-                $changes['picture'] = [
-                    'old' => $original['picture'] ?? null,
-                    'new' => $path,
-                ];
-            }
-
-            if ($request->hasFile('documents')) {
-                foreach ($request->file('documents') as $file) {
-                    $path = $file->store("office_employees/{$officeEmployee->id}", 'public');
-                    $officeEmployee->documents()->create([
-                        'file_name'  => $file->getClientOriginalName(),
-                        'file_path'  => $path,
-                        'mime_type'  => $file->getClientMimeType(),
-                        'size_bytes' => $file->getSize(),
-                    ]);
-                }
-
-                $changes['documents'] = [
-                    'old' => null,
-                    'new' => 'updated',
-                ];
-            }
-
-            NotificationService::recordForAllUsers(
-                actor: $user,
-                module: 'کارمند',
-                action: 'updated',
-                title: 'کارمند اصلاح',
-                message: 'کارمند: ' . ($officeEmployee->code_number ?? ''),
-                routeName: 'officeemployee',
-                routeParams: ['id' => $officeEmployee->id],
-                level: 'info',
-                changes: $changes ?: null,
-            );
-
-            DB::commit();
-
-            return new OfficeEmployeeResource(
-                $officeEmployee
-                    ->load(['documents'])
-                    ->loadSum('finances as payed_money', 'money_amount_number')
-                    ->loadCount([
-                        'events',
-                        'resources',
-                        'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
-                        'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
-                        'informations',
-                        'infoInformations',
-                        'documents',
-                    ])
-            );
-        } catch (QueryException $e) {
-            DB::rollBack();
-
-            if ($this->isDuplicateKey($e)) {
-                return $this->duplicateResponsePashto();
-            }
-
-            return response()->json([
-                'message' => 'Office employee update failed',
-                'error'   => $e->getMessage(),
-            ], 500);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'message' => 'Office employee update failed',
-                'error'   => $e->getMessage(),
-            ], 500);
+            $data['picture'] = null;
         }
+
+        $officeEmployee->fill($data);
+
+        $dirty   = $officeEmployee->getDirty();
+        $changes = [];
+
+        foreach ($dirty as $field => $newValue) {
+            $changes[$field] = [
+                'old' => $original[$field] ?? null,
+                'new' => $newValue,
+            ];
+        }
+
+        $officeEmployee->save();
+
+        if ($request->hasFile('picture')) {
+            if ($officeEmployee->picture) {
+                Storage::disk('public')->delete($officeEmployee->picture);
+            }
+
+            $path = $request->file('picture')->store('uploads/office-employees', 'public');
+            $officeEmployee->update(['picture' => $path]);
+
+            $changes['picture'] = [
+                'old' => $original['picture'] ?? null,
+                'new' => $path,
+            ];
+        }
+
+        NotificationService::recordForAllUsers(
+            actor: $user,
+            module: 'کارمند',
+            action: 'updated',
+            title: 'کارمند اصلاح',
+            message: 'کارمند: ' . ($officeEmployee->code_number ?? ''),
+            routeName: 'officeemployee',
+            routeParams: ['id' => $officeEmployee->id],
+            level: 'info',
+            changes: $changes ?: null,
+        );
+
+        DB::commit();
+
+        return new OfficeEmployeeResource(
+            $officeEmployee
+                ->load(['documents'])
+                ->loadSum('finances as payed_money', 'money_amount_number')
+                ->loadCount([
+                    'events',
+                    'resources',
+                    'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
+                    'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
+                    'informations',
+                    'infoInformations',
+                    'documents',
+                ])
+        );
+    } catch (QueryException $e) {
+        DB::rollBack();
+
+        if ($this->isDuplicateKey($e)) {
+            return $this->duplicateResponsePashto();
+        }
+
+        return response()->json([
+            'message' => 'Office employee update failed',
+            'error'   => $e->getMessage(),
+        ], 500);
+    } catch (\Throwable $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'message' => 'Office employee update failed',
+            'error'   => $e->getMessage(),
+        ], 500);
     }
+}
 
     public function destroy(Request $request, $id)
     {

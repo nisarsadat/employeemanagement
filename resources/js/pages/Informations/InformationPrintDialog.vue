@@ -133,14 +133,13 @@
       <!-- ✅ Bottom-right notes -->
       <div class="print-notes">
         <div class="print-note">{{ t('اشد محرم') }}</div>
-        <div class="print-note">{{ t('با احترام میریت ریاست ۳۳۳') }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue';
+  import { computed, onMounted, ref, nextTick } from 'vue';
   import { useRoute } from 'vue-router';
   import { useI18n } from 'vue-i18n';
   import router from '../../router/router';
@@ -233,10 +232,21 @@
     if (id.value && typeof repo.FetchInformationData === 'function') {
       await repo.FetchInformationData(id.value);
     }
-  });
 
+    await nextTick();
+    await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  });
   function buildInnerHtml() {
-    return printArea.value ? printArea.value.outerHTML : '';
+    if (!printArea.value) return '';
+
+    return `
+    <div class="page-shell" dir="rtl">
+      <div class="paper" dir="rtl">
+        ${printArea.value.innerHTML}
+      </div>
+    </div>
+  `;
   }
 
   function getProjectFontFamily() {
@@ -351,7 +361,6 @@
       max-width: 100%;
       margin: 0 !important;
       padding: 0 !important;
-      overflow: hidden !important;
       background: white !important;
       color: #111827;
       direction: rtl !important;
@@ -373,7 +382,6 @@
       padding: 0 !important;
       margin: 0 !important;
       background: transparent !important;
-      overflow: hidden !important;
       font-family: var(--print-font) !important;
     }
 
@@ -388,17 +396,14 @@
       box-shadow: none !important;
       padding: 6px !important;
       font-family: var(--print-font) !important;
-
       display: flex !important;
       flex-direction: column !important;
-
-      height: calc(297mm - 18mm) !important;
-      min-height: calc(297mm - 18mm) !important;
-      max-height: calc(297mm - 18mm) !important;
-
-      overflow: hidden !important;
-      break-inside: avoid !important;
-      page-break-inside: avoid !important;
+      min-height: auto !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      break-inside: auto !important;
+      page-break-inside: auto !important;
     }
 
     .hdr {
@@ -556,10 +561,9 @@
       margin-top: 10px;
       flex: 1 1 auto;
       min-height: 0;
-      overflow: hidden !important;
-
-      display: grid !important;
-      grid-template-rows: minmax(0, 1.7fr) auto auto auto;
+      overflow: visible !important;
+      display: flex !important;
+      flex-direction: column !important;
       gap: 8px;
     }
 
@@ -570,9 +574,9 @@
     .manager-section,
     .direction-section {
       min-height: 0;
-      overflow: hidden !important;
-      break-inside: avoid !important;
-      page-break-inside: avoid !important;
+      overflow: visible !important;
+      break-inside: auto !important;
+      page-break-inside: auto !important;
     }
 
     .section-h {
@@ -605,8 +609,10 @@
       border-radius: 10px;
       padding: 9px;
       background: #E3F4F4 !important;
-      overflow: hidden !important;
+      overflow: visible !important;
       min-height: 0;
+      height: auto !important;
+      max-height: none !important;
     }
 
     .box-text {
@@ -618,10 +624,14 @@
       word-break: break-word;
       overflow-wrap: anywhere;
       line-height: 1.55;
+      text-align: justify;
+      text-justify: inter-word;
     }
 
     .grow-box {
       min-height: 0;
+      height: auto !important;
+      max-height: none !important;
     }
 
     .tafseel-section {
@@ -631,15 +641,15 @@
     }
 
     .tafseel-section .box {
-      flex: 1 1 auto;
+      flex: 0 0 auto;
       min-height: 0;
-      overflow: hidden !important;
+      overflow: visible !important;
     }
 
     .tafseel-pre {
-      height: 100%;
-      max-height: 100%;
-      overflow: hidden !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
     }
 
     .two.two-rows {
@@ -652,20 +662,20 @@
 
     .manager-section {
       display: block !important;
-      min-height: 24mm;
+      min-height: 0 !important;
     }
 
     .manager-section > .section {
       display: flex;
       flex-direction: column;
       min-height: 0;
-      height: 100%;
+      height: auto !important;
     }
 
     .manager-section > .section > .box {
-      min-height: 17mm;
-      max-height: 24mm;
-      overflow: hidden !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      overflow: visible !important;
     }
 
     .direction-section {
@@ -675,9 +685,9 @@
     }
 
     .direction-section .box {
-      min-height: 16mm;
-      max-height: 25mm;
-      overflow: hidden !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      overflow: visible !important;
     }
 
     .clamp-2 {
@@ -688,13 +698,13 @@
     }
 
     .clamp-10 {
-      max-height: 85px;
-      overflow: hidden !important;
+      max-height: none !important;
+      overflow: visible !important;
     }
 
     .clamp-8 {
-      max-height: 78px;
-      overflow: hidden !important;
+      max-height: none !important;
+      overflow: visible !important;
     }
 
     .print-notes {
@@ -704,7 +714,7 @@
       align-items: flex-start;
       justify-content: flex-start;
       gap: 4px;
-      margin-top: 8px;
+      margin-top: 22px;
       margin-right: 0;
       margin-left: auto;
       padding-top: 4px;
@@ -723,6 +733,7 @@
       align-self: flex-start;
       max-width: 100%;
       width: fit-content;
+      margin-top: 22px;
       padding: 4px 10px;
       border-radius: 10px;
       border: 1px dashed rgba(0,0,0,.18);
@@ -740,7 +751,7 @@
 
     @media print {
       html, body {
-        overflow: hidden !important;
+        overflow: visible !important;
         height: auto !important;
         font-family: var(--print-font) !important;
       }
@@ -755,8 +766,11 @@
       .paper {
         margin: 0 !important;
         box-shadow: none !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         font-family: var(--print-font) !important;
+        min-height: auto !important;
+        height: auto !important;
+        max-height: none !important;
       }
     }
   `;
@@ -770,30 +784,58 @@
     const headAssets = getProjectHeadAssets();
 
     return `
-      <html dir="rtl">
-        <head>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          ${headAssets}
-          <title>اطلاع_${item.value?.id || ''}_${Date.now()}</title>
-          <style>${css}</style>
-        </head>
-        <body dir="rtl">
-          ${paperHtml}
-        </body>
-      </html>
-    `;
+    <!DOCTYPE html>
+    <html dir="rtl">
+      <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        ${headAssets}
+        <title>اطلاع_${item.value?.id || ''}_${Date.now()}</title>
+        <style>${css}</style>
+      </head>
+      <body dir="rtl">
+        ${paperHtml}
+      </body>
+    </html>
+  `;
   }
 
-  async function waitForPrintReady(w) {
+  async function ensurePrintableReady() {
+    if (id.value && typeof repo.FetchInformationData === 'function' && !item.value?.id) {
+      await repo.FetchInformationData(id.value);
+    }
+
+    await nextTick();
+    await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+    await new Promise((resolve) => setTimeout(resolve, 400));
+
+    if (!printArea.value) return false;
+
+    const text = printArea.value.innerText || '';
+    return text.trim().length > 0;
+  }
+
+  async function waitForFrameReady(frame) {
+    const w = frame?.contentWindow;
+    const d = frame?.contentDocument;
+
+    if (!w || !d) return;
+
+    await new Promise((resolve) => {
+      if (d.readyState === 'complete') return resolve();
+      w.addEventListener('load', () => resolve(), { once: true });
+      setTimeout(resolve, 800);
+    });
+
     try {
-      if (w?.document?.fonts?.ready) {
-        await w.document.fonts.ready;
+      if (d.fonts?.ready) {
+        await d.fonts.ready;
       }
     } catch (e) {}
 
     try {
-      const imgs = Array.from(w?.document?.images || []);
+      const imgs = Array.from(d.images || []);
       await Promise.all(
         imgs.map(
           (img) =>
@@ -806,39 +848,79 @@
       );
     } catch (e) {}
 
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
-  function openPrintWindowAndPrint(html) {
-    const w = window.open('', '_blank', 'width=1100,height=800');
-    if (!w) return;
+  async function printViaIframe(html) {
+    const iframe = document.createElement('iframe');
 
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
+    iframe.style.position = 'fixed';
+    iframe.style.top = '0';
+    iframe.style.left = '-10000px';
+    iframe.style.width = '1024px';
+    iframe.style.height = '1400px';
+    iframe.style.border = '0';
+    iframe.style.background = 'white';
+    iframe.setAttribute('title', 'print-frame');
 
-    const tryPrint = async () => {
-      try {
-        await waitForPrintReady(w);
-        w.focus();
-        w.print();
-      } catch (e) {
-        console.error('Print failed:', e);
-      }
+    document.body.appendChild(iframe);
+
+    const frameDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!frameDoc) {
+      document.body.removeChild(iframe);
+      return;
+    }
+
+    frameDoc.open();
+    frameDoc.write(html);
+    frameDoc.close();
+
+    await waitForFrameReady(iframe);
+
+    const frameWindow = iframe.contentWindow;
+    if (!frameWindow) {
+      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      return;
+    }
+
+    const cleanup = () => {
+      setTimeout(() => {
+        if (iframe.parentNode) {
+          iframe.parentNode.removeChild(iframe);
+        }
+      }, 1000);
     };
 
-    setTimeout(tryPrint, 500);
-  }
+    if ('onafterprint' in frameWindow) {
+      frameWindow.onafterprint = cleanup;
+    }
 
-  function downloadPdf() {
+    frameWindow.focus();
+
+    setTimeout(() => {
+      frameWindow.print();
+    }, 300);
+
+    setTimeout(cleanup, 4000);
+  }
+  async function downloadPdf() {
     refreshPrintMeta();
+
+    const ready = await ensurePrintableReady();
+    if (!ready) return;
+
     const html = buildDocumentHtml();
     if (!html) return;
-    openPrintWindowAndPrint(html);
-  }
 
-  function downloadWord() {
+    await printViaIframe(html);
+  }
+  async function downloadWord() {
     refreshPrintMeta();
+
+    const ready = await ensurePrintableReady();
+    if (!ready) return;
+
     const html = buildDocumentHtml();
     if (!html) return;
 
@@ -852,7 +934,7 @@
     a.click();
     document.body.removeChild(a);
 
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 </script>
 
@@ -1098,6 +1180,10 @@
     border-radius: 10px;
     padding: 10px;
     background: #e3f4f4; /* E3F4F4 */
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
   }
 
   .box-text {
@@ -1108,6 +1194,8 @@
     white-space: pre-wrap;
     word-break: break-word;
     line-height: 1.7;
+    text-align: justify;
+    text-justify: inter-word;
   }
 
   .tafseel-section {
@@ -1119,10 +1207,20 @@
   .tafseel-section .box {
     flex: 1;
     min-height: 0;
+    height: auto;
+    max-height: none;
+    overflow: visible;
   }
   .tafseel-pre {
-    height: 100%;
-    overflow: hidden;
+    height: auto;
+    overflow: visible;
+    max-height: none;
+  }
+
+  .grow-box {
+    height: auto;
+    max-height: none;
+    overflow: visible;
   }
 
   .two.two-rows {
@@ -1139,7 +1237,7 @@
     align-items: flex-start;
     justify-content: flex-start;
     gap: 6px;
-    margin-top: 10px;
+    margin-top: 22px;
     margin-left: auto;
     width: fit-content;
     max-width: 70%;
@@ -1154,6 +1252,7 @@
     align-self: flex-start;
     max-width: 100%;
     width: fit-content;
+    margin-top: 22px;
     padding: 6px 10px;
     border-radius: 10px;
     border: 1px dashed rgba(0, 0, 0, 0.18);
@@ -1169,12 +1268,12 @@
   }
 
   .clamp-10 {
-    max-height: 170px;
-    overflow: hidden;
+    max-height: none;
+    overflow: visible;
   }
   .clamp-8 {
-    max-height: 160px;
-    overflow: hidden;
+    max-height: none;
+    overflow: visible;
   }
 
   .clamp-2 {
@@ -1223,6 +1322,9 @@
       padding: 0 !important;
       min-height: auto !important;
       background: white !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
     }
   }
 </style>

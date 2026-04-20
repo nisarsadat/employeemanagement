@@ -278,7 +278,7 @@
 
       <template #cell-office_employee_id="{ row }">
         <div v-if="getOfficeEmployee(row)" class="d-flex flex-column align-start">
-          <v-tooltip :text="t('برای رفتن به صفحه کارمندان لطفا کلیک کنید')" location="top">
+          <v-tooltip :text="t('اړوند کارمند')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-btn
                 class="px-2 py-1 text-none"
@@ -302,7 +302,7 @@
 
       <template #cell-events_count="{ row }">
         <div v-if="getRow(row)?.events_count > 0" class="d-flex flex-column align-start">
-          <v-tooltip :text="t('برای دیدن واقعات این منبع کلیک کنید')" location="top">
+          <v-tooltip :text="t('د پیښو تعداد')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-btn
                 class="px-2 py-1 text-none"
@@ -327,7 +327,7 @@
 
       <template #cell-informations_count="{ row }">
         <div v-if="getRow(row)?.informations_count > 0" class="d-flex flex-column align-start">
-          <v-tooltip :text="t('برای دیدن اطلاعات این منبع کلیک کنید')" location="top">
+          <v-tooltip :text="t('د اطلاعاتو پیښه')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-btn
                 class="px-2 py-1 text-none"
@@ -352,7 +352,7 @@
 
       <template #cell-fifty_six_formats_count="{ row }">
         <div v-if="getRow(row)?.fifty_six_formats_count > 0" class="d-flex flex-column align-start">
-          <v-tooltip :text="t('برای دیدن ۵۶ فارمت های این منبع کلیک کنید')" location="top">
+          <v-tooltip :text="t('۵۰ فارمټ')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-btn
                 class="px-2 py-1 text-none"
@@ -400,7 +400,7 @@
 
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
-          <v-tooltip text="مشاهده منبع" location="top">
+          <v-tooltip text="د منبع لیدنه" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon size="small" v-bind="tooltipProps" @click.stop="openPeek(item)" color="blue">
                 mdi-eye
@@ -408,7 +408,7 @@
             </template>
           </v-tooltip>
 
-          <v-tooltip text="تغییر جزیات منبع" location="top">
+          <v-tooltip text="د منبع تغیروول" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-if="auth.can('resources.update')"
@@ -422,7 +422,7 @@
             </template>
           </v-tooltip>
 
-          <v-tooltip text="حذف منبع" location="top">
+          <v-tooltip text="د منبع حذف" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-if="auth.can('resources.delete')"

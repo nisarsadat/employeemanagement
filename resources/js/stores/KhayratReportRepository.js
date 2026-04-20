@@ -110,7 +110,6 @@ export const useKhayratReportRepository = defineStore('KhayratReportRepository',
         const res = await axios.post(`/khayrat-reports`, payload);
         const saved = res.data?.data ?? res.data;
 
-        toast.success('راپور بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
@@ -126,7 +125,6 @@ export const useKhayratReportRepository = defineStore('KhayratReportRepository',
         const res = await axios.put(`/khayrat-reports/${id}`, payload);
         const saved = res.data?.data ?? res.data;
 
-        toast.success('راپور بریالیتوب سره تغییر شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
@@ -139,7 +137,6 @@ export const useKhayratReportRepository = defineStore('KhayratReportRepository',
     async DeleteKhayratReport(id) {
       try {
         await axios.delete(`/khayrat-reports/${id}`);
-        toast.success('راپور بریالیتوب سره حذف شو', { autoClose: 1200 });
       } catch (e) {
         console.error(e);
         this.error = e;

@@ -434,7 +434,7 @@
               </th>
 
               <!-- Actions -->
-              <th v-if="showActions" class="px-2 py-2 text-center align-middle print:hidden">
+              <th v-if="showActions" class="px-2 py-2 text-center align-top print:hidden">
                 <slot name="actions-header">
                   <span class="text-xs font-bold text-white">{{ t('عملیات') }}</span>
                 </slot>
@@ -755,8 +755,8 @@
                   </button>
                 </td>
 
-                <td v-if="showActions" class="px-2 py-3 text-center align-middle print:hidden">
-                  <div class="flex items-center justify-center gap-2 h-full min-h-[36px]">
+                <td v-if="showActions" class="px-2 py-3 text-center align-top print:hidden">
+                  <div class="flex items-start justify-center gap-2 min-h-[36px]">
                     <slot name="actions" :item="row" :printRow="() => printRowSimple(row, i)" />
                   </div>
                 </td>
@@ -2248,7 +2248,9 @@
     box-shadow: inset 4px 0 0 0 #4a8fa4;
     border-bottom: 1px solid white !important;
   }
-
+  tbody td.align-top {
+    vertical-align: top !important;
+  }
   [dir='rtl'] tbody tr {
     box-shadow: inset -4px 0 0 0 #4a8fa4;
     border-bottom: 1px solid white !important;

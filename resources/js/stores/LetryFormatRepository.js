@@ -52,19 +52,16 @@ export const useLetryFormatRepository = defineStore('LetryFormatRepository', {
 
     async CreateLetryFormat(payload) {
       const { data } = await axios.post(`/letry-formats`, payload);
-      toast.success('فورمت لتری اضافه شد');
       return data;
     },
 
     async UpdateLetryFormat(id, payload) {
       const { data } = await axios.put(`/letry-formats/${id}`, payload);
-      toast.success('فورمت لتری تغییر شد');
       return data;
     },
 
     async DeleteLetryFormat(id) {
       await axios.delete(`/letry-formats/${id}`);
-      toast.success('فورمت لتری حذف شد');
       await this.FetchLetryFormats();
     },
   },

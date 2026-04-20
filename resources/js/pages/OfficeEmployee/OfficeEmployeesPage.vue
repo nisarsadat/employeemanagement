@@ -324,7 +324,7 @@
       <template #cell-events_count="{ row }">
         <v-tooltip
           v-if="getRow(row).events_count && getRow(row).events_count > 0"
-          text="تعداد واقعات این کارمند، کلیک کنید تا به صفحه واقعات بروید"
+          text="د پیښو تعداد"
           location="top"
         >
           <template #activator="{ props: tooltipProps }">
@@ -347,7 +347,7 @@
       <template #cell-resources_active_count="{ row }">
         <v-tooltip
           v-if="getRow(row).resources_active_count > 0"
-          text="منابع فعال این کارمند — کلیک کنید"
+          text="فعاله منابع"
           location="top"
         >
           <template #activator="{ props }">
@@ -372,7 +372,7 @@
       <template #cell-resources_inactive_count="{ row }">
         <v-tooltip
           v-if="getRow(row).resources_inactive_count > 0"
-          text="منابع غیر فعال این کارمند — کلیک کنید"
+          text="غیر فعاله منابع"
           location="top"
         >
           <template #activator="{ props }">
@@ -419,7 +419,7 @@
 
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
-          <v-tooltip text="مشاهده کارمند" location="top">
+          <v-tooltip text="د کارمند لیدنه" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon size="small" v-bind="tooltipProps" @click.stop="openPeek(item)" color="blue">
                 mdi-eye
@@ -427,7 +427,7 @@
             </template>
           </v-tooltip>
 
-          <v-tooltip text="تغییر جزیات کارمند" location="top">
+          <v-tooltip text="د کارمند تغییرات" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-if="auth.can('officeemployee.update')"
@@ -441,7 +441,7 @@
             </template>
           </v-tooltip>
 
-          <v-tooltip text="دانلود اسناد مربوط به کارمند" location="top">
+          <v-tooltip text="مربوطه اسنادو ډانلوډ" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 size="small"
@@ -456,7 +456,7 @@
             </template>
           </v-tooltip>
 
-          <v-tooltip text="حذف کارمند" location="top">
+          <v-tooltip text="د کارمند حذف کول" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-if="auth.can('officeemployee.delete')"

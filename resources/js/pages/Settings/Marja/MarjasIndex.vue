@@ -22,7 +22,7 @@
       <v-row class="align-center">
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
-            v-model.trim="search"
+            v-model.trim="repo.Search"
             :label="t('جستجو در مرجع‌ها...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
@@ -57,7 +57,7 @@
     <v-row class="px-2 mt-1">
       <v-col cols="12" class="d-flex justify-end">
         <div class="text-caption text-medium-emphasis">
-          {{ t('تعداد') }}: <b>{{ rowsFT.length }}</b>
+          {{ t('تعداد') }}: <b>{{ repo.totalItems }}</b>
         </div>
       </v-col>
     </v-row>
@@ -68,7 +68,7 @@
       :showIndex="true"
       :rtl="isRtl"
       :loading="repo.loading"
-      class="mb-20 mx-2"
+      class="mb-4 mx-2"
     >
       <template #cell-name="{ row }">
         <div class="d-flex align-center justify-center w-100">
@@ -90,6 +90,14 @@
       </template>
     </FilterableTable>
 
+    <GlobalPagination
+      :page="repo.page"
+      :items-per-page="repo.itemsPerPage"
+      :total-items="repo.totalItems"
+      @update:page="handlePageChange"
+      @update:items-per-page="handlePerPageChange"
+    />
+
     <MarjaFormDialog v-model="dialog" :editId="editId" @saved="fetchAll" />
 
     <DeleteConfirmDialog
@@ -108,12 +116,12 @@ import { useI18n } from 'vue-i18n';
 import AppBar from '@/components/AppBar.vue';
 import FilterableTable from '@/components/FilterableTable.vue';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+import GlobalPagination from '@/components/GlobalPagination.vue';
 
 import MarjaFormDialog from './MarjaFormDialog.vue';
 import { useMarjaRepository } from '@/stores/MarjaRepository';
-  import { usePageRefresh } from '@/composables/usePageRefresh';
+import { usePageRefresh } from '@/composables/usePageRefresh';
 
-  usePageRefresh('/app/marjas', fetchAll);
 const { t, locale } = useI18n();
 const isRtl = ref(locale.value === 'fa');
 watch(locale, (v) => (isRtl.value = v === 'fa'));
@@ -126,11 +134,14 @@ const editId = ref(null);
 const deleteDialog = ref(false);
 const deleteTarget = ref(null);
 
-const search = ref('');
-const rows = ref([]);
-
 const headersFT = computed(() => [{ title: t('نام مرجع'), key: 'name', align: 'center' }]);
-const rowsFT = computed(() => rows.value || []);
+const rowsFT = computed(() => repo.Marjas || []);
+
+async function fetchAll() {
+  await repo.FetchMarjas();
+}
+
+usePageRefresh('/app/marjas', fetchAll);
 
 function openCreate() {
   editId.value = null;
@@ -162,16 +173,22 @@ async function confirmDelete(payload) {
   deleteTarget.value = null;
 }
 
-async function fetchAll() {
-  const res = await repo.FetchMarjas({ page: 1, perPage: 10000, search: search.value });
-  rows.value = res?.data || [];
-}
-
 function clearSearch() {
-  search.value = '';
+  repo.Search = '';
+  repo.page = 1;
   fetchAll();
 }
 
-watch(search, fetchAll);
+function handlePageChange(page) {
+  repo.page = page;
+  fetchAll();
+}
+
+function handlePerPageChange(perPage) {
+  repo.itemsPerPage = perPage;
+  repo.page = 1;
+  fetchAll();
+}
+
 onMounted(fetchAll);
 </script>

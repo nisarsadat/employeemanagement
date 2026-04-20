@@ -10,7 +10,12 @@ class InfoTypeMapper
 
         $v = trim($value);
 
-        // Map FRONT values (Pashto/Dari) to your internal keys
+        // normalize Arabic/Persian variants
+        $v = str_replace(['ي', 'ى', 'ك', 'ۀ', 'ة'], ['ی', 'ی', 'ک', 'ه', 'ه'], $v);
+
+        // remove extra internal spaces
+        $v = preg_replace('/\s+/u', ' ', $v);
+
         $map = [
             'ساعین بالفساد' => 'saeenfasad',
             'شر او فساد' => 'fasad',
@@ -28,10 +33,6 @@ class InfoTypeMapper
             'راخوشي شوي بندیان' => 'captives',
         ];
 
-        // If front sometimes sends also the english key, accept it too
-        if (isset($map[$v])) return $map[$v];
-
-        // fallback: return trimmed value (maybe already slug)
-        return $v;
+        return $map[$v] ?? $v;
     }
 }

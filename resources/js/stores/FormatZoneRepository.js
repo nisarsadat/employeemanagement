@@ -53,19 +53,16 @@ export const useFormatZoneRepository = defineStore('FormatZoneRepository', {
 
     async CreateFormatZone(payload) {
       const { data } = await axios.post('/format-zones', payload);
-      toast.success('فارمت زون اضافه شو');
       return data;
     },
 
     async UpdateFormatZone(id, payload) {
       const { data } = await axios.put(`/format-zones/${id}`, payload);
-      toast.success('فارمت زون تغییر شو');
       return data;
     },
 
     async DeleteFormatZone(id) {
       await axios.delete(`/format-zones/${id}`);
-      toast.success('فارمت زون حذف شو');
     },
   },
 });

@@ -101,12 +101,10 @@ export const useJobTypeRepository = defineStore('JobTypeRepository', {
         const res = await axios.post(`/job-types`, payload);
         const saved = res.data?.data ?? res.data;
 
-        toast.success('نوع وظیفه بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'نوع وظیفه اضافه نشو'));
         throw e;
       }
     },
@@ -117,12 +115,10 @@ export const useJobTypeRepository = defineStore('JobTypeRepository', {
         const res = await axios.put(`/job-types/${id}`, payload);
         const saved = res.data?.data ?? res.data;
 
-        toast.success('نوع وظیفه بریالیتوب سره تغییر شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'نوع وظیفه تغییر نشو'));
         throw e;
       }
     },

@@ -103,12 +103,10 @@ export const useSeyaseeTypeRepository = defineStore('SeyaseeTypeRepository', {
         const res = await axios.post(`/seyasee-types`, payload);
         const saved = res.data?.data ?? res.data;
 
-        toast.success('نوع سیاسي بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
         this.error = e;
-        toast.error(errText(e, 'نوع سیاسي اضافه نشو'));
         throw e;
       }
     },
@@ -119,7 +117,6 @@ export const useSeyaseeTypeRepository = defineStore('SeyaseeTypeRepository', {
         const res = await axios.put(`/seyasee-types/${id}`, payload);
         const saved = res.data?.data ?? res.data;
 
-        toast.success('نوع سیاسي بریالیتوب سره تغییر شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
@@ -132,7 +129,6 @@ export const useSeyaseeTypeRepository = defineStore('SeyaseeTypeRepository', {
     async DeleteSeyaseeType(id) {
       try {
         await axios.delete(`/seyasee-types/${id}`);
-        toast.success('نوع سیاسي بریالیتوب سره حذف شو', { autoClose: 1200 });
 
         await this.FetchSeyaseeTypesData({
           page: this.page,

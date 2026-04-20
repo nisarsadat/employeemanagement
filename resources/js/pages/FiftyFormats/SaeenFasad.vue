@@ -239,7 +239,7 @@
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
           <!-- مشاهده -->
-          <v-tooltip :text="t('مشاهده ساعین فساد')" location="top">
+          <v-tooltip :text="t('د ساعین بالفساد لیدنه')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
@@ -248,7 +248,7 @@
           </v-tooltip>
 
           <!-- ویرایش -->
-          <v-tooltip :text="t('ویرایش ساعین فساد')" location="top">
+          <v-tooltip :text="t('د ساعین بالفساد تغیرول')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-bind="tooltipProps"
@@ -262,7 +262,7 @@
           </v-tooltip>
 
           <!-- ✅ download documents zip -->
-          <v-tooltip :text="t('دانلود اسناد ساعین فساد')" location="top">
+          <v-tooltip :text="t('مربوطه اسناد')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-bind="tooltipProps"
@@ -278,7 +278,7 @@
           </v-tooltip>
 
           <!-- حذف -->
-          <v-tooltip :text="t('حذف ساعین فساد')" location="top">
+          <v-tooltip :text="t('د ساعین بالفساد حذفول')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-bind="tooltipProps"

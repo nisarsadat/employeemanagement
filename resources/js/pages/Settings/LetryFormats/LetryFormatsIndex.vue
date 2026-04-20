@@ -69,7 +69,7 @@
       :showIndex="true"
       :rtl="isRtl"
       :loading="repo.loading"
-      class="mb-20 mx-2"
+      class="mx-2"
     >
       <template #cell-letry_format_name="{ row }">
         <div class="d-flex align-center justify-center w-100">

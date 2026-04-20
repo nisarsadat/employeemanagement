@@ -75,7 +75,7 @@
       :showIndex="true"
       :rtl="isRtl"
       :loading="repo.loading"
-      class="mb-4 mx-2"
+      class=" mx-2"
     >
       <template #cell-province_name="{ row }">
         <div class="">

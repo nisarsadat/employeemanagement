@@ -315,7 +315,6 @@
         :id="selectedId"
         :item="detail"
         :loading="loading"
-        title="جزییات اطلاعات"
         :name-key="'name'"
         :fields="headersFT"
         dir="rtl"
@@ -376,7 +375,7 @@
       <!-- RESOURCE -->
       <template #cell-resource_display="{ row }">
         <div class="d-flex flex-column align-start">
-          <v-tooltip v-if="row.resource_id" text="برای رفتن به صفحه منابع کلیک کنید" location="top">
+          <v-tooltip v-if="row.resource_id" text="اړوند منبع" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-btn
                 v-bind="tooltipProps"
@@ -399,7 +398,7 @@
         <div class="d-flex flex-column align-start">
           <v-tooltip
             v-if="row.office_employee_code_number"
-            text="برای رفتن به صفحه کارمندان مدیریت کلیک کنید"
+            text="اړوند کارمند"
             location="top"
           >
             <template #activator="{ props: tooltipProps }">
@@ -423,7 +422,7 @@
         <div class="d-flex flex-column align-start">
           <v-tooltip
             v-if="row.office_employee_info_code_number"
-            text="برای رفتن به صفحه کارمندان مدیریت کلیک کنید"
+            text="اړوند کارمند"
             location="top"
           >
             <template #activator="{ props: tooltipProps }">
@@ -460,7 +459,7 @@
       <!-- Actions -->
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
-          <v-tooltip text="مشاهده اطلاع" location="top">
+          <v-tooltip text="د اطلاع مشاهده" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon size="small" v-bind="tooltipProps" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
@@ -468,7 +467,7 @@
             </template>
           </v-tooltip>
 
-          <v-tooltip text="تغییر جزیات اطلاع" location="top">
+          <v-tooltip text="د اطلاع تغیروول" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-if="auth.can('informations.update')"
@@ -482,7 +481,7 @@
             </template>
           </v-tooltip>
 
-          <v-tooltip text="دانلود اسناد مربوط به اطلاع" location="top">
+          <v-tooltip text="مربوطه اسناد" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 size="small"
@@ -497,7 +496,7 @@
             </template>
           </v-tooltip>
 
-          <v-tooltip text="حذف اطلاع" location="top">
+          <v-tooltip text="د اطلاع حذفول" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-if="auth.can('informations.delete')"
@@ -511,7 +510,7 @@
             </template>
           </v-tooltip>
           <!-- ✅ Manager / Finance Dialog -->
-          <v-tooltip text="مدیر / مالی" location="top">
+          <v-tooltip text="مالی/مدیر" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 v-if="auth.can('managercomment.view')"
@@ -539,7 +538,7 @@
               </v-icon>
             </template>
           </v-tooltip>
-          <v-tooltip text="فرم معلومات (PDF / Word)" location="top">
+          <v-tooltip text="د اطلاع فورم" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 size="small"

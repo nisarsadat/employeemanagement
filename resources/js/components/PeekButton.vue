@@ -156,6 +156,7 @@
         'date',
         'start_date',
         'end_date',
+        'event_date',
         'created_at',
         'updated_at',
       ],
@@ -241,7 +242,7 @@
       const t = getByPath(props.item, props.titleKey);
       if (t != null && t !== '') return String(t);
     }
-    return 'جزییات';
+    return 'اړوند معلومات';
   });
 
   const displayName = computed(() => {
@@ -253,6 +254,8 @@
     const position = getByPath(props.item, props.positionKey);
     return position != null && position !== '' ? String(position) : null;
   });
+
+  const isRtlDoc = computed(() => props.dir !== 'ltr');
 
   /* dates everywhere */
   const ISO_STRICT = /^\d{4}-\d{2}-\d{2}$/;
@@ -334,24 +337,17 @@
         key,
       }));
   });
-  function pdfRtlLabel(s) {
-    if (!s) return s;
 
-    // Normalize
-    let t = String(s)
+  function pdfRtlLabel(s) {
+    if (!s) return '';
+    const t = String(s)
       .replace(/\u00A0/g, ' ')
       .trim();
-
-    // Strong RTL embedding (forces RTL direction for the whole run)
-    // RLE ... PDF
-    t = `\u202B${t}\u202C`;
-
-    // Stabilize word order for pdfMake:
-    // use NBSP + ALM between words (stronger than ALM alone)
-    t = t.replace(/\s+/g, `\u00A0\u061C`);
-
-    return t;
+    return `\u202B${t}\u202C`;
   }
+
+
+
   function isMostlyRtlText(s) {
     if (!s) return false;
     const str = String(s);
@@ -366,15 +362,15 @@
       .replace(/\u00A0/g, ' ')
       .trim();
 
-    // If it contains RTL chars, force RTL embedding
     if (isMostlyRtlText(t)) {
-      t = `\u202B${t}\u202C`; // RLE ... PDF
+      t = `\u202B${t}\u202C`;
       t = t.replace(/\s+/g, `\u00A0\u061C`);
     }
 
     return t;
   }
-  /* ================= PDF Generation (OLD STYLE: Landscape, 4 columns + image on RIGHT) ================ */
+
+  /* ================= PDF Generation ================ */
   async function b64(path) {
     try {
       const res = await fetch(path, { cache: 'no-cache' });
@@ -418,6 +414,7 @@
       const row = [];
       for (let j = 0; j < 4; j++) {
         const idx = i + j;
+
         if (idx < fields.length) {
           const f = fields[idx];
           const value = pdfRtlValue(displayValue(f.key));
@@ -427,22 +424,24 @@
               {
                 text: pdfRtlLabel(String(f.title || '')),
                 style: 'fieldLabel',
-                margin: [0, 0, 0, 2],
-                alignment: 'right',
-                noWrap: true,
+                margin: [0, 0, 0, 1],
+                alignment: isRtlDoc.value ? 'right' : 'left',
+                noWrap: false,
               },
               {
                 text: value,
                 style: 'fieldValue',
-                alignment: 'right',
+                alignment: isRtlDoc.value ? 'right' : 'left',
+                noWrap: false,
               },
             ],
-            margin: [6, 6, 6, 6],
+            margin: [3, 2, 3, 2],
           });
         } else {
-          row.push({ text: '', margin: [6, 6, 6, 6] });
+          row.push({ text: '', margin: [3, 2, 3, 2] });
         }
       }
+
       rows.push(row);
     }
 
@@ -464,6 +463,7 @@
           'Amiri-Regular.ttf': regular,
           'Amiri-Bold.ttf': bold,
         };
+
         pdfMake.fonts = {
           Amiri: {
             normal: 'Amiri-Regular.ttf',
@@ -476,10 +476,7 @@
 
       const fullName = displayName.value || '';
       const position = displayPosition.value || '';
-
-      // ✅ if no picture -> do NOT render image block at all
       const img = shouldShowImage.value ? await imgB64(imageSrc.value) : null;
-      // ✅ Fix RTL word order inside pdfMake only
 
       const tableRows = buildFourColumnBodyRows();
 
@@ -487,94 +484,154 @@
         tableRows.length > 0
           ? {
               table: {
-                widths: ['25%', '25%', '25%', '25%'],
+                headerRows: 0,
+                widths: ['*', '*', '*', '*'],
                 body: tableRows,
+                alignment: isRtlDoc.value ? 'left' : 'right',
               },
               layout: {
                 hLineWidth: () => 0,
                 vLineWidth: () => 0,
-                paddingLeft: () => 6,
-                paddingRight: () => 6,
-                paddingTop: () => 4,
-                paddingBottom: () => 4,
+                paddingLeft: () => 2,
+                paddingRight: () => 2,
+                paddingTop: () => 1,
+                paddingBottom: () => 1,
               },
             }
-          : { text: 'هیڅ معلومات نشته', style: 'fieldValue', alignment: 'right' };
+          : {
+              text: pdfRtlValue('هیڅ معلومات نشته'),
+              style: 'fieldValue',
+              alignment: isRtlDoc.value ? 'right' : 'left',
+            };
 
-      // ✅ image block only if img exists
+      const imageMetaStack = [
+        ...(fullName
+          ? [
+              {
+                text: pdfRtlValue(fullName),
+                style: 'nameUnder',
+                alignment: 'center',
+                margin: [0, 4, 0, 1],
+              },
+            ]
+          : []),
+        ...(position
+          ? [
+              {
+                text: pdfRtlValue(position),
+                style: 'posUnder',
+                alignment: 'center',
+                margin: [0, 0, 0, 1],
+              },
+            ]
+          : []),
+        {
+          text: pdfRtlValue(`شماره: ${props.id}`),
+          style: 'imgMeta',
+          alignment: 'center',
+          margin: [0, 2, 0, 0],
+        },
+      ];
+
       const imageBlock = img
         ? {
-            width: 220,
+            width: 160,
             stack: [
-              { image: img, fit: [220, 300], alignment: 'center', margin: [0, 0, 0, 10] },
-              ...(fullName
-                ? [
-                    {
-                      text: fullName,
-                      style: 'nameUnder',
-                      alignment: 'center',
-                      margin: [0, 0, 0, 2],
-                    },
-                  ]
-                : []),
-              ...(position ? [{ text: position, style: 'posUnder', alignment: 'center' }] : []),
+              {
+                image: img,
+                fit: [160, 210],
+                alignment: 'center',
+                margin: [0, 0, 0, 6],
+              },
+              ...imageMetaStack,
             ],
           }
         : null;
 
-      const contentColumns = img
-        ? [
-            { width: '*', stack: [fieldsTable] }, // fields (wide)
-            { width: 220, stack: [imageBlock], margin: [12, 0, 0, 0] }, // image on right
-          ]
-        : [
-            { width: '*', stack: [fieldsTable] }, // ✅ only fields, no empty column
-          ];
+      let contentColumns = [];
+
+      if (img) {
+        contentColumns = isRtlDoc.value
+          ? [
+              { width: '*', stack: [fieldsTable] },
+              { width: 170, stack: [imageBlock], margin: [8, 0, 0, 0] },
+            ]
+          : [
+              { width: 170, stack: [imageBlock], margin: [0, 0, 8, 0] },
+              { width: '*', stack: [fieldsTable] },
+            ];
+      } else {
+        contentColumns = [{ width: '*', stack: [fieldsTable] }];
+      }
 
       const doc = {
         pageSize: 'A4',
-        pageOrientation: 'landscape', // ✅ old style
-        pageMargins: [18, 18, 18, 18],
+        pageOrientation: 'landscape',
+        pageMargins: [12, 12, 12, 12],
         defaultStyle: {
           font: regular ? 'Amiri' : 'Roboto',
-          fontSize: 10,
+          fontSize: 8,
           color: '#333333',
-          alignment: 'right',
-        },
-        rtl: true,
-        styles: {
-          header: { fontSize: 16, bold: true, color: '#1976d2', alignment: 'right' },
-          fieldLabel: { fontSize: 10, bold: true, color: '#555555', alignment: 'right' },
-          fieldValue: { fontSize: 10, color: '#333333', alignment: 'right' },
-          footer: { fontSize: 9, color: '#999999', alignment: 'right' },
-          nameUnder: { fontSize: 12, bold: true, color: '#222' },
-          posUnder: { fontSize: 10, color: '#666' },
+          alignment: isRtlDoc.value ? 'right' : 'left',
         },
         content: [
           {
-            text: pdfRtlLabel(`جزییات ${fullName}`),
+            text: pdfRtlLabel(`hm,kn ${fullName || ''}`),
             style: 'header',
-            margin: [0, 0, 0, 12],
-            alignment: 'right',
+            margin: [0, 0, 0, 6],
+            alignment: isRtlDoc.value ? 'right' : 'left',
           },
-
           {
             columns: contentColumns,
-            columnGap: 12,
-            margin: [0, 0, 0, 10],
+            columnGap: 8,
+            margin: [0, 0, 0, 2],
           },
-
-          {
-            text: pdfRtlValue(`شماره: ${props.id}`),
-            style: 'footer',
-            alignment: 'right',
-            margin: [0, 10, 0, 0],
-          },
+          !img
+            ? {
+                text: pdfRtlValue(`شماره: ${props.id}`),
+                style: 'footer',
+                alignment: isRtlDoc.value ? 'right' : 'left',
+                margin: [0, 6, 0, 0],
+              }
+            : { text: '' },
         ],
+        styles: {
+          header: {
+            fontSize: 12,
+            bold: true,
+            color: '#1976d2',
+          },
+          fieldLabel: {
+            fontSize: 8,
+            bold: true,
+            color: '#555555',
+          },
+          fieldValue: {
+            fontSize: 8,
+            color: '#333333',
+          },
+          footer: {
+            fontSize: 7,
+            color: '#777777',
+          },
+          nameUnder: {
+            fontSize: 9,
+            bold: true,
+            color: '#222222',
+          },
+          posUnder: {
+            fontSize: 8,
+            color: '#666666',
+          },
+          imgMeta: {
+            fontSize: 7,
+            color: '#777777',
+          },
+        },
       };
 
       const safeName = (fullName || 'detail').replace(/[^\w\u0600-\u06FF\-]+/g, '_');
-      const fileName = `${safeName}_جزییات.pdf`;
+      const fileName = `${safeName}_hm,kn.pdf`;
       pdfMake.createPdf(doc).download(fileName);
     } catch (error) {
       console.error('PDF export failed:', error);
@@ -582,7 +639,7 @@
     }
   }
 
-  /* ================= Word Download (unchanged, but also hides image if missing) ================ */
+  /* ================= Word Download ================ */
   function escapeHtml(s) {
     return String(s ?? '')
       .replace(/&/g, '&amp;')
@@ -610,6 +667,9 @@
 
       const rows = chunkIntoRows(fields, 4);
 
+      const textAlign = isRtlDoc.value ? 'right' : 'left';
+      const direction = isRtlDoc.value ? 'rtl' : 'ltr';
+
       const tableHtml = `
       <table class="fields">
         <tbody>
@@ -634,46 +694,148 @@
       </table>
     `;
 
+      const imageCell = img
+        ? `
+        <td class="imgBox">
+          <img src="${img}" />
+          ${fullName ? `<div class="name">${escapeHtml(fullName)}</div>` : ''}
+          ${position ? `<div class="pos">${escapeHtml(position)}</div>` : ''}
+          <div class="meta">شماره: ${escapeHtml(props.id)}</div>
+        </td>
+      `
+        : '';
+
+      const fieldsCell = `
+      <td class="dataBox">
+        ${tableHtml}
+        ${!img ? `<div class="footer">شماره: ${escapeHtml(props.id)}</div>` : ''}
+      </td>
+    `;
+
+      const topRow = img
+        ? isRtlDoc.value
+          ? `${fieldsCell}${imageCell}`
+          : `${imageCell}${fieldsCell}`
+        : fieldsCell;
+
       const html = `
 <!DOCTYPE html>
-<html>
+<html dir="${direction}">
 <head>
   <meta charset="utf-8" />
   <title>${escapeHtml(fullName)}</title>
   <style>
-    @page { size: A4 landscape; margin: 18mm; }
-    body { direction: rtl; font-family: "Amiri", "Arial", sans-serif; color: #222; }
-    .wrap { width: 100%; }
-    .top { width: 100%; border-collapse: collapse; }
-    .top td { vertical-align: top; }
-    .imgBox { width: 260px; text-align: center; }
-    .imgBox img { width: 260px; max-height: 360px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; }
-    .name { font-size: 18px; font-weight: 700; margin-top: 10px; }
-    .pos { font-size: 14px; color: #666; margin-top: 2px; }
-    .fields { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    .fields td { width: 25%; padding: 8px 10px; vertical-align: top; }
-    .lbl { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 4px; }
-    .val { font-size: 13px; font-weight: 500; color: #222; word-break: break-word; overflow-wrap: anywhere; }
-    .footer { margin-top: 16px; font-size: 11px; color: #888; }
+    @page { size: A4 landscape; margin: 10mm; }
+
+    body {
+      direction: ${direction};
+      text-align: ${textAlign};
+      font-family: "Amiri", "Arial", sans-serif;
+      color: #222;
+      margin: 0;
+      padding: 0;
+      font-size: 11px;
+    }
+
+    .wrap {
+      width: 100%;
+    }
+
+    .top {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .top td {
+      vertical-align: top;
+    }
+
+    .dataBox {
+      width: auto;
+    }
+
+    .imgBox {
+      width: 180px;
+      text-align: center;
+      vertical-align: top;
+      padding-${isRtlDoc.value ? 'right' : 'left'}: 8px;
+    }
+
+    .imgBox img {
+      width: auto;
+      height: auto;
+      max-width: 170px;
+      max-height: 220px;
+      object-fit: contain;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .name {
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 6px;
+      line-height: 1.2;
+    }
+
+    .pos {
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+      line-height: 1.2;
+    }
+
+    .meta {
+      font-size: 10px;
+      color: #777;
+      margin-top: 4px;
+      line-height: 1.2;
+    }
+
+    .fields {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .fields td {
+      width: 25%;
+      padding: 3px 5px;
+      vertical-align: top;
+    }
+
+    .lbl {
+      font-size: 10px;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 1px;
+      line-height: 1.15;
+    }
+
+    .val {
+      font-size: 10px;
+      font-weight: 500;
+      color: #222;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.2;
+    }
+
+    .footer {
+      margin-top: 6px;
+      font-size: 10px;
+      color: #777;
+      text-align: ${textAlign};
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <table class="top">
       <tr>
-        <td>
-          ${tableHtml}
-          <div class="footer">شماره: ${escapeHtml(props.id)}</div>
-        </td>
-        ${
-          img
-            ? `<td class="imgBox">
-                <img src="${img}" />
-                <div class="name">${escapeHtml(fullName)}</div>
-                ${position ? `<div class="pos">${escapeHtml(position)}</div>` : ''}
-              </td>`
-            : ''
-        }
+        ${topRow}
       </tr>
     </table>
   </div>
@@ -685,7 +847,7 @@
       const url = URL.createObjectURL(blob);
 
       const safeName = (fullName || 'detail').replace(/[^\w\u0600-\u06FF\-]+/g, '_');
-      const fileName = `${safeName}_جزییات.doc`;
+      const fileName = `${safeName}_hm,kn.doc`;
 
       const a = document.createElement('a');
       a.href = url;
@@ -784,7 +946,6 @@
     align-items: start;
   }
 
-  /* ✅ If no image: show ONLY fields (no empty column, no placeholder) */
   .layout-container.no-image {
     grid-template-columns: 1fr;
   }

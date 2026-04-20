@@ -258,7 +258,6 @@
         :id="selectedId"
         :item="detail"
         :loading="loadingOne"
-        title-key="event_type"
         :fields="headersFT"
         :cols="3"
         :dir="isRtl ? 'rtl' : 'ltr'"

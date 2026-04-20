@@ -72,7 +72,7 @@
       :showIndex="true"
       :rtl="isRtl"
       :loading="repo.loading"
-      class="mb-20 mx-2"
+      class=" mx-2"
     >
       <!-- name -->
       <template #cell-name="{ row }">

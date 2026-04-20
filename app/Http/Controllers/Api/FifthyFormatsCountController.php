@@ -70,6 +70,7 @@ use App\Models\fifthyformatfour\Complex;
 use App\Models\fifthyformatfour\DeplomaticPlace;
 use App\Models\fifthyformatfour\University;
 use App\Models\fifthyformatfour\Wakilano;
+use App\Models\fifthyFormats\Jawasis;
 use App\Models\fifthyformatsthree\Sarayano;
 
 class FifthyFormatsCountController extends Controller
@@ -146,6 +147,7 @@ class FifthyFormatsCountController extends Controller
             'deplomaticplaces'     => DeplomaticPlace::class,
             'universities'         => University::class,
             'wakilanos'            => Wakilano::class,
+            'jawasis'            => Jawasis::class,
         ];
 
         $result = [];

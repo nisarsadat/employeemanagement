@@ -49,6 +49,7 @@ class ResourceRequest extends FormRequest
                 ? [Rule::excludeIf(true)]
                 : ['nullable', 'string'],
 
+            'remove_picture' => ['nullable', 'in:1'],
             // current address
             'now_province' => ['nullable', 'string'],
             'now_district' => ['nullable', 'string'],

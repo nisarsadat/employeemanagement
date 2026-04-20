@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Information;
 use App\Support\InfoTypeMapper;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 
 class InformationObserver
 {
@@ -15,9 +16,21 @@ class InformationObserver
             $info->jenayee_info_type,
         ]);
 
+        Log::info('INFO RAW TYPES', [
+            'information_id' => $info->id,
+            'syasi_info_type' => $info->syasi_info_type,
+            'jenayee_info_type' => $info->jenayee_info_type,
+            'rawTypes' => $rawTypes,
+        ]);
+
         if (!$rawTypes) return;
 
         $types = array_unique(array_map(fn($t) => InfoTypeMapper::normalize($t), $rawTypes));
+
+        Log::info('INFO NORMALIZED TYPES', [
+            'information_id' => $info->id,
+            'types' => $types,
+        ]);
 
         $map = [
             'saeenfasad' => \App\Models\fifthyFormats\SaeenFasad::class,
@@ -37,6 +50,12 @@ class InformationObserver
         ];
 
         foreach ($types as $type) {
+            Log::info('PROCESSING TYPE', [
+                'information_id' => $info->id,
+                'type' => $type,
+                'exists_in_map' => isset($map[$type]),
+            ]);
+
             if (!isset($map[$type])) continue;
 
             $targetClass = $map[$type];
@@ -44,9 +63,14 @@ class InformationObserver
 
             $common = array_values(array_intersect($info->getFillable(), $target->getFillable()));
             $data = Arr::only($info->toArray(), $common);
-
-            // link back
             $data['information_id'] = $info->id;
+
+            Log::info('SAVING TARGET', [
+                'information_id' => $info->id,
+                'type' => $type,
+                'targetClass' => $targetClass,
+                'data' => $data,
+            ]);
 
             $targetClass::updateOrCreate(
                 ['information_id' => $info->id],

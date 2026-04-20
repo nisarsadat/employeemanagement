@@ -105,7 +105,6 @@ export const useJenayeeTypeRepository = defineStore('JenayeeTypeRepository', {
         const res = await axios.post(`/jenayee-types`, payload);
         const saved = res.data?.data ?? res.data;
 
-        toast.success('نوع جنایی بریالیتوب سره اضافه شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
@@ -121,7 +120,6 @@ export const useJenayeeTypeRepository = defineStore('JenayeeTypeRepository', {
         const res = await axios.put(`/jenayee-types/${id}`, payload);
         const saved = res.data?.data ?? res.data;
 
-        toast.success('نوع جنایی بریالیتوب سره تغییر شو', { autoClose: 1200 });
         return saved;
       } catch (e) {
         console.error(e);
@@ -134,7 +132,6 @@ export const useJenayeeTypeRepository = defineStore('JenayeeTypeRepository', {
     async DeleteJenayeeType(id) {
       try {
         await axios.delete(`/jenayee-types/${id}`);
-        toast.success('نوع جنایی بریالیتوب سره حذف شو', { autoClose: 1200 });
 
         await this.FetchJenayeeTypesData({
           page: this.page,

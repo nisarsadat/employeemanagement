@@ -197,6 +197,7 @@
                         >
                           <v-icon start>mdi-pencil</v-icon>{{ t('ویرایش') }}
                         </v-btn>
+
                         <v-btn
                           size="small"
                           color="secondary"
@@ -207,6 +208,16 @@
                           "
                         >
                           <v-icon start>mdi-eye</v-icon>{{ t('نمایش') }}
+                        </v-btn>
+
+                        <v-btn
+                          size="small"
+                          color="error"
+                          variant="flat"
+                          v-if="form.previewUrl || form.picture_url || form.picture"
+                          @click.stop="removePicture"
+                        >
+                          <v-icon start>mdi-delete</v-icon>{{ t('حذف') }}
                         </v-btn>
                       </div>
                     </div>
@@ -665,7 +676,7 @@
               <v-col cols="12" md="4">
                 <MawqafJahadiSelect v-model="form.jahadi_mawaqaf" :label="t('موقف جهادی')" />
               </v-col>
-           
+
               <v-col cols="12" md="4">
                 <v-text-field
                   v-model="form.jahad_time_responsibility"
@@ -921,7 +932,7 @@
   const pictureInput = ref(null);
   const pictureFile = ref(null); // new image file
   const pictureChanged = ref(false); // track if user changed picture
-
+  const removePictureFlag = ref(false);
   function showErrorMessage(message) {
     errorMessage.value = message;
     showError.value = true;
@@ -1080,22 +1091,38 @@
   function triggerPicture() {
     pictureInput.value?.click();
   }
+  function removePicture() {
+    if (form.value.previewUrl && String(form.value.previewUrl).startsWith('blob:')) {
+      URL.revokeObjectURL(form.value.previewUrl);
+    }
 
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
+    form.value.previewUrl = null;
+    form.value.picture_url = null;
+    form.value.picture = null;
+
+    removePictureFlag.value = true;
+
+    if (pictureInput.value) pictureInput.value.value = '';
+  }
   function onPickPicture(e) {
     const file = e.target.files?.[0] ?? null;
     pictureFile.value = file;
     pictureChanged.value = !!file;
 
     if (file) {
+      removePictureFlag.value = false;
+
       if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(form.value.previewUrl);
       }
-      form.value.previewUrl = URL.createObjectURL(file); // blob URL
+      form.value.previewUrl = URL.createObjectURL(file);
     } else {
-      // fall back to backend URL
       form.value.previewUrl = form.value.picture_url || null;
     }
-    // allow selecting the same file again
+
     if (e.target) e.target.value = '';
   }
 
@@ -1217,6 +1244,7 @@
       form.value = blankForm();
       pictureFile.value = null;
       pictureChanged.value = false;
+      removePictureFlag.value = false;
       return;
     }
 
@@ -1228,6 +1256,7 @@
         form.value = { ...mapped, _newDocs: [], removed_document_ids: [] };
         pictureFile.value = null;
         pictureChanged.value = false;
+        removePictureFlag.value = false;
       }
     } catch (e) {
       console.error('loadForEdit error', e);
@@ -1279,13 +1308,16 @@
     delete payload.removed_document_ids;
     delete payload.picture;
 
-    // ✅ NEW: backend does not allow updating this
     delete payload.code_number;
 
     const fd = toFormData(payload);
 
     if (pictureChanged.value && pictureFile.value) {
       fd.append('picture', pictureFile.value);
+    }
+
+    if (removePictureFlag.value) {
+      fd.append('remove_picture', '1');
     }
 
     (form.value._newDocs || []).forEach((file) => {
@@ -1298,7 +1330,6 @@
 
     return fd;
   }
-
   /* ===== SUBMIT ===== */
   async function onSubmit() {
     clearBackendErrors();
@@ -1370,16 +1401,17 @@
 
   /* ===== RESET & NAVIGATION ===== */
   function resetForm() {
-    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(form.value.previewUrl);
-    }
-    form.value = blankForm();
-    pictureFile.value = null;
-    pictureChanged.value = false;
-    formRef.value?.resetValidation?.();
-    clearBackendErrors();
-    showSuccessMessage(t('ورودی‌ها پاک شد'));
+  if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+    URL.revokeObjectURL(form.value.previewUrl);
   }
+  form.value = blankForm();
+  pictureFile.value = null;
+  pictureChanged.value = false;
+  removePictureFlag.value = false;
+  formRef.value?.resetValidation?.();
+  clearBackendErrors();
+  showSuccessMessage(t('ورودی‌ها پاک شد'));
+}
 
   function goBack() {
     router.back();
