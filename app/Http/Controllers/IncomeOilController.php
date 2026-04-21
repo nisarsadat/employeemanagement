@@ -267,7 +267,7 @@ class IncomeOilController extends Controller
     }
 public function destroy(IncomeOil $income_oil)
 {
-    DB::transaction(function () use ($income_oil) {
+    $deleted = DB::transaction(function () use ($income_oil) {
         $account = OilAccount::lockForUpdate()->find($income_oil->oil_account_id);
 
         if ($account) {
@@ -279,11 +279,13 @@ public function destroy(IncomeOil $income_oil)
             $account->save();
         }
 
-        IncomeOil::whereKey($income_oil->id)->delete();
+        return $income_oil->delete();
     });
 
     return response()->json([
         'message' => 'Deleted successfully',
+        'deleted' => $deleted,
+        'id' => $income_oil->id,
     ]);
 }
 
