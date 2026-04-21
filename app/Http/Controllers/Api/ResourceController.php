@@ -663,40 +663,50 @@ class ResourceController extends Controller
     }
 
     public function exportExcel(Request $req)
-    {
-        $search = trim((string) $req->get('search', ''));
-        $searchField = $this->resolveSearchField($req->get('search_field'));
-        $searchValue = $req->get('search_value');
-        $year  = $req->filled('year') ? (int) $req->get('year') : null;
-        $month = $req->filled('month') ? (int) $req->get('month') : null;
+{
+    $search = trim((string) $req->get('search', ''));
+    $searchField = $this->resolveSearchField($req->get('search_field'));
+    $searchValue = $req->get('search_value');
+    $year  = $req->filled('year') ? (int) $req->get('year') : null;
+    $month = $req->filled('month') ? (int) $req->get('month') : null;
 
-        $stat = trim((string) $req->get('stat', 'all'));
-        $allowedStats = ['all', 'today', 'active', 'inactive'];
-        if (!in_array($stat, $allowedStats, true)) {
-            $stat = 'all';
-        }
-
-        $dateField = $req->get('date_field', 'resource_saved_date');
-        $allowedDateFields = ['resource_saved_date', 'created_at', 'updated_at'];
-        if (!in_array($dateField, $allowedDateFields, true)) {
-            $dateField = 'resource_saved_date';
-        }
-
-        $fileName = 'resources_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
-
-        return Excel::download(
-            new ResourcesExport(
-                $search,
-                $searchField,
-                $year,
-                $month,
-                $searchValue,
-                $stat,
-                $dateField
-            ),
-            $fileName
-        );
+    $stat = trim((string) $req->get('stat', 'all'));
+    $allowedStats = ['all', 'today', 'active', 'inactive'];
+    if (!in_array($stat, $allowedStats, true)) {
+        $stat = 'all';
     }
+
+    $dateField = $req->get('date_field', 'resource_saved_date');
+    $allowedDateFields = ['resource_saved_date', 'created_at', 'updated_at'];
+    if (!in_array($dateField, $allowedDateFields, true)) {
+        $dateField = 'resource_saved_date';
+    }
+
+    $fileName = 'resources_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+    return Excel::download(
+        new ResourcesExport([
+            'search'              => $search,
+            'search_field'        => $searchField,
+            'search_value'        => $searchValue,
+            'year'                => $year,
+            'month'               => $month,
+            'stat'                => $stat,
+            'date_field'          => $dateField,
+            'resource_id'         => $req->get('resource_id'),
+            'office_employee_id'  => $req->get('office_employee_id'),
+            'information_id'      => $req->get('information_id'),
+            'event_id'            => $req->get('event_id'),
+            'fifty_six_format_id' => $req->get('fifty_six_format_id'),
+            'date'                => $req->get('date'),
+            'date_from'           => $req->get('date_from'),
+            'date_to'             => $req->get('date_to'),
+            'from_date'           => $req->get('from_date'),
+            'to_date'             => $req->get('to_date'),
+        ]),
+        $fileName
+    );
+}
 
     public function dateOptions(Request $req)
     {
