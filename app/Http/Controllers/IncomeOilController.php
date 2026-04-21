@@ -116,23 +116,17 @@ class IncomeOilController extends Controller
             'search'         => ['nullable', 'string', 'max:255'],
             'search_field'   => ['nullable', 'string'],
             'search_value'   => ['nullable', 'string'],
-
-            // existing range filters
             'from'           => ['nullable', 'date'],
             'to'             => ['nullable', 'date'],
-
-            // ✅ NEW: year / month
             'year'           => ['nullable', 'integer', 'min:2000', 'max:2100'],
             'month'          => ['nullable', 'integer', 'min:1', 'max:12'],
-
-            // optional
             'oil_account_id' => ['nullable', 'integer', 'exists:oil_accounts,id'],
         ]);
 
-        $perPage = (int)($request->integer('perPage') ?: 15);
-        $search = trim((string)$request->get('search', ''));
+        $perPage = (int) ($request->integer('perPage') ?: 15);
+        $search = trim((string) $request->get('search', ''));
         $searchField = $this->resolveSearchField($request->get('search_field'));
-        $searchValue = trim((string)$request->get('search_value', ''));
+        $searchValue = trim((string) $request->get('search_value', ''));
         $from = $request->date('from');
         $to = $request->date('to');
 
@@ -218,12 +212,11 @@ class IncomeOilController extends Controller
         $payload = $request->validated();
 
         $result = DB::transaction(function () use ($payload) {
-            /** @var OilAccount $account */
             $account = OilAccount::lockForUpdate()->findOrFail($payload['oil_account_id']);
 
             $income = IncomeOil::create($payload);
 
-            $account->quantity = bcadd((string)$account->quantity, (string)$payload['oil_quantity'], 3);
+            $account->quantity = bcadd((string) $account->quantity, (string) $payload['oil_quantity'], 3);
             $account->save();
 
             return $income->load(['account:id,name,quantity']);
@@ -235,6 +228,7 @@ class IncomeOilController extends Controller
     public function show(IncomeOil $income_oil)
     {
         $income_oil->load(['account:id,name,quantity']);
+
         return new IncomeOilResource($income_oil);
     }
 
@@ -243,15 +237,28 @@ class IncomeOilController extends Controller
         $payload = $request->validated();
 
         $updated = DB::transaction(function () use ($payload, $income_oil) {
-            $oldAccount = OilAccount::lockForUpdate()->findOrFail($income_oil->oil_account_id);
-            $oldAccount->quantity = bcsub((string)$oldAccount->quantity, (string)$income_oil->oil_quantity, 3);
-            $oldAccount->save();
+            $oldAccountId = $income_oil->oil_account_id;
+            $oldQuantity = (string) $income_oil->oil_quantity;
+
+            $newAccountId = $payload['oil_account_id'];
+            $newQuantity = (string) $payload['oil_quantity'];
+
+            $oldAccount = OilAccount::lockForUpdate()->find($oldAccountId);
+            $newAccount = $oldAccountId == $newAccountId
+                ? $oldAccount
+                : OilAccount::lockForUpdate()->find($newAccountId);
+
+            if ($oldAccount) {
+                $oldAccount->quantity = bcsub((string) $oldAccount->quantity, $oldQuantity, 3);
+                $oldAccount->save();
+            }
 
             $income_oil->update($payload);
 
-            $newAccount = OilAccount::lockForUpdate()->findOrFail($income_oil->oil_account_id);
-            $newAccount->quantity = bcadd((string)$newAccount->quantity, (string)$income_oil->oil_quantity, 3);
-            $newAccount->save();
+            if ($newAccount) {
+                $newAccount->quantity = bcadd((string) $newAccount->quantity, $newQuantity, 3);
+                $newAccount->save();
+            }
 
             return $income_oil->load(['account:id,name,quantity']);
         });
@@ -262,9 +269,16 @@ class IncomeOilController extends Controller
     public function destroy(IncomeOil $income_oil)
     {
         DB::transaction(function () use ($income_oil) {
-            $account = OilAccount::lockForUpdate()->findOrFail($income_oil->oil_account_id);
-            $account->quantity = bcsub((string)$account->quantity, (string)$income_oil->oil_quantity, 3);
-            $account->save();
+            $account = OilAccount::lockForUpdate()->find($income_oil->oil_account_id);
+
+            if ($account) {
+                $account->quantity = bcsub(
+                    (string) $account->quantity,
+                    (string) $income_oil->oil_quantity,
+                    3
+                );
+                $account->save();
+            }
 
             $income_oil->delete();
         });

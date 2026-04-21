@@ -220,15 +220,17 @@ class IncomeController extends Controller
         return response()->json(['message' => 'Deleted successfully']);
     }
 
+   
     private function validatePayload(Request $request): array
-    {
-        return $request->validate([
-            'account_id'  => ['required', 'integer', 'exists:accounts,id'],
-            'amount'      => ['required', 'numeric', 'min:0'],
-            'received_at' => ['nullable', 'date'],
-            'note'        => ['nullable', 'string'],
-        ]);
-    }
+{
+    return $request->validate([
+        'account_id'     => ['required', 'integer', 'exists:accounts,id'],
+        'amount'         => ['required', 'numeric', 'min:0'],
+        'amount_by_word' => ['required', 'string'],
+        'received_at'    => ['nullable', 'date'],
+        'note'           => ['nullable', 'string'],
+    ]);
+}
 
     public function years()
     {

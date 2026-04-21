@@ -910,6 +910,7 @@
     { title: t('کارمند مربوط'), key: 'office_employee_display' },
     { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
     { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
+    { title: t('تعقیبی'), key: 'matched_links' },
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('د نتیجې ځنډ'), key: 'result_pending_message' },
     { title: t('نام'), key: 'name' },
