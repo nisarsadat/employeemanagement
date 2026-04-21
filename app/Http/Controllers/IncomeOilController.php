@@ -265,26 +265,27 @@ class IncomeOilController extends Controller
 
         return new IncomeOilResource($updated);
     }
+public function destroy(IncomeOil $income_oil)
+{
+    DB::transaction(function () use ($income_oil) {
+        $account = OilAccount::lockForUpdate()->find($income_oil->oil_account_id);
 
-    public function destroy(IncomeOil $income_oil)
-    {
-        DB::transaction(function () use ($income_oil) {
-            $account = OilAccount::lockForUpdate()->find($income_oil->oil_account_id);
+        if ($account) {
+            $account->quantity = bcsub(
+                (string) $account->quantity,
+                (string) $income_oil->oil_quantity,
+                3
+            );
+            $account->save();
+        }
 
-            if ($account) {
-                $account->quantity = bcsub(
-                    (string) $account->quantity,
-                    (string) $income_oil->oil_quantity,
-                    3
-                );
-                $account->save();
-            }
+        IncomeOil::whereKey($income_oil->id)->delete();
+    });
 
-            $income_oil->delete();
-        });
-
-        return response()->noContent();
-    }
+    return response()->json([
+        'message' => 'Deleted successfully',
+    ]);
+}
 
     public function years()
     {
