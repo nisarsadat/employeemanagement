@@ -67,54 +67,53 @@ class ResourceController extends Controller
         ], 422);
     }
 
-   private function searchableColumns(): array
-{
-    return [
-        'letry_format_name',
-        'resedint_code',
-        'code_number',
-        'name',
-        'father_name',
-        'grand_father_name',
-        'nick_name',
-        'tazkira',
-        'main_province',
-        'main_district',
-        'main_village',
-        'now_province',
-        'now_district',
-        'office_employee_id',
-        'office_employee_code',
-        'now_village',
-        'now_specific_place',
-        'now_street_number',
-        'now_home_number',
-        'old_job',
-        'now_job',
-        'job_place',
-        'zone',
-        'hawza',
-        'specefic_place',
-        'coordinates',
-        'activity',
-        'halat_madani',
-        'age',
-        'elmi_level',
-        'faculty',
-        'specific_skills',
-        'resource_saved_date',
-        'resource_activity_type',
-        'resource_cover',
-        'language',
-        'nation',
-        'blood_group',
-        'train',
-        'project',
-        'phone_number',
-        'trust_percentage',
-        'note',
-    ];
-}
+    private function searchableColumns(): array
+    {
+        return [
+            'letry_format_name',
+            'resedint_code',
+            'code_number',
+            'name',
+            'father_name',
+            'grand_father_name',
+            'nick_name',
+            'tazkira',
+            'main_province',
+            'main_district',
+            'main_village',
+            'now_province',
+            'now_district',
+            'office_employee_id',
+            'now_village',
+            'now_specific_place',
+            'now_street_number',
+            'now_home_number',
+            'old_job',
+            'now_job',
+            'job_place',
+            'zone',
+            'hawza',
+            'specefic_place',
+            'coordinates',
+            'activity',
+            'halat_madani',
+            'age',
+            'elmi_level',
+            'faculty',
+            'specific_skills',
+            'resource_saved_date',
+            'resource_activity_type',
+            'resource_cover',
+            'language',
+            'nation',
+            'blood_group',
+            'train',
+            'project',
+            'phone_number',
+            'trust_percentage',
+            'note',
+        ];
+    }
 
     private function resolveSearchField(?string $field): ?string
     {
@@ -405,26 +404,7 @@ class ResourceController extends Controller
                 ],
             ]);
     }
-private function applyDateRangeFilter($query, Request $req, string $dateField)
-{
-    $date      = $req->get('date');
-    $dateFrom  = $req->get('date_from') ?? $req->get('from_date');
-    $dateTo    = $req->get('date_to') ?? $req->get('to_date');
 
-    if ($date) {
-        $query->whereDate($dateField, $date);
-    }
-
-    if ($dateFrom) {
-        $query->whereDate($dateField, '>=', $dateFrom);
-    }
-
-    if ($dateTo) {
-        $query->whereDate($dateField, '<=', $dateTo);
-    }
-
-    return $query;
-}
     public function show($id)
     {
         $row = Resource::query()
@@ -684,14 +664,14 @@ private function applyDateRangeFilter($query, Request $req, string $dateField)
 
 
     public function exportExcel(Request $req)
-{
-    $fileName = 'resources_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+    {
+        $fileName = 'resources_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
 
-    return Excel::download(
-        new ResourcesExport($req->all()),
-        $fileName
-    );
-}
+        return Excel::download(
+            new ResourcesExport($req->all()),
+            $fileName
+        );
+    }
 
     public function dateOptions(Request $req)
     {
