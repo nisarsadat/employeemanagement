@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\fifthyformats;
+namespace App\Http\Requests\fifthyFormats;
 
 use Illuminate\Foundation\Http\FormRequest;
 
