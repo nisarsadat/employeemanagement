@@ -405,7 +405,26 @@ class ResourceController extends Controller
                 ],
             ]);
     }
+private function applyDateRangeFilter($query, Request $req, string $dateField)
+{
+    $date      = $req->get('date');
+    $dateFrom  = $req->get('date_from') ?? $req->get('from_date');
+    $dateTo    = $req->get('date_to') ?? $req->get('to_date');
 
+    if ($date) {
+        $query->whereDate($dateField, $date);
+    }
+
+    if ($dateFrom) {
+        $query->whereDate($dateField, '>=', $dateFrom);
+    }
+
+    if ($dateTo) {
+        $query->whereDate($dateField, '<=', $dateTo);
+    }
+
+    return $query;
+}
     public function show($id)
     {
         $row = Resource::query()
