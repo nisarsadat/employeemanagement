@@ -436,7 +436,26 @@
       forceSinglePage: false,
     };
   }
+  async function fileToDataUrl(url) {
+    if (!url) return null;
 
+    try {
+      const res = await fetch(url, { cache: 'no-cache' });
+      if (!res.ok) return null;
+
+      const blob = await res.blob();
+
+      return await new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onloadend = () => resolve(fr.result);
+        fr.onerror = reject;
+        fr.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('Font load failed:', error);
+      return null;
+    }
+  }
   function buildExportTableHtml(fields, isRtl) {
     const rows = chunkIntoRows(fields, 4);
 
@@ -473,6 +492,9 @@
     const fullName = displayName.value || titleText.value || '';
     const position = displayPosition.value || '';
     const img = shouldShowImage.value ? await imgB64(imageSrc.value) : null;
+
+    const amiriRegular = await fileToDataUrl('/fonts/Amiri-Regular.ttf');
+    const amiriBold = await fileToDataUrl('/fonts/Amiri-Bold.ttf');
 
     const fields = (fieldsToShow.value || []).map((f) => ({
       title: String(f.title || '').replace(/\u00A0/g, ' '),
@@ -540,7 +562,7 @@
       width: 100%;
       background: #ffffff;
       color: #222;
-      font-family: "Noto Naskh Arabic", "Amiri", "Tahoma", "Arial", sans-serif;
+      font-family: ${amiriRegular ? "'ExportAmiri', 'Tahoma', 'Arial', sans-serif" : "'Tahoma', 'Arial', sans-serif"};
       direction: ${direction};
       text-align: ${textAlign};
       -webkit-font-smoothing: antialiased;
@@ -713,6 +735,19 @@
     `
     }
 
+    @font-face {
+      font-family: 'ExportAmiri';
+      src: url('${amiriRegular || ''}') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'ExportAmiri';
+      src: url('${amiriBold || amiriRegular || ''}') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
     @media print {
       html, body {
         background: #fff;
