@@ -64,15 +64,7 @@ class EventController extends Controller
         $fileName = 'events_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
 
         return Excel::download(
-            new EventsExport(
-                $request->input('search'),
-                $request->input('search_field'),
-                $request->input('search_value'),
-                $request->filled('year') ? (int) $request->input('year') : null,
-                $request->filled('month') ? (int) $request->input('month') : null,
-                $request->input('stat', 'all'),
-                $request->input('date_field', 'event_date')
-            ),
+            new EventsExport($request->all()),
             $fileName
         );
     }

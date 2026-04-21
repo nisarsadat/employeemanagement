@@ -68,24 +68,16 @@ class InformationController extends Controller
         return $field;
     }
 
-    public function exportExcel(Request $request)
-    {
-        $fileName = 'informations_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
 
-        return Excel::download(
-            new InformationsExport(
-                $request->input('search'),
-                $request->input('search_field'),
-                $request->input('search_value'),
-                $request->filled('year') ? (int) $request->input('year') : null,
-                $request->filled('month') ? (int) $request->input('month') : null,
-                $request->input('stat', 'all'),
-                $request->input('date_field', 'information_saved_date'),
-                $request->filled('information_id') ? (int) $request->input('information_id') : null
-            ),
-            $fileName
-        );
-    }
+    public function exportExcel(Request $request)
+{
+    $fileName = 'informations_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+    return Excel::download(
+        new InformationsExport($request->all()),
+        $fileName
+    );
+}
 
     private function gregorianToJalali(int $gy, int $gm, int $gd): array
     {

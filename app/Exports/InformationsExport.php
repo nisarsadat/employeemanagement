@@ -15,59 +15,31 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-
+use Illuminate\Support\Facades\DB;
 class InformationsExport implements FromQuery, WithHeadings, WithMapping, WithEvents, WithColumnWidths, ShouldQueue
 {
     use Exportable;
 
-    protected ?string $search;
-    protected ?string $searchField;
-    protected ?int $year;
-    protected ?int $month;
-    protected string $stat;
-    protected string $dateField;
-    protected ?int $relatedId;
+    protected array $filters = [];
+    protected int $rowNumber = 0;
 
-    public function __construct(
-        ?string $search = null,
-        ?string $searchField = null,
-        ?int $year = null,
-        ?int $month = null,
-        ?string $stat = 'all',
-        ?string $dateField = 'information_saved_date',
-        ?int $relatedId = null
-    ) {
-        $this->search = trim((string) $search) ?: null;
-        $this->searchField = trim((string) $searchField) ?: null;
-        $this->year = $year;
-        $this->month = $month;
-        $this->stat = in_array($stat, [
-            'all',
-            'resources',
-            'saeen',
-            'shar',
-            'spy',
-            'today',
-            'cat_alef',
-            'unpaid',
-            'done',
-            'pending',
-        ], true) ? $stat : 'all';
-
-        $this->dateField = in_array($dateField, [
-            'information_saved_date',
-            'hamahangi_date',
-            'created_at',
-            'updated_at',
-        ], true) ? $dateField : 'information_saved_date';
-
-        $this->relatedId = $relatedId;
+    public function __construct(array $filters = [])
+    {
+        $this->filters = $filters;
     }
 
     private function searchableColumns(): array
     {
         return [
             'id',
+            'resource_id',
+            'resource_display',
+            'office_employee_id',
+            'office_employee_display',
+            'office_employee_info_id',
+            'office_employee_info_display',
+            'finance_paid_amount',
+            'finance_status',
             'name',
             'nick_name',
             'father_name',
@@ -87,6 +59,7 @@ class InformationsExport implements FromQuery, WithHeadings, WithMapping, WithEv
             'coordinates',
             'syasi_info_type',
             'jenayee_info_type',
+            'letry_format_name',
             'information_saved_date',
             'information_saved_hour',
             'information_degree',
@@ -102,13 +75,6 @@ class InformationsExport implements FromQuery, WithHeadings, WithMapping, WithEv
             'organ',
             'result',
             'note',
-            'finance_status',
-            'message_to_finance',
-            'money_amount_words',
-            'trust_percentage',
-            'Province_addr',
-            'estijalyat_degree',
-            'talks',
         ];
     }
 
@@ -119,12 +85,44 @@ class InformationsExport implements FromQuery, WithHeadings, WithMapping, WithEv
         return in_array($field, $this->searchableColumns(), true) ? $field : null;
     }
 
+    private function resolveDateField(?string $dateField): string
+    {
+        $allowed = ['information_saved_date', 'hamahangi_date', 'created_at', 'updated_at'];
+
+        $field = trim((string) $dateField);
+        if ($field === '' || !in_array($field, $allowed, true)) {
+            return 'information_saved_date';
+        }
+
+        return $field;
+    }
+
     public function query()
     {
-        $today = now()->toDateString();
-        $searchField = $this->resolveSearchField($this->searchField);
+        $search = trim((string) ($this->filters['search'] ?? ''));
+        $search = $search !== '' ? $search : null;
 
-        return Information::query()
+        $searchField = $this->resolveSearchField($this->filters['search_field'] ?? null);
+
+        $searchValue = $this->filters['search_value'] ?? null;
+        $searchValue = is_string($searchValue) ? trim($searchValue) : $searchValue;
+        if ($searchValue === '') {
+            $searchValue = null;
+        }
+
+        $year = isset($this->filters['year']) && $this->filters['year'] !== ''
+            ? (int) $this->filters['year']
+            : null;
+
+        $month = isset($this->filters['month']) && $this->filters['month'] !== ''
+            ? (int) $this->filters['month']
+            : null;
+
+        $dateField = $this->resolveDateField($this->filters['date_field'] ?? 'information_saved_date');
+        $stat = trim((string) ($this->filters['stat'] ?? 'all'));
+        $type = trim((string) ($this->filters['type'] ?? ''));
+
+        $query = Information::query()
             ->select([
                 'id',
                 'resource_id',
@@ -184,107 +182,293 @@ class InformationsExport implements FromQuery, WithHeadings, WithMapping, WithEv
                 'matchedInformation:id',
                 'childMatchedInformations:id,matched_information_id',
             ])
-            ->withSum('finances as finance_paid_amount', 'money_amount_number')
-            ->when($this->year !== null, function (Builder $q) {
-                $q->whereNotNull($this->dateField)
-                    ->whereYear($this->dateField, $this->year);
-            })
-            ->when($this->month !== null && $this->month >= 1 && $this->month <= 12, function (Builder $q) {
-                $q->whereNotNull($this->dateField)
-                    ->whereMonth($this->dateField, $this->month);
-            })
-            ->when($this->search, function (Builder $q) use ($searchField) {
-                if ($searchField) {
-                    $q->where($searchField, 'like', '%' . $this->search . '%');
-                    return;
-                }
+            ->withSum('finances as finance_paid_amount', 'money_amount_number');
 
-                $q->where(function (Builder $sub) {
-                    foreach ($this->searchableColumns() as $index => $column) {
-                        if ($index === 0) {
-                            $sub->where($column, 'like', '%' . $this->search . '%');
-                        } else {
-                            $sub->orWhere($column, 'like', '%' . $this->search . '%');
-                        }
+        $this->applySearchFilter($query, $search, $searchField, $searchValue);
+        $this->applyMonthYearFilter($query, $year, $month, $dateField);
+        $this->applyRelatedFilters($query);
+        $this->applyDateRangeFilter($query, $dateField);
+        $this->applyTypeFilter($query, $type);
+        $this->applyStatFilter($query, $stat, $dateField);
+
+        return $query->orderBy('id', 'asc');
+    }
+
+    private function applySearchFilter($query, ?string $search, ?string $searchField = null, $searchValue = null)
+    {
+        $resolvedField = $this->resolveSearchField($searchField);
+        $search = trim((string) $search);
+
+        if ($searchValue !== null && $searchValue !== '' && $resolvedField) {
+            if ($resolvedField === 'resource_display') {
+                $query->whereHas('resource', function ($q) use ($searchValue) {
+                    $q->where('code_number', $searchValue);
+                });
+            } elseif ($resolvedField === 'office_employee_display') {
+                $query->whereHas('officeEmployee', function ($q) use ($searchValue) {
+                    $q->where('code_number', $searchValue);
+                });
+            } elseif ($resolvedField === 'office_employee_info_display') {
+                $query->whereHas('officeEmployeeInfo', function ($q) use ($searchValue) {
+                    $q->where('code_number', $searchValue);
+                });
+            } elseif ($resolvedField !== 'finance_paid_amount') {
+                $query->where($resolvedField, $searchValue);
+            }
+        }
+
+        if ($search === '') {
+            return $query;
+        }
+
+        if ($resolvedField) {
+            if ($resolvedField === 'resource_display') {
+                $query->whereHas('resource', function ($q) use ($search) {
+                    $q->where('code_number', 'like', "%{$search}%");
+                });
+            } elseif ($resolvedField === 'office_employee_display') {
+                $query->whereHas('officeEmployee', function ($q) use ($search) {
+                    $q->where('code_number', 'like', "%{$search}%");
+                });
+            } elseif ($resolvedField === 'office_employee_info_display') {
+                $query->whereHas('officeEmployeeInfo', function ($q) use ($search) {
+                    $q->where('code_number', 'like', "%{$search}%");
+                });
+            } elseif ($resolvedField !== 'finance_paid_amount') {
+                $query->where($resolvedField, 'like', "%{$search}%");
+            }
+
+            return $query;
+        }
+
+        $query->where(function ($qq) use ($search) {
+            foreach ($this->searchableColumns() as $index => $column) {
+                if ($column === 'resource_display') {
+                    $method = $index === 0 ? 'whereHas' : 'orWhereHas';
+                    $qq->{$method}('resource', function ($q) use ($search) {
+                        $q->where('code_number', 'like', "%{$search}%");
+                    });
+                } elseif ($column === 'office_employee_display') {
+                    $method = $index === 0 ? 'whereHas' : 'orWhereHas';
+                    $qq->{$method}('officeEmployee', function ($q) use ($search) {
+                        $q->where('code_number', 'like', "%{$search}%");
+                    });
+                } elseif ($column === 'office_employee_info_display') {
+                    $method = $index === 0 ? 'whereHas' : 'orWhereHas';
+                    $qq->{$method}('officeEmployeeInfo', function ($q) use ($search) {
+                        $q->where('code_number', 'like', "%{$search}%");
+                    });
+                } elseif ($column !== 'finance_paid_amount') {
+                    if ($index === 0) {
+                        $qq->where($column, 'like', "%{$search}%");
+                    } else {
+                        $qq->orWhere($column, 'like', "%{$search}%");
                     }
+                }
+            }
+        });
 
-                    $sub->orWhereHas('resource', function (Builder $rq) {
-                        $rq->where('code_number', 'like', '%' . $this->search . '%')
-                           ->orWhere('name', 'like', '%' . $this->search . '%');
-                    });
+        return $query;
+    }
 
-                    $sub->orWhereHas('officeEmployee', function (Builder $eq) {
-                        $eq->where('code_number', 'like', '%' . $this->search . '%')
-                           ->orWhere('name', 'like', '%' . $this->search . '%');
-                    });
+    private function applyMonthYearFilter($query, ?int $year, ?int $month, string $dateField)
+    {
+        if ($year && $month) {
+            [$startGy, $startGm, $startGd] = $this->jalaliToGregorian($year, $month, 1);
+            $lastDay = $month <= 6 ? 31 : ($month <= 11 ? 30 : 29);
+            [$endGy, $endGm, $endGd] = $this->jalaliToGregorian($year, $month, $lastDay);
 
-                    $sub->orWhereHas('officeEmployeeInfo', function (Builder $iq) {
-                        $iq->where('code_number', 'like', '%' . $this->search . '%')
-                           ->orWhere('name', 'like', '%' . $this->search . '%');
-                    });
-                });
-            })
-            ->when($this->relatedId, function (Builder $q) {
-                $q->where(function (Builder $sub) {
-                    $sub->where('matched_information_id', $this->relatedId)
-                        ->orWhere('id', $this->relatedId);
-                });
-            })
-            ->when($this->stat === 'today', function (Builder $q) use ($today) {
-                $q->whereNotNull($this->dateField)
-                    ->whereDate($this->dateField, $today);
-            })
-            ->when($this->stat === 'done', function (Builder $q) {
-                $q->whereNotNull('result')
+            $startDate = Carbon::create($startGy, $startGm, $startGd)->startOfDay();
+            $endDate = Carbon::create($endGy, $endGm, $endGd)->endOfDay();
+
+            $query->whereBetween($dateField, [$startDate, $endDate]);
+
+            return $query;
+        }
+
+        if ($year) {
+            [$startGy, $startGm, $startGd] = $this->jalaliToGregorian($year, 1, 1);
+            [$endGy, $endGm, $endGd] = $this->jalaliToGregorian($year, 12, 29);
+
+            $startDate = Carbon::create($startGy, $startGm, $startGd)->startOfDay();
+            $endDate = Carbon::create($endGy, $endGm, $endGd)->endOfDay();
+
+            $query->whereBetween($dateField, [$startDate, $endDate]);
+
+            return $query;
+        }
+
+        if ($month) {
+            $query->whereMonth($dateField, $month);
+        }
+
+        return $query;
+    }
+
+    private function applyRelatedFilters($query)
+    {
+        if (!empty($this->filters['information_id'])) {
+            $relatedId = (int) $this->filters['information_id'];
+
+            $selected = Information::query()
+                ->select(['id', 'matched_information_id'])
+                ->find($relatedId);
+
+            $ids = collect([$relatedId]);
+
+            if ($selected && $selected->matched_information_id) {
+                $ids->push((int) $selected->matched_information_id);
+            }
+
+            $ids = $ids->filter()->unique()->values();
+
+            $query->where(function ($q) use ($ids) {
+                $q->whereIn('id', $ids)
+                  ->orWhereIn('matched_information_id', $ids);
+            });
+        }
+
+        if (!empty($this->filters['resource_id'])) {
+            $query->where('resource_id', $this->filters['resource_id']);
+        }
+
+        if (!empty($this->filters['office_employee_id'])) {
+            $value = $this->filters['office_employee_id'];
+            $query->where(function ($q) use ($value) {
+                $q->where('office_employee_id', $value)
+                  ->orWhere('office_employee_info_id', $value);
+            });
+        }
+
+        if (!empty($this->filters['event_id'])) {
+            $query->whereHas('events', fn ($q) => $q->where('id', $this->filters['event_id']));
+        }
+
+        if (!empty($this->filters['fifty_six_format_id'])) {
+            $query->whereHas('fiftySixFormats', fn ($q) => $q->where('id', $this->filters['fifty_six_format_id']));
+        }
+
+        return $query;
+    }
+
+    private function applyDateRangeFilter($query, string $dateField)
+    {
+        $date = $this->filters['date'] ?? null;
+        $dateFrom = $this->filters['date_from'] ?? ($this->filters['from_date'] ?? null);
+        $dateTo = $this->filters['date_to'] ?? ($this->filters['to_date'] ?? null);
+
+        if (!empty($date)) {
+            $query->whereDate($dateField, $date);
+        }
+
+        if (!empty($dateFrom)) {
+            $query->whereDate($dateField, '>=', $dateFrom);
+        }
+
+        if (!empty($dateTo)) {
+            $query->whereDate($dateField, '<=', $dateTo);
+        }
+
+        return $query;
+    }
+
+    private function applyTypeFilter($query, ?string $type)
+    {
+        $type = trim((string) $type);
+
+        if ($type === '') {
+            return $query;
+        }
+
+        $query->where(function ($q) use ($type) {
+            $q->where('syasi_info_type', $type)
+              ->orWhere('jenayee_info_type', $type);
+        });
+
+        return $query;
+    }
+
+    private function applyStatFilter($query, ?string $stat, string $dateField)
+    {
+        $stat = trim((string) $stat);
+
+        if ($stat === '' || $stat === 'all' || $stat === 'resources') {
+            return $query;
+        }
+
+        if ($stat === 'today') {
+            $query->whereDate($dateField, now()->toDateString());
+            return $query;
+        }
+
+        if ($stat === 'saeen') {
+            $query->where(function ($q) {
+                $q->where('syasi_info_type', 'ساعین بالفساد')
+                  ->orWhere('jenayee_info_type', 'ساعین بالفساد');
+            });
+            return $query;
+        }
+
+        if ($stat === 'shar') {
+            $query->where(function ($q) {
+                $q->where('syasi_info_type', 'شر او فساد')
+                  ->orWhere('jenayee_info_type', 'شر او فساد');
+            });
+            return $query;
+        }
+
+        if ($stat === 'spy') {
+            $query->where(function ($q) {
+                $q->whereIn('syasi_info_type', ['جاسوسی', ' جاسوسي', 'جواسیس'])
+                  ->orWhereIn('jenayee_info_type', ['جاسوسی', ' جاسوسي', 'جواسیس']);
+            });
+            return $query;
+        }
+
+        if ($stat === 'cat_alef') {
+            $query->where('information_category', 'الف');
+            return $query;
+        }
+
+        if ($stat === 'unpaid') {
+        $query->where(function ($q) {
+            $q->whereNull('finance_status')
+            ->orWhere('finance_status', '')
+            ->orWhereRaw('LOWER(TRIM(finance_status)) IN (?, ?, ?, ?)', [
+                'unpaid',
+                'pending',
+                'ناپرداخت',
+                'not_paid',
+            ]);
+        });
+    }
+
+        if ($stat === 'done') {
+            $query->whereNotNull('result')
                   ->where('result', '!=', '');
-            })
-            ->when($this->stat === 'pending', function (Builder $q) {
-                $q->where(function (Builder $sub) {
-                    $sub->whereNull('result')
-                        ->orWhere('result', '');
-                });
-            })
-            ->when($this->stat === 'saeen', function (Builder $q) {
-                $q->where(function (Builder $sub) {
-                    $sub->where('syasi_info_type', 'like', '%ساعین فساد%')
-                        ->orWhere('jenayee_info_type', 'like', '%ساعین فساد%');
-                });
-            })
-            ->when($this->stat === 'shar', function (Builder $q) {
-                $q->where(function (Builder $sub) {
-                    $sub->where('syasi_info_type', 'like', '%شر او فساد%')
-                        ->orWhere('jenayee_info_type', 'like', '%شر او فساد%');
-                });
-            })
-            ->when($this->stat === 'spy', function (Builder $q) {
-                $q->where(function (Builder $sub) {
-                    $sub->where('syasi_info_type', 'like', '%جاسوسی%')
-                        ->orWhere('jenayee_info_type', 'like', '%جاسوسی%');
-                });
-            })
-            ->when($this->stat === 'cat_alef', function (Builder $q) {
-                $q->where('information_category', 'الف');
-            })
-            ->when($this->stat === 'unpaid', function (Builder $q) {
-                $q->where(function (Builder $sub) {
-                    $sub->whereNull('finance_status')
-                        ->orWhere('finance_status', '')
-                        ->orWhereIn('finance_status', ['unpaid', 'pending', 'ناپرداخت', 'not_paid']);
-                });
-            })
-            ->latest('id');
+            return $query;
+        }
+
+        if ($stat === 'pending') {
+            $query->where(function ($q) {
+                $q->whereNull('result')
+                  ->orWhere('result', '');
+            });
+        }
+
+        return $query;
     }
 
     public function map($row): array
     {
         return [
+            ++$this->rowNumber,
             $row->id,
             $this->formatMatchedLinks($row),
             $row->resource?->code_number ?? '—',
             $row->officeEmployee?->code_number ?? '—',
             $row->finance_paid_amount ?? 0,
             $this->pashtoFinanceStatus($row->finance_status),
-            $row->coordinates ?? '—',
             $this->resultPendingMessage($row),
             $row->name ?? '—',
             $row->nick_name ?? '—',
@@ -327,13 +511,13 @@ class InformationsExport implements FromQuery, WithHeadings, WithMapping, WithEv
     public function headings(): array
     {
         return [
+            'شمېره',
             'آی ډي',
             'تعقیبي اړیکې',
             'د منبع کوډ',
             'اړوند کارکوونکی',
             'ورکړل شوې پیسې',
             'د پیسو د ورکړې وضعیت',
-            'نقشه',
             'د پایلې ځنډ',
             'نوم',
             'مستعار نوم',
@@ -377,12 +561,12 @@ class InformationsExport implements FromQuery, WithHeadings, WithMapping, WithEv
     {
         return [
             'A'  => 10,
-            'B'  => 18,
-            'C'  => 16,
+            'B'  => 10,
+            'C'  => 18,
             'D'  => 16,
-            'E'  => 18,
-            'F'  => 22,
-            'G'  => 14,
+            'E'  => 16,
+            'F'  => 18,
+            'G'  => 22,
             'H'  => 18,
             'I'  => 18,
             'J'  => 18,
@@ -415,6 +599,7 @@ class InformationsExport implements FromQuery, WithHeadings, WithMapping, WithEv
             'AK' => 18,
             'AL' => 18,
             'AM' => 30,
+            'AN' => 30,
         ];
     }
 
@@ -517,7 +702,7 @@ class InformationsExport implements FromQuery, WithHeadings, WithMapping, WithEv
         };
     }
 
-    private function formatShamsiDate($value): ?string
+    private function formatShamsiDate($value): string
     {
         if (empty($value)) {
             return '—';
@@ -571,5 +756,69 @@ class InformationsExport implements FromQuery, WithHeadings, WithMapping, WithEv
         }
 
         return [$jy, $jm, $jd];
+    }
+
+    private function jalaliToGregorian(int $jy, int $jm, int $jd): array
+    {
+        if ($jy > 979) {
+            $gy = 1600;
+            $jy -= 979;
+        } else {
+            $gy = 621;
+        }
+
+        $days = (365 * $jy)
+            + intdiv($jy, 33) * 8
+            + intdiv((($jy % 33) + 3), 4)
+            + 78
+            + $jd
+            + (($jm < 7) ? (($jm - 1) * 31) : ((($jm - 7) * 30) + 186));
+
+        $gy += 400 * intdiv($days, 146097);
+        $days %= 146097;
+
+        if ($days > 36524) {
+            $gy += 100 * intdiv(--$days, 36524);
+            $days %= 36524;
+
+            if ($days >= 365) {
+                $days++;
+            }
+        }
+
+        $gy += 4 * intdiv($days, 1461);
+        $days %= 1461;
+
+        if ($days > 365) {
+            $gy += intdiv(($days - 1), 365);
+            $days = ($days - 1) % 365;
+        }
+
+        $gd = $days + 1;
+
+        $sal_a = [
+            0,
+            31,
+            (($gy % 4 === 0 && $gy % 100 !== 0) || ($gy % 400 === 0)) ? 29 : 28,
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31,
+        ];
+
+        for ($gm = 1; $gm <= 12; $gm++) {
+            if ($gd <= $sal_a[$gm]) {
+                break;
+            }
+            $gd -= $sal_a[$gm];
+        }
+
+        return [$gy, $gm, $gd];
     }
 }

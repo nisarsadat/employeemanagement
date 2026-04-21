@@ -324,7 +324,6 @@ class ResourcesExport implements FromQuery, WithHeadings, WithMapping, WithEvent
     {
         return [
             ++$this->rowNumber,
-            $row->id,
             $row->payed_money ?? 0,
             $row->events_count ?? 0,
             $row->informations_count ?? 0,
@@ -384,7 +383,6 @@ class ResourcesExport implements FromQuery, WithHeadings, WithMapping, WithEvent
     {
         return [
             'شمېره',
-            'آی ډي',
             'ورکړل شوې پیسې',
             'د پېښو شمېر',
             'د معلوماتو شمېر',

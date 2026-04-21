@@ -55,13 +55,14 @@ class ResourceController extends Controller
         return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
+
     private function duplicateResponsePashto()
     {
         return response()->json([
-            'message' => 'دا منبع مخکې ثبت شوی دی.',
+            'message' => 'دا منبع مخکې د همدې مربوط کارمند لپاره ثبت شوی دی.',
             'errors'  => [
-                'duplicate' => [
-                    'په همدې نوم، د پلار نوم، د نيکه نوم، مستعار نوم، کوډ نمبر او د اصلي استوګنې ځای (ولايت/ولسوالي/کلی) سره منبع مخکې په سیستم کې موجوده ده.',
+                'office_employee_id' => [
+                    'دا منبع مخکې د همدې مربوط کارمند لپاره ثبت شوی دی.',
                 ],
             ],
         ], 422);

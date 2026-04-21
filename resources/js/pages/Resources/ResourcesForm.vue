@@ -1190,30 +1190,37 @@
     try {
       if (!isEdit.value) {
         const fd = buildCreateFormData();
+
         const created = await repo.CreateResource(fd).catch((e) => {
           if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
+
+          showErrorMessage(
+            e?.response?.data?.message || t('ثبت معلومات ناکام شد')
+          );
+
           return null;
         });
 
         if (created?.id) {
           showSuccessMessage(t('منبع موفقانه ثبت شد'));
           router.push({ path: '/app/resources' }).catch(() => {});
-        } else {
-          showErrorMessage(t('ثبت معلومات ناکام شد'));
         }
       } else {
         const fd = buildUpdateFormData();
         const updated = await repo.UpdateResource(form.value.id, fd).catch((e) => {
-          if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
-          return null;
-        });
+            if (e?.response?.data?.errors) setBackendErrors(e.response.data.errors);
 
-        if (updated?.id) {
-          showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
-          router.push({ path: '/app/resources' }).catch(() => {});
-        } else {
-          showErrorMessage(t('ذخیرهٔ تغییرات ناکام شد'));
-        }
+            showErrorMessage(
+              e?.response?.data?.message || t('ذخیرهٔ تغییرات ناکام شد')
+            );
+
+            return null;
+          });
+
+          if (updated?.id) {
+            showSuccessMessage(t('تغییرات موفقانه ذخیره شد'));
+            router.push({ path: '/app/resources' }).catch(() => {});
+          }
       }
     } catch (e) {
       console.error('onSubmit error', e);
