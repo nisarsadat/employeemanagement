@@ -319,5 +319,32 @@ class Resource extends Model
     {
         return $this->hasMany(KhayratReport::class);
     }
+    public function syncActivityFromRecentRecords(): void
+    {
+        $since = now()->subDays(30)->toDateString();
+
+        $isActive =
+            $this->events()
+                ->whereNotNull('event_date')
+                ->whereDate('event_date', '>=', $since)
+                ->exists()
+            ||
+            $this->informations()
+                ->whereNotNull('information_saved_date')
+                ->whereDate('information_saved_date', '>=', $since)
+                ->exists()
+            ||
+            $this->khayratReports()
+                ->whereNotNull('saved_date')
+                ->whereDate('saved_date', '>=', $since)
+                ->exists();
+
+        $newActivity = $isActive ? 'فعال' : 'غیر فعال';
+
+        if ($this->activity !== $newActivity) {
+            $this->activity = $newActivity;
+            $this->save();
+        }
+    }
    
 }

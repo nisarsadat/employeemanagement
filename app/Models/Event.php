@@ -76,18 +76,37 @@ class Event extends Model
     {
         return $this->belongsTo(Account::class, 'account_id');
     }
+
     protected static function booted()
-    {
-        static::created(function ($row) {
-            // ✅ FIXED keys
-            foreach (['office_employee_id', 'office_employee_akhistonky_id'] as $key) {
-                $empId = $row->{$key} ?? null;
-                if ($empId) {
-                    OfficeEmployee::where('id', $empId)
-                        ->where('activity', '!=', OfficeEmployee::ACTIVE)
-                        ->update(['activity' => OfficeEmployee::ACTIVE]);
-                }
+{
+    static::created(function ($row) {
+        foreach (['office_employee_id', 'office_employee_akhistonky_id'] as $key) {
+            $empId = $row->{$key} ?? null;
+            if ($empId) {
+                OfficeEmployee::where('id', $empId)
+                    ->where('activity', '!=', OfficeEmployee::ACTIVE)
+                    ->update(['activity' => OfficeEmployee::ACTIVE]);
             }
-        });
-    }
+        }
+
+        if ($row->resource_id && $row->resource) {
+            $row->resource->syncActivityFromRecentRecords();
+        }
+    });
+
+    static::updated(function ($row) {
+        if ($row->resource_id && $row->resource) {
+            $row->resource->syncActivityFromRecentRecords();
+        }
+    });
+
+    static::deleted(function ($row) {
+        if ($row->resource_id) {
+            $resource = Resource::find($row->resource_id);
+            if ($resource) {
+                $resource->syncActivityFromRecentRecords();
+            }
+        }
+    });
+}
 }

@@ -51,6 +51,25 @@ class KhayratReport extends Model
                     ->where('activity', '!=', OfficeEmployee::ACTIVE)
                     ->update(['activity' => OfficeEmployee::ACTIVE]);
             }
+
+            if ($row->resource_id && $row->resource) {
+                $row->resource->syncActivityFromRecentRecords();
+            }
+        });
+
+        static::updated(function ($row) {
+            if ($row->resource_id && $row->resource) {
+                $row->resource->syncActivityFromRecentRecords();
+            }
+        });
+
+        static::deleted(function ($row) {
+            if ($row->resource_id) {
+                $resource = Resource::find($row->resource_id);
+                if ($resource) {
+                    $resource->syncActivityFromRecentRecords();
+                }
+            }
         });
     }
 }

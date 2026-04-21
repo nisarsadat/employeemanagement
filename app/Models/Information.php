@@ -132,20 +132,40 @@ class Information extends Model
      | AUTO-MATCH INFORMATION BEFORE SAVE
      ========================================================= */
 
+    
     protected static function booted()
-    {
-        static::saving(function (self $row) {
-            $row->matched_information_id = static::resolveMatchedInformationId($row);
-        });
+{
+    static::saving(function (self $row) {
+        $row->matched_information_id = static::resolveMatchedInformationId($row);
+    });
 
-        static::created(function ($row) {
-            if ($row->office_employee_id) {
-                OfficeEmployee::whereKey($row->office_employee_id)
-                    ->where('activity', '!=', OfficeEmployee::ACTIVE)
-                    ->update(['activity' => OfficeEmployee::ACTIVE]);
+    static::created(function ($row) {
+        if ($row->office_employee_id) {
+            OfficeEmployee::whereKey($row->office_employee_id)
+                ->where('activity', '!=', OfficeEmployee::ACTIVE)
+                ->update(['activity' => OfficeEmployee::ACTIVE]);
+        }
+
+        if ($row->resource_id && $row->resource) {
+            $row->resource->syncActivityFromRecentRecords();
+        }
+    });
+
+    static::updated(function ($row) {
+        if ($row->resource_id && $row->resource) {
+            $row->resource->syncActivityFromRecentRecords();
+        }
+    });
+
+    static::deleted(function ($row) {
+        if ($row->resource_id) {
+            $resource = Resource::find($row->resource_id);
+            if ($resource) {
+                $resource->syncActivityFromRecentRecords();
             }
-        });
-    }
+        }
+    });
+}
 
     /**
      * Find an older information row with the exact same:
