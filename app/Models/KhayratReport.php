@@ -42,4 +42,15 @@ class KhayratReport extends Model
               ->orWhereDate('saved_date', $s);
         });
     }
+
+    protected static function booted()
+    {
+        static::created(function ($row) {
+            if ($row->office_employee_id) {
+                OfficeEmployee::whereKey($row->office_employee_id)
+                    ->where('activity', '!=', OfficeEmployee::ACTIVE)
+                    ->update(['activity' => OfficeEmployee::ACTIVE]);
+            }
+        });
+    }
 }

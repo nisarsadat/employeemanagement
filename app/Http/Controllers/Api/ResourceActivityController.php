@@ -30,8 +30,8 @@ class ResourceActivityController extends Controller
             });
 
             $q->orWhereHas('khayratReports', function ($qq) use ($since) {
-                $qq->where('created_at', '>=', $since);
-            });
+    $qq->whereDate('saved_date', '>=', $since->toDateString());
+});
         });
     }
 
