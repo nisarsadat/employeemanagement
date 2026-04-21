@@ -775,7 +775,6 @@ async function downloadExcel() {
 
 /* Export PDF/Word */
 function buildExportHtml(rows, title) {
-  const year = new Date().getFullYear();
 
   const thead = `
     <tr>
@@ -833,9 +832,18 @@ function buildExportHtml(rows, title) {
         <title>${esc(title)}</title>
         <style>
           body { font-family: Arial, Tahoma, sans-serif; direction: rtl; padding: 18px; }
-          .top { display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px; }
-          .title { font-weight: 700; font-size: 18px; text-align:center; flex:1; }
-          .year { font-size: 13px; white-space: nowrap; }
+          .top {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 18px;
+  text-align: center;
+}
           table { width: 100%; border-collapse: collapse; margin-top: 10px; }
           th, td { border: 1px solid #111; padding: 6px 8px; font-size: 12px; vertical-align: middle; }
           th { font-weight: 700; text-align: center; }
@@ -845,16 +853,14 @@ function buildExportHtml(rows, title) {
         </style>
       </head>
       <body>
-        <div class="top">
-          <div class="year">${t('finances.export.year')}: ${year}</div>
-          <div class="title">${esc(title)}</div>
-          <div style="width:120px"></div>
-        </div>
+       <div class="top">
+  <div class="title">${esc(title)}</div>
+</div>
         <table>
           <thead>${thead}</thead>
           <tbody>${
             tbody ||
-            "<tr><td colspan='11' style='text-align:center'>" +
+            "<tr><td colspan='12' style='text-align:center'>" +
               esc(t('common.noData')) +
               '</td></tr>'
           }</tbody>

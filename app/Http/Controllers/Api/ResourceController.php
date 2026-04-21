@@ -83,7 +83,7 @@ class ResourceController extends Controller
             'main_village',
             'now_province',
             'now_district',
-            'office_employee_code',
+            'office_employee_id',
             'now_village',
             'now_specific_place',
             'now_street_number',
