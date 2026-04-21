@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\fifthyformats;
+namespace App\Http\Resources\fifthyFormats;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;

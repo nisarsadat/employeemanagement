@@ -99,9 +99,9 @@
             >
               <v-card-text class="text-center py-6">
                 <v-icon size="36" color="success" class="mb-3">mdi-truck-delivery-outline</v-icon>
-                <div class="text-h6 font-weight-bold mb-2">{{ t('د تیلو داخل') }}</div>
+                <div class="text-h6 font-weight-bold mb-2">{{ t('راغلي تیل') }}</div>
                 <div class="text-body-2 text-medium-emphasis">
-                  {{ t('د تیلو داخل ثبت او مدیریت') }}
+                  {{ t('راغلي تیل ثبت او مدیریت') }}
                 </div>
               </v-card-text>
             </v-card>
