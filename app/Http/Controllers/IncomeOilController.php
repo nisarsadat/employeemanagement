@@ -265,28 +265,41 @@ class IncomeOilController extends Controller
 
         return new IncomeOilResource($updated);
     }
-public function destroy(IncomeOil $income_oil)
+public function destroy($id)
 {
-    $deleted = DB::transaction(function () use ($income_oil) {
-        $account = OilAccount::lockForUpdate()->find($income_oil->oil_account_id);
+    $result = DB::transaction(function () use ($id) {
+        $incomeOil = IncomeOil::query()->findOrFail($id);
+
+        $incomeOilId = $incomeOil->id;
+        $oilAccountId = $incomeOil->oil_account_id;
+        $oilQuantity = (string) $incomeOil->oil_quantity;
+
+        $account = OilAccount::lockForUpdate()->find($oilAccountId);
 
         if ($account) {
             $account->quantity = bcsub(
                 (string) $account->quantity,
-                (string) $income_oil->oil_quantity,
+                $oilQuantity,
                 3
             );
             $account->save();
         }
 
-        return $income_oil->delete();
+        $deletedRows = IncomeOil::where('id', $incomeOilId)->delete();
+
+        return [
+            'id' => $incomeOilId,
+            'deleted_rows' => $deletedRows,
+            'exists_after_delete' => IncomeOil::where('id', $incomeOilId)->exists(),
+        ];
     });
 
     return response()->json([
         'message' => 'Deleted successfully',
-        'deleted' => $deleted,
-        'id' => $income_oil->id,
-    ]);
+        'id' => $result['id'],
+        'deleted_rows' => $result['deleted_rows'],
+        'exists_after_delete' => $result['exists_after_delete'],
+    ], 200);
 }
 
     public function years()
