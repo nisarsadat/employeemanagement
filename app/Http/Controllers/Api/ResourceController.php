@@ -662,13 +662,38 @@ class ResourceController extends Controller
         return response()->json(['message' => 'Deleted']);
     }
 
-
     public function exportExcel(Request $req)
     {
+        $search = trim((string) $req->get('search', ''));
+        $searchField = $this->resolveSearchField($req->get('search_field'));
+        $searchValue = $req->get('search_value');
+        $year  = $req->filled('year') ? (int) $req->get('year') : null;
+        $month = $req->filled('month') ? (int) $req->get('month') : null;
+
+        $stat = trim((string) $req->get('stat', 'all'));
+        $allowedStats = ['all', 'today', 'active', 'inactive'];
+        if (!in_array($stat, $allowedStats, true)) {
+            $stat = 'all';
+        }
+
+        $dateField = $req->get('date_field', 'resource_saved_date');
+        $allowedDateFields = ['resource_saved_date', 'created_at', 'updated_at'];
+        if (!in_array($dateField, $allowedDateFields, true)) {
+            $dateField = 'resource_saved_date';
+        }
+
         $fileName = 'resources_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
 
         return Excel::download(
-            new ResourcesExport($req->all()),
+            new ResourcesExport(
+                $search,
+                $searchField,
+                $year,
+                $month,
+                $searchValue,
+                $stat,
+                $dateField
+            ),
             $fileName
         );
     }
