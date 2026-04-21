@@ -78,18 +78,18 @@
       class="mx-2"
     >
       <!-- resource -->
-      <template #cell-resource_name="{ row }">
+      <template #cell-resource_id="{ row }">
         <div class="d-flex align-center justify-center w-100">
           <v-icon size="16" class="me-1" color="primary">mdi-account-badge</v-icon>
-          <span class="text-caption">{{ row.resource_name || '—' }}</span>
+          <span class="text-caption">{{ row.resource_id || '—' }}</span>
         </div>
       </template>
 
       <!-- office employee -->
-      <template #cell-office_employee_name="{ row }">
+      <template #cell-office_employee_id="{ row }">
         <div class="d-flex align-center justify-center w-100">
           <v-icon size="16" class="me-1" color="primary">mdi-account</v-icon>
-          <span class="text-caption">{{ row.office_employee_name || '—' }}</span>
+          <span class="text-caption">{{ row.office_employee_id || '—' }}</span>
         </div>
       </template>
 
@@ -220,8 +220,8 @@
   const search = ref('');
   const rows = ref([]);
   const headersFT = computed(() => [
-    { title: t('منبع'), key: 'resource_name', align: 'center' },
-    { title: t('کارمند'), key: 'office_employee_name', align: 'center' },
+    { title: t('منبع'), key: 'resource_id', align: 'center' },
+    { title: t('کارمند'), key: 'office_employee_id', align: 'center' },
     { title: t('زون'), key: 'zone', align: 'center' },
     { title: t('حوزه'), key: 'hawza', align: 'center' },
     { title: t('محل مشخص'), key: 'specefic_place', align: 'center' },

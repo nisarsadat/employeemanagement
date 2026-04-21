@@ -67,53 +67,54 @@ class ResourceController extends Controller
         ], 422);
     }
 
-    private function searchableColumns(): array
-    {
-        return [
-            'letry_format_name',
-            'resedint_code',
-            'code_number',
-            'name',
-            'father_name',
-            'grand_father_name',
-            'nick_name',
-            'tazkira',
-            'main_province',
-            'main_district',
-            'main_village',
-            'now_province',
-            'now_district',
-            'office_employee_id',
-            'now_village',
-            'now_specific_place',
-            'now_street_number',
-            'now_home_number',
-            'old_job',
-            'now_job',
-            'job_place',
-            'zone',
-            'hawza',
-            'specefic_place',
-            'coordinates',
-            'activity',
-            'halat_madani',
-            'age',
-            'elmi_level',
-            'faculty',
-            'specific_skills',
-            'resource_saved_date',
-            'resource_activity_type',
-            'resource_cover',
-            'language',
-            'nation',
-            'blood_group',
-            'train',
-            'project',
-            'phone_number',
-            'trust_percentage',
-            'note',
-        ];
-    }
+   private function searchableColumns(): array
+{
+    return [
+        'letry_format_name',
+        'resedint_code',
+        'code_number',
+        'name',
+        'father_name',
+        'grand_father_name',
+        'nick_name',
+        'tazkira',
+        'main_province',
+        'main_district',
+        'main_village',
+        'now_province',
+        'now_district',
+        'office_employee_id',
+        'office_employee_code',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+        'old_job',
+        'now_job',
+        'job_place',
+        'zone',
+        'hawza',
+        'specefic_place',
+        'coordinates',
+        'activity',
+        'halat_madani',
+        'age',
+        'elmi_level',
+        'faculty',
+        'specific_skills',
+        'resource_saved_date',
+        'resource_activity_type',
+        'resource_cover',
+        'language',
+        'nation',
+        'blood_group',
+        'train',
+        'project',
+        'phone_number',
+        'trust_percentage',
+        'note',
+    ];
+}
 
     private function resolveSearchField(?string $field): ?string
     {
@@ -662,41 +663,16 @@ class ResourceController extends Controller
         return response()->json(['message' => 'Deleted']);
     }
 
+
     public function exportExcel(Request $req)
-    {
-        $search = trim((string) $req->get('search', ''));
-        $searchField = $this->resolveSearchField($req->get('search_field'));
-        $searchValue = $req->get('search_value');
-        $year  = $req->filled('year') ? (int) $req->get('year') : null;
-        $month = $req->filled('month') ? (int) $req->get('month') : null;
+{
+    $fileName = 'resources_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
 
-        $stat = trim((string) $req->get('stat', 'all'));
-        $allowedStats = ['all', 'today', 'active', 'inactive'];
-        if (!in_array($stat, $allowedStats, true)) {
-            $stat = 'all';
-        }
-
-        $dateField = $req->get('date_field', 'resource_saved_date');
-        $allowedDateFields = ['resource_saved_date', 'created_at', 'updated_at'];
-        if (!in_array($dateField, $allowedDateFields, true)) {
-            $dateField = 'resource_saved_date';
-        }
-
-        $fileName = 'resources_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
-
-        return Excel::download(
-            new ResourcesExport(
-                $search,
-                $searchField,
-                $year,
-                $month,
-                $searchValue,
-                $stat,
-                $dateField
-            ),
-            $fileName
-        );
-    }
+    return Excel::download(
+        new ResourcesExport($req->all()),
+        $fileName
+    );
+}
 
     public function dateOptions(Request $req)
     {

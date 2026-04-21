@@ -20,33 +20,13 @@ class ResourcesExport implements FromQuery, WithHeadings, WithMapping, WithEvent
 {
     use Exportable;
 
-    protected ?string $search;
-    protected ?string $searchField;
-    protected ?int $year;
-    protected ?int $month;
-    protected string $stat;
-    protected ?string $searchValue;
-    protected string $dateField;
+    protected array $filters = [];
+    protected int $rowNumber = 0;
 
-public function __construct(
-    ?string $search = null,
-    ?string $searchField = null,
-    ?int $year = null,
-    ?int $month = null,
-    ?string $searchValue = null,
-    ?string $stat = 'all',
-    ?string $dateField = 'resource_saved_date'
-) {
-    $this->search = trim((string) $search) ?: null;
-    $this->searchField = trim((string) $searchField) ?: null;
-    $this->year = $year;
-    $this->month = $month;
-    $this->searchValue = trim((string) $searchValue) ?: null;
-    $this->stat = in_array($stat, ['all', 'today', 'active', 'inactive'], true) ? $stat : 'all';
-    $this->dateField = in_array($dateField, ['resource_saved_date', 'created_at', 'updated_at'], true)
-        ? $dateField
-        : 'resource_saved_date';
-}
+    public function __construct(array $filters = [])
+    {
+        $this->filters = $filters;
+    }
 
     private function searchableColumns(): array
     {
@@ -95,21 +75,51 @@ public function __construct(
             'Province_addr',
             'trust_percentage',
             'note',
+            'office_employee_code',
         ];
     }
 
     private function resolveSearchField(?string $field): ?string
     {
         $field = trim((string) $field);
+
         return in_array($field, $this->searchableColumns(), true) ? $field : null;
     }
 
     public function query()
     {
         $today = now()->toDateString();
-        $searchField = $this->resolveSearchField($this->searchField);
 
-        return Resource::query()
+        $search = trim((string) ($this->filters['search'] ?? ''));
+        $search = $search !== '' ? $search : null;
+
+        $searchField = $this->resolveSearchField($this->filters['search_field'] ?? null);
+
+        $searchValue = $this->filters['search_value'] ?? null;
+        $searchValue = is_string($searchValue) ? trim($searchValue) : $searchValue;
+        if ($searchValue === '') {
+            $searchValue = null;
+        }
+
+        $year = isset($this->filters['year']) && $this->filters['year'] !== ''
+            ? (int) $this->filters['year']
+            : null;
+
+        $month = isset($this->filters['month']) && $this->filters['month'] !== ''
+            ? (int) $this->filters['month']
+            : null;
+
+        $stat = trim((string) ($this->filters['stat'] ?? 'all'));
+        if (!in_array($stat, ['all', 'today', 'active', 'inactive'], true)) {
+            $stat = 'all';
+        }
+
+        $dateField = $this->filters['date_field'] ?? 'resource_saved_date';
+        if (!in_array($dateField, ['resource_saved_date', 'created_at', 'updated_at'], true)) {
+            $dateField = 'resource_saved_date';
+        }
+
+        $query = Resource::query()
             ->select([
                 'id',
                 'office_employee_id',
@@ -169,48 +179,151 @@ public function __construct(
                 'informations',
                 'khayratReports',
             ])
-            ->when($this->year !== null, function (Builder $q) {
-                $q->whereNotNull($this->dateField)
-                    ->whereYear($this->dateField, $this->year);
+            ->when($stat === 'today', function (Builder $q) use ($today, $dateField) {
+                $q->whereNotNull($dateField)
+                  ->whereDate($dateField, $today);
             })
-            ->when($this->month !== null && $this->month >= 1 && $this->month <= 12, function (Builder $q) {
-                $q->whereNotNull($this->dateField)
-                    ->whereMonth($this->dateField, $this->month);
-            })
-            ->when($this->search, function (Builder $q) use ($searchField) {
-                if ($searchField) {
-                    $q->where($searchField, 'like', '%' . $this->search . '%');
-                } else {
-                    $q->where(function (Builder $sub) {
-                        foreach ($this->searchableColumns() as $index => $column) {
-                            if ($index === 0) {
-                                $sub->where($column, 'like', '%' . $this->search . '%');
-                            } else {
-                                $sub->orWhere($column, 'like', '%' . $this->search . '%');
-                            }
-                        }
-                    });
-                }
-            })
-            ->when($this->stat === 'today', function (Builder $q) use ($today) {
-                $q->whereNotNull($this->dateField)
-                    ->whereDate($this->dateField, $today);
-            })
-            ->when($this->stat === 'active', function (Builder $q) {
+            ->when($stat === 'active', function (Builder $q) {
                 $q->where('activity', 'فعال');
             })
-            ->when($this->stat === 'inactive', function (Builder $q) {
+            ->when($stat === 'inactive', function (Builder $q) {
                 $q->where('activity', 'غیر فعال');
-            })
-            ->when($this->searchValue !== null && $this->searchValue !== '' && $searchField, function (Builder $q) use ($searchField) {
-                $q->where($searchField, $this->searchValue);
-            })
-            ->latest('id');
+            });
+
+        $this->applyCommonFilters($query, $search, $searchField, $searchValue);
+        $this->applyShamsiDateFilter($query, $year, $month, $dateField);
+        $this->applyRelatedFilters($query);
+        $this->applyDateRangeFilter($query, $dateField);
+
+        return $query->orderBy('id', 'asc');
+    }
+
+    private function applyCommonFilters($query, ?string $search, ?string $searchField = null, $searchValue = null)
+    {
+        $query
+            ->when(
+                $searchValue !== null && $searchValue !== '' && $searchField,
+                function ($q) use ($searchField, $searchValue) {
+                    if ($searchField === 'office_employee_code') {
+                        $q->whereHas('officeEmployee', function ($qq) use ($searchValue) {
+                            $qq->where('code_number', $searchValue);
+                        });
+                    } else {
+                        $q->where($searchField, $searchValue);
+                    }
+                }
+            )
+            ->when($search, function ($q) use ($search, $searchField) {
+                $resolvedField = $this->resolveSearchField($searchField);
+
+                if ($resolvedField === 'office_employee_code') {
+                    $q->whereHas('officeEmployee', function ($qq) use ($search) {
+                        $qq->where('code_number', 'like', "%{$search}%");
+                    });
+                } elseif ($resolvedField) {
+                    $q->where($resolvedField, 'like', "%{$search}%");
+                } else {
+                    $q->where(function ($qq) use ($search) {
+                        foreach ($this->searchableColumns() as $index => $column) {
+                            if ($column === 'office_employee_code') {
+                                continue;
+                            }
+
+                            if ($index === 0) {
+                                $qq->where($column, 'like', "%{$search}%");
+                            } else {
+                                $qq->orWhere($column, 'like', "%{$search}%");
+                            }
+                        }
+
+                        $qq->orWhereHas('officeEmployee', function ($sub) use ($search) {
+                            $sub->where('code_number', 'like', "%{$search}%");
+                        });
+                    });
+                }
+            });
+
+        return $query;
+    }
+
+    private function applyRelatedFilters($query): void
+    {
+        if (!empty($this->filters['resource_id'])) {
+            $query->where('id', $this->filters['resource_id']);
+        }
+
+        if (!empty($this->filters['office_employee_id'])) {
+            $query->where('office_employee_id', $this->filters['office_employee_id']);
+        }
+
+        if (!empty($this->filters['information_id'])) {
+            $query->whereHas('informations', fn ($q) => $q->where('id', $this->filters['information_id']));
+        }
+
+        if (!empty($this->filters['event_id'])) {
+            $query->whereHas('events', fn ($q) => $q->where('id', $this->filters['event_id']));
+        }
+
+        if (!empty($this->filters['fifty_six_format_id'])) {
+            $query->whereHas('fiftySixFormats', fn ($q) => $q->where('id', $this->filters['fifty_six_format_id']));
+        }
+    }
+
+    private function applyDateRangeFilter($query, string $dateField): void
+    {
+        $date = $this->filters['date'] ?? null;
+        $dateFrom = $this->filters['date_from'] ?? ($this->filters['from_date'] ?? null);
+        $dateTo = $this->filters['date_to'] ?? ($this->filters['to_date'] ?? null);
+
+        if (!empty($date)) {
+            $query->whereDate($dateField, $date);
+        }
+
+        if (!empty($dateFrom)) {
+            $query->whereDate($dateField, '>=', $dateFrom);
+        }
+
+        if (!empty($dateTo)) {
+            $query->whereDate($dateField, '<=', $dateTo);
+        }
+    }
+
+    private function applyShamsiDateFilter($query, ?int $year, ?int $month, string $dateField)
+    {
+        if ($year && $month) {
+            [$startGy, $startGm, $startGd] = $this->jalaliToGregorian($year, $month, 1);
+            $lastDay = $month <= 6 ? 31 : ($month <= 11 ? 30 : 29);
+            [$endGy, $endGm, $endGd] = $this->jalaliToGregorian($year, $month, $lastDay);
+
+            $startDate = Carbon::create($startGy, $startGm, $startGd)->startOfDay();
+            $endDate = Carbon::create($endGy, $endGm, $endGd)->endOfDay();
+
+            $query->whereNotNull($dateField)
+                  ->whereBetween($dateField, [$startDate, $endDate]);
+
+            return $query;
+        }
+
+        if ($year) {
+            [$startGy, $startGm, $startGd] = $this->jalaliToGregorian($year, 1, 1);
+            [$endGy, $endGm, $endGd] = $this->jalaliToGregorian($year, 12, 29);
+
+            $startDate = Carbon::create($startGy, $startGm, $startGd)->startOfDay();
+            $endDate = Carbon::create($endGy, $endGm, $endGd)->endOfDay();
+
+            $query->whereNotNull($dateField)
+                  ->whereBetween($dateField, [$startDate, $endDate]);
+
+            return $query;
+        }
+
+        return $query;
     }
 
     public function map($row): array
     {
         return [
+            ++$this->rowNumber,
             $row->id,
             $row->payed_money ?? 0,
             $row->events_count ?? 0,
@@ -270,6 +383,7 @@ public function __construct(
     public function headings(): array
     {
         return [
+            'شمېره',
             'آی ډي',
             'ورکړل شوې پیسې',
             'د پېښو شمېر',
@@ -330,19 +444,19 @@ public function __construct(
     {
         return [
             'A'  => 10,
-            'B'  => 18,
-            'C'  => 14,
+            'B'  => 10,
+            'C'  => 18,
             'D'  => 14,
-            'E'  => 18,
-            'F'  => 20,
-            'G'  => 16,
-            'H'  => 22,
-            'I'  => 16,
+            'E'  => 14,
+            'F'  => 18,
+            'G'  => 20,
+            'H'  => 16,
+            'I'  => 22,
             'J'  => 16,
-            'K'  => 20,
+            'K'  => 16,
             'L'  => 20,
             'M'  => 20,
-            'N'  => 18,
+            'N'  => 20,
             'O'  => 18,
             'P'  => 18,
             'Q'  => 18,
@@ -350,34 +464,35 @@ public function __construct(
             'S'  => 18,
             'T'  => 18,
             'U'  => 18,
-            'V'  => 22,
-            'W'  => 14,
+            'V'  => 18,
+            'W'  => 22,
             'X'  => 14,
-            'Y'  => 18,
+            'Y'  => 14,
             'Z'  => 18,
             'AA' => 18,
-            'AB' => 12,
+            'AB' => 18,
             'AC' => 12,
-            'AD' => 20,
+            'AD' => 12,
             'AE' => 20,
-            'AF' => 12,
-            'AG' => 14,
+            'AF' => 20,
+            'AG' => 12,
             'AH' => 14,
-            'AI' => 18,
-            'AJ' => 20,
-            'AK' => 18,
+            'AI' => 14,
+            'AJ' => 18,
+            'AK' => 20,
             'AL' => 18,
-            'AM' => 16,
+            'AM' => 18,
             'AN' => 16,
             'AO' => 16,
-            'AP' => 18,
-            'AQ' => 14,
-            'AR' => 16,
+            'AP' => 16,
+            'AQ' => 18,
+            'AR' => 14,
             'AS' => 16,
-            'AT' => 14,
-            'AU' => 30,
-            'AV' => 20,
+            'AT' => 16,
+            'AU' => 14,
+            'AV' => 30,
             'AW' => 20,
+            'AX' => 20,
         ];
     }
 
@@ -510,5 +625,69 @@ public function __construct(
         }
 
         return [$jy, $jm, $jd];
+    }
+
+    private function jalaliToGregorian(int $jy, int $jm, int $jd): array
+    {
+        if ($jy > 979) {
+            $gy = 1600;
+            $jy -= 979;
+        } else {
+            $gy = 621;
+        }
+
+        $days = (365 * $jy)
+            + intdiv($jy, 33) * 8
+            + intdiv((($jy % 33) + 3), 4)
+            + 78
+            + $jd
+            + (($jm < 7) ? (($jm - 1) * 31) : ((($jm - 7) * 30) + 186));
+
+        $gy += 400 * intdiv($days, 146097);
+        $days %= 146097;
+
+        if ($days > 36524) {
+            $gy += 100 * intdiv(--$days, 36524);
+            $days %= 36524;
+
+            if ($days >= 365) {
+                $days++;
+            }
+        }
+
+        $gy += 4 * intdiv($days, 1461);
+        $days %= 1461;
+
+        if ($days > 365) {
+            $gy += intdiv(($days - 1), 365);
+            $days = ($days - 1) % 365;
+        }
+
+        $gd = $days + 1;
+
+        $sal_a = [
+            0,
+            31,
+            (($gy % 4 === 0 && $gy % 100 !== 0) || ($gy % 400 === 0)) ? 29 : 28,
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31,
+        ];
+
+        for ($gm = 1; $gm <= 12; $gm++) {
+            if ($gd <= $sal_a[$gm]) {
+                break;
+            }
+            $gd -= $sal_a[$gm];
+        }
+
+        return [$gy, $gm, $gd];
     }
 }

@@ -225,7 +225,7 @@
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
   import { useLoginRepository } from '../../stores/LoginRepository';
   import { useKhayratReportRepository } from '@/stores/KhayratReportRepository';
-import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
   const auth = useLoginRepository();
   const { t, locale } = useI18n();
   const repo = useKhayratReportRepository();
@@ -406,10 +406,10 @@ import { usePageRefresh } from '@/composables/usePageRefresh';
       submitting.value = false;
     }
   }
-usePageRefresh('/app/inlineinfo', async () => {
-  onReset();
-  await preloadLookups();
-});
+  usePageRefresh('/app/inlineinfo', async () => {
+    onReset();
+    await preloadLookups();
+  });
   onMounted(async () => {
     await preloadLookups();
   });
