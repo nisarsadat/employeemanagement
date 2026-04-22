@@ -8,127 +8,161 @@
     </AppBar>
 
     <!-- 🔍 Search + ➕ Create -->
-    <v-container class="pa-0">
-      <v-row class="align-center">
-        <!-- Search Column -->
-        <v-col cols="12" sm="12" md="12" lg="12">
-          <SearchColumnFilter
-            v-model:modelSearch="repo.Search"
-            v-model:modelColumn="searchField"
-            v-model:modelSelectedValue="selectedColumnValue"
-            :headers="headersFT"
-            :search-label="t('جستجو در منابع...')"
-            :column-label="t('ستون جستجو')"
-            :all-columns-label="t('همه ستون‌ها')"
-            :value-label="t('ارزش ستون')"
-            :exclude-keys="[
-              'picture',
-              'map',
-              'events_count',
-              'informations_count',
-              'khayrat_reports_count',
-              'fifty_six_formats_count',
-              'payed_money',
-            ]"
-            :fetch-column-values="fetchColumnValues"
-            @search="fetchAll"
-            @clearSearch="clearSearch"
-            @clearSelectedValue="clearSelectedValue"
-          />
-        </v-col>
-        <!-- YEAR -->
-        <v-col cols="12" sm="6" md="5">
-          <v-select
-            v-model="filterYear"
-            :items="yearItems"
-            item-title="title"
-            item-value="value"
-            density="comfortable"
-            variant="outlined"
-            rounded="lg"
-            class="bg-white"
-            hide-details
-            clearable
-            :label="t('سال')"
-          />
-        </v-col>
+    <v-row class="align-center px-12 py-12">
+      <!-- Search Column -->
+      <v-col cols="12" sm="6" md="6" lg="6">
+        <SearchColumnFilter
+          v-model:modelSearch="repo.Search"
+          v-model:modelColumn="searchField"
+          v-model:modelSelectedValue="selectedColumnValue"
+          :headers="headersFT"
+          :search-label="t('جستجو در منابع...')"
+          :column-label="t('ستون جستجو')"
+          :all-columns-label="t('همه ستون‌ها')"
+          :value-label="t('ارزش ستون')"
+          :exclude-keys="[
+            'picture',
+            'map',
+            'events_count',
+            'informations_count',
+            'khayrat_reports_count',
+            'fifty_six_formats_count',
+            'payed_money',
+          ]"
+          :fetch-column-values="fetchColumnValues"
+          @search="fetchAll"
+          @clearSearch="clearSearch"
+          @clearSelectedValue="clearSelectedValue"
+        />
+      </v-col>
+      <!-- YEAR -->
+      <v-col cols="12" sm="4" md="3">
+        <v-select
+          v-model="filterYear"
+          :items="yearItems"
+          item-title="title"
+          item-value="value"
+          density="comfortable"
+          variant="outlined"
+          rounded="lg"
+          class="bg-white"
+          hide-details
+          clearable
+          :label="t('سال')"
+        />
+      </v-col>
 
-        <!-- MONTH -->
-        <v-col cols="12" sm="4" md="2">
-          <v-select
-            v-model="filterMonth"
-            :items="monthItems"
-            item-title="title"
-            item-value="value"
-            density="comfortable"
-            variant="outlined"
-            class="bg-white"
-            rounded="lg"
-            hide-details
-            clearable
-            :label="t('ماه')"
-          />
-        </v-col>
-        <!-- Create Button -->
+      <!-- MONTH -->
+      <v-col cols="12" sm="4" md="2">
+        <v-select
+          v-model="filterMonth"
+          :items="monthItems"
+          item-title="title"
+          item-value="value"
+          density="comfortable"
+          variant="outlined"
+          class="bg-white"
+          rounded="lg"
+          hide-details
+          clearable
+          :label="t('ماه')"
+        />
+      </v-col>
+      <!-- Create Button -->
 
-        <v-col cols="12" sm="4" md="1" lg="1">
-          <v-btn
-            color="primary"
-            variant="flat"
-            rounded="lg"
-            block
-            class="text-none"
-            prepend-icon="mdi-filter"
-            @click="applyMonthYearFilter"
-          >
-            {{ t('فلتر') }}
-          </v-btn>
-        </v-col>
-        <v-col cols="12" sm="4" md="1" lg="1">
-          <v-btn
-            color="orange"
-            rounded="lg"
-            block
-            class="text-none"
-            prepend-icon="mdi-filter-remove"
-            @click="clearAllFilters"
-          >
-            {{ t('فلتر') }}
-          </v-btn>
-        </v-col>
-        <v-col cols="12" sm="4" md="1">
-          <v-btn
-            color="success"
-            variant="flat"
-            class="text-none"
-            rounded="lg"
-            block
-            prepend-icon="mdi-microsoft-excel"
-            :loading="excelDownloading"
-            :disabled="excelDownloading"
-            @click="downloadExcel"
-          >
-            {{ t('اکسل') }}
-          </v-btn>
-        </v-col>
-        <!-- Create Button -->
-        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
-          <v-btn
-            v-if="auth.can('resources.create')"
-            color="primary"
-            variant="flat"
-            size="large"
-            class="text-none"
-            rounded="lg"
-            block
-            prepend-icon="mdi-plus"
-            @click="goCreate"
-          >
-            {{ t('منبع جدید') }}
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-container>
+      <v-col cols="12" sm="4" md="1" lg="1">
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          block
+          class="text-none"
+          prepend-icon="mdi-filter"
+          @click="applyMonthYearFilter"
+        >
+          {{ t('فلتر') }}
+        </v-btn>
+      </v-col>
+      <v-col cols="12" sm="8">
+        <v-select
+          v-model="selectedPrintColumns"
+          :items="printableHeaderOptions"
+          item-title="title"
+          item-value="key"
+          multiple
+          density="comfortable"
+          variant="outlined"
+          rounded="lg"
+          class="bg-white"
+          hide-details
+          :label="t('ستون‌های چاپ')"
+          :menu-props="{ maxHeight: 400 }"
+        >
+          <template #selection="{ index }">
+            <span v-if="index === 0" class="text-body-2">
+              {{ selectedPrintColumns.length }}
+              {{ t('ستون انتخاب شده') }}
+            </span>
+          </template>
+        </v-select>
+      </v-col>
+      <v-col cols="12" sm="4" md="1" lg="1">
+        <v-btn
+          color="orange"
+          rounded="lg"
+          block
+          class="text-none"
+          prepend-icon="mdi-filter-remove"
+          @click="clearAllFilters"
+        >
+          {{ t('فلتر') }}
+        </v-btn>
+      </v-col>
+      <v-col cols="12" sm="4" md="1">
+        <v-btn
+          color="success"
+          variant="flat"
+          class="text-none"
+          rounded="lg"
+          block
+          prepend-icon="mdi-microsoft-excel"
+          :loading="excelDownloading"
+          :disabled="excelDownloading"
+          @click="downloadResourcesExcel"
+        >
+          {{ t('اکسل') }}
+        </v-btn>
+      </v-col>
+      <v-col cols="12" sm="4" md="1">
+        <v-btn
+          v-if="auth.can('resources.create')"
+          color="primary"
+          variant="flat"
+          class="text-none"
+          rounded="lg"
+          block
+          prepend-icon="mdi-plus"
+          @click="goCreate"
+        >
+          {{ t('جدید') }}
+        </v-btn>
+      </v-col>
+      <v-col cols="12" sm="4" md="1">
+        <v-btn
+          color="red"
+          variant="flat"
+          class="text-none"
+          rounded="lg"
+          block
+          prepend-icon="mdi-printer"
+          @click="printAll"
+        >
+          {{ t('چاپ') }}
+        </v-btn>
+      </v-col>
+
+      <!-- Create Button -->
+    </v-row>
 
     <!-- 📊 STATS CARDS -->
     <v-row class="px-2 mt-2" :dir="isRtl ? 'rtl' : 'ltr'">
@@ -327,7 +361,7 @@
 
       <template #cell-informations_count="{ row }">
         <div v-if="getRow(row)?.informations_count > 0" class="d-flex flex-column align-start">
-          <v-tooltip :text="t('د اطلاعاتو پیښه')" location="top">
+          <v-tooltip :text="t('د اطلاعاتو شمیر')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-btn
                 class="px-2 py-1 text-none"
@@ -511,7 +545,7 @@
 </template>
 
 <script setup>
-  import { ref, computed, watch, onMounted } from 'vue';
+  import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
   import { useRouter, useRoute } from 'vue-router';
   import { useI18n } from 'vue-i18n';
 
@@ -527,6 +561,7 @@
   import { usePageRefresh } from '@/composables/usePageRefresh';
   import { useRelatedRouteFilters } from '@/composables/useRelatedRouteFilters';
   import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
+  import { useTablePrintExport } from '@/composables/useTablePrintExport';
   const route = useRoute();
   const router = useRouter();
   const { t, locale } = useI18n();
@@ -539,9 +574,21 @@
   const excelDownloadProgress = ref(0);
   const excelDownloading = ref(false);
   /* ===== RTL ===== */
+  const { printAll } = useTablePrintExport({
+    repo,
+    moduleKey: 'resources',
+    getFilters: () => currentResourceFilters.value,
+    getHeaders: () => headersFT.value,
+    getSelectedColumnKeys: () => selectedPrintColumns.value,
+    defaultFileName: 'resources-print',
+  });
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (n) => (isRtl.value = n === 'fa'));
-
+  function buildDefaultPrintColumns() {
+    return headersFT.value
+      .map((h) => h.key)
+      .filter((key) => !['picture', 'map', 'fifty_six_formats_count'].includes(key));
+  }
   function getRow(payload) {
     return payload?.raw ?? payload;
   }
@@ -811,7 +858,29 @@
     await router.replace({ path: '/app/resources', query: {} });
     await fetchAll();
   }
+  const selectedPrintColumns = ref([]);
 
+  const currentResourceFilters = computed(() => ({
+    search: repo.Search || '',
+    search_field: searchField.value || null,
+    search_value: selectedColumnValue.value || null,
+    year: filterYear.value || null,
+    month: filterMonth.value || null,
+    date_field: 'resource_saved_date',
+    stat: relatedFilters.value.stat || (quickFilter.value === 'all' ? 'all' : quickFilter.value),
+
+    resource_id: relatedFilters.value.resource_id || null,
+    office_employee_id: relatedFilters.value.office_employee_id || null,
+    information_id: relatedFilters.value.information_id || null,
+    event_id: relatedFilters.value.event_id || null,
+    fifty_six_format_id: relatedFilters.value.fifty_six_format_id || null,
+
+    date: relatedFilters.value.date || null,
+    date_from: relatedFilters.value.date_from || null,
+    date_to: relatedFilters.value.date_to || null,
+    from_date: relatedFilters.value.from_date || null,
+    to_date: relatedFilters.value.to_date || null,
+  }));
   const displayedRowsFT = computed(() => {
     let data = rowsFT.value || [];
     const key = routeResourceKey.value;
@@ -979,7 +1048,7 @@
       deleteTarget.value = null;
     }
   }
-  async function downloadExcel() {
+  async function downloadResourcesExcel() {
     try {
       excelDownloading.value = true;
       excelDownloadDialog.value = true;
@@ -1023,7 +1092,7 @@
 
       excelDownloadProgress.value = 100;
     } catch (e) {
-      console.error('downloadExcel error', e);
+      console.error('downloadResourcesExcel error', e);
       showErrorMessage(t('خطا'));
     } finally {
       setTimeout(() => {
@@ -1065,6 +1134,31 @@
     { deep: true }
   );
   usePageRefresh('/app/resources', fetchAll);
+
+  function handleCtrlP(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+      e.preventDefault();
+      printAll();
+    }
+  }
+  const printableHeaderOptions = computed(() => {
+    return headersFT.value.filter(
+      (h) => !['picture', 'map', 'fifty_six_formats_count'].includes(h.key)
+    );
+  });
+  onMounted(async () => {
+    selectedPrintColumns.value = buildDefaultPrintColumns();
+
+    await fetchYearItemsFromDb();
+    await fetchMonthItemsFromDb(null);
+    await fetchAll();
+
+    window.addEventListener('keydown', handleCtrlP);
+  });
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('keydown', handleCtrlP);
+  });
 
   onMounted(async () => {
     await fetchYearItemsFromDb();

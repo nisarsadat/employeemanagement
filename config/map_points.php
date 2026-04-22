@@ -68,7 +68,7 @@ return [
             'type' => 'captive_delivery',
             'typeLabel' => 'تسلیم شوي بندي',
             'show_url' => '/api/captive-deliveries/',
-            'list_path' => '/app/captive-deliveries',
+            'list_path' => '/app/delevirycaptive',
             'relation_query_key' => 'captive_delivery_id',
             'title_candidates' => ['name', 'title', 'code_number'],
             'code_candidates' => ['code_number'],

@@ -126,7 +126,11 @@
             </v-col>
 
             <v-col cols="12" md="6">
-              <FormatZoneAutocomplete v-model="form.now_zone" :label="t('زون فعلی')" :disabled="saving" />
+              <FormatZoneAutocomplete
+                v-model="form.now_zone"
+                :label="t('زون فعلی')"
+                :disabled="saving"
+              />
             </v-col>
 
             <v-col cols="12" md="6">
@@ -244,16 +248,15 @@
 
           <v-row>
             <v-col cols="12" md="4">
-             <ResourceRemoteAutocomplete
-  v-model="form.resource_id"
-  :label="t('کود منبع')"
-  density="compact"
-  variant="outlined"
-  :rules="[rules.required]"
-  :item-title="resourceTitle"
-  @selected="onResourceSelected"
-  @cleared="onResourceCleared"
-/>
+              <ResourceRemoteAutocomplete
+                v-model="form.resource_id"
+                :label="t('کود منبع')"
+                density="compact"
+                variant="outlined"
+                :item-title="resourceTitle"
+                @selected="onResourceSelected"
+                @cleared="onResourceCleared"
+              />
             </v-col>
 
             <v-col cols="12" md="4">
@@ -314,7 +317,13 @@
                 </template>
               </v-tooltip>
 
-              <v-btn color="primary" variant="flat" class="text-none" :loading="saving" type="submit">
+              <v-btn
+                color="primary"
+                variant="flat"
+                class="text-none"
+                :loading="saving"
+                type="submit"
+              >
                 {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
 
@@ -346,141 +355,42 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
 
-import AppBar from '@/components/AppBar.vue';
-import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
-import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
-import PicturePicker from '@/components/form/PicturePicker.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
+  import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
+  import PicturePicker from '@/components/form/PicturePicker.vue';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
 
-import { useFasadRepository } from '@/stores/FasadRepository';
+  import { useFasadRepository } from '@/stores/FasadRepository';
 
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-const route = useRoute();
-const router = useRouter();
-const repo = useFasadRepository();
+  const route = useRoute();
+  const router = useRouter();
+  const repo = useFasadRepository();
 
-const isEdit = computed(() => !!route.params.id);
+  const isEdit = computed(() => !!route.params.id);
 
-/* ===== Picture state ===== */
-const pictureFile = ref(null); // File | null
-const pictureChanged = ref(false); // boolean
+  /* ===== Picture state ===== */
+  const pictureFile = ref(null); // File | null
+  const pictureChanged = ref(false); // boolean
 
-/* ===== Form state ===== */
-const formRef = ref(null);
-const formValid = ref(false);
-const saving = ref(false);
+  /* ===== Form state ===== */
+  const formRef = ref(null);
+  const formValid = ref(false);
+  const saving = ref(false);
 
-const form = ref({
-  id: null,
+  const form = ref({
+    id: null,
 
-  // ✅ picture url from API
-  picture_url: null,
-
-  name: '',
-  father_name: '',
-  scientific_level: '',
-
-  main_province: '',
-  main_district: '',
-  main_village: '',
-
-  now_province: '',
-  now_zone: '',
-  now_district: '',
-  now_vinage: '',
-
-  specific_place: '',
-  street_number: '',
-  home_number: '',
-
-  cordinates: '',
-
-  country: '',
-  male_amount: '',
-  female_amount: '',
-  phone_number: '',
-
-  Province_addr: '',
-
-  resource_code: '',
-  resource_phone_number: '',
-  resource_id: null,
-
-  note: '',
-});
-
-/* ===== Rules ===== */
-const rules = {
-  required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
-
-  nonNegativeNumberOptional: (v) => {
-    const s = String(v ?? '').trim();
-    if (!s) return true;
-    const n = Number(s);
-    if (!Number.isFinite(n)) return t('عدد درست نیست');
-    if (n < 0) return t('عدد منفی قبول نیست');
-    return true;
-  },
-
-  coordinatesOptional: (v) => {
-    const s = String(v ?? '').trim();
-    if (!s) return true;
-    if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
-    return true;
-  },
-};
-
-/* ===== Snackbar ===== */
-const showError = ref(false);
-const errorMessage = ref('');
-const showSuccess = ref(false);
-const successMessage = ref('');
-
-function showErrorMessage(msg) {
-  errorMessage.value = msg;
-  showError.value = true;
-}
-function showSuccessMsg(msg) {
-  successMessage.value = msg;
-  showSuccess.value = true;
-}
-
-function resourceTitle(r) {
-  if (!r) return '';
-  const code = r.code_number ?? '';
-  const name = r.name ?? '';
-  return [code, name].filter(Boolean).join(' - ');
-}
-
-function onResourceSelected(r) {
-  if (!r) return;
-  form.value.resource_id = r.id ?? null;
-  form.value.resource_code = r.code_number ?? '';
-  form.value.resource_phone_number = r.phone_number ?? '';
-}
-
-function onResourceCleared() {
-  form.value.resource_id = null;
-  form.value.resource_code = '';
-  form.value.resource_phone_number = '';
-}
-
-/* ===== Reset ===== */
-function resetForm() {
-  // reset picture picker state too
-  pictureFile.value = null;
-  pictureChanged.value = false;
-
-  form.value = {
-    id: isEdit.value ? form.value.id : null,
-    picture_url: isEdit.value ? form.value.picture_url : null,
+    // ✅ picture url from API
+    picture_url: null,
 
     name: '',
     father_name: '',
@@ -513,184 +423,283 @@ function resetForm() {
     resource_id: null,
 
     note: '',
-  };
-
-  formRef.value?.resetValidation?.();
-}
-
-/* ===== Map record -> form ===== */
-function fillFormFromRecord(x = {}) {
-  form.value = {
-    id: x.id ?? null,
-
-    // ✅ picture
-    picture_url: x.picture ?? x.picture_url ?? null,
-
-    name: x.name ?? '',
-    father_name: x.father_name ?? '',
-    scientific_level: x.scientific_level ?? '',
-
-    main_province: x.main_province ?? '',
-    main_district: x.main_district ?? '',
-    main_village: x.main_village ?? '',
-
-    now_province: x.now_province ?? '',
-    now_zone: x.now_zone ?? '',
-    now_district: x.now_district ?? '',
-    now_vinage: x.now_vinage ?? '',
-
-    specific_place: x.specific_place ?? '',
-    street_number: x.street_number ?? '',
-    home_number: x.home_number ?? '',
-
-    cordinates: x.cordinates ?? '',
-
-    country: x.country ?? '',
-    male_amount: x.male_amount ?? '',
-    female_amount: x.female_amount ?? '',
-    phone_number: x.phone_number ?? '',
-
-    Province_addr: x.Province_addr ?? '',
-
-    resource_code: x.resource_code ?? '',
-    resource_phone_number: x.resource_phone_number ?? '',
-    resource_id: x.resource_id ?? null,
-
-    note: x.note ?? '',
-  };
-
-  // ✅ reset picker state after load
-  pictureFile.value = null;
-  pictureChanged.value = false;
-}
-
-/* ===== FormData helper ===== */
-function toFormData(obj) {
-  const fd = new FormData();
-  Object.entries(obj || {}).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    fd.append(k, v);
   });
-  return fd;
-}
 
-/* ===== Submit ===== */
-async function onSubmit() {
-  if (!formRef.value) return;
+  /* ===== Rules ===== */
+  const rules = {
+    required: (v) => !!String(v ?? '').trim() || t('این فیلد الزامی است'),
 
-  const { valid } = await formRef.value.validate();
-  if (!valid) {
-    showErrorMessage(t('لطفاً فیلدهای الزامی را درست پُر کنید'));
-    return;
+    nonNegativeNumberOptional: (v) => {
+      const s = String(v ?? '').trim();
+      if (!s) return true;
+      const n = Number(s);
+      if (!Number.isFinite(n)) return t('عدد درست نیست');
+      if (n < 0) return t('عدد منفی قبول نیست');
+      return true;
+    },
+
+    coordinatesOptional: (v) => {
+      const s = String(v ?? '').trim();
+      if (!s) return true;
+      if (!/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(s)) return t('مختصات درست نیست');
+      return true;
+    },
+  };
+
+  /* ===== Snackbar ===== */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showSuccess = ref(false);
+  const successMessage = ref('');
+
+  function showErrorMessage(msg) {
+    errorMessage.value = msg;
+    showError.value = true;
+  }
+  function showSuccessMsg(msg) {
+    successMessage.value = msg;
+    showSuccess.value = true;
   }
 
-  saving.value = true;
-  try {
-    const fd = toFormData({ ...form.value });
+  function resourceTitle(r) {
+    if (!r) return '';
+    const code = r.code_number ?? '';
+    const name = r.name ?? '';
+    return [code, name].filter(Boolean).join(' - ');
+  }
 
-    // ✅ attach picture file
-    if (!isEdit.value) {
-      if (pictureFile.value) fd.append('picture', pictureFile.value);
-    } else {
-      if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
+  function onResourceSelected(r) {
+    if (!r) return;
+    form.value.resource_id = r.id ?? null;
+    form.value.resource_code = r.code_number ?? '';
+    form.value.resource_phone_number = r.phone_number ?? '';
+  }
+
+  function onResourceCleared() {
+    form.value.resource_id = null;
+    form.value.resource_code = '';
+    form.value.resource_phone_number = '';
+  }
+
+  /* ===== Reset ===== */
+  function resetForm() {
+    // reset picture picker state too
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
+    form.value = {
+      id: isEdit.value ? form.value.id : null,
+      picture_url: isEdit.value ? form.value.picture_url : null,
+
+      name: '',
+      father_name: '',
+      scientific_level: '',
+
+      main_province: '',
+      main_district: '',
+      main_village: '',
+
+      now_province: '',
+      now_zone: '',
+      now_district: '',
+      now_vinage: '',
+
+      specific_place: '',
+      street_number: '',
+      home_number: '',
+
+      cordinates: '',
+
+      country: '',
+      male_amount: '',
+      female_amount: '',
+      phone_number: '',
+
+      Province_addr: '',
+
+      resource_code: '',
+      resource_phone_number: '',
+      resource_id: null,
+
+      note: '',
+    };
+
+    formRef.value?.resetValidation?.();
+  }
+
+  /* ===== Map record -> form ===== */
+  function fillFormFromRecord(x = {}) {
+    form.value = {
+      id: x.id ?? null,
+
+      // ✅ picture
+      picture_url: x.picture ?? x.picture_url ?? null,
+
+      name: x.name ?? '',
+      father_name: x.father_name ?? '',
+      scientific_level: x.scientific_level ?? '',
+
+      main_province: x.main_province ?? '',
+      main_district: x.main_district ?? '',
+      main_village: x.main_village ?? '',
+
+      now_province: x.now_province ?? '',
+      now_zone: x.now_zone ?? '',
+      now_district: x.now_district ?? '',
+      now_vinage: x.now_vinage ?? '',
+
+      specific_place: x.specific_place ?? '',
+      street_number: x.street_number ?? '',
+      home_number: x.home_number ?? '',
+
+      cordinates: x.cordinates ?? '',
+
+      country: x.country ?? '',
+      male_amount: x.male_amount ?? '',
+      female_amount: x.female_amount ?? '',
+      phone_number: x.phone_number ?? '',
+
+      Province_addr: x.Province_addr ?? '',
+
+      resource_code: x.resource_code ?? '',
+      resource_phone_number: x.resource_phone_number ?? '',
+      resource_id: x.resource_id ?? null,
+
+      note: x.note ?? '',
+    };
+
+    // ✅ reset picker state after load
+    pictureFile.value = null;
+    pictureChanged.value = false;
+  }
+
+  /* ===== FormData helper ===== */
+  function toFormData(obj) {
+    const fd = new FormData();
+    Object.entries(obj || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      fd.append(k, v);
+    });
+    return fd;
+  }
+
+  /* ===== Submit ===== */
+  async function onSubmit() {
+    if (!formRef.value) return;
+
+    const { valid } = await formRef.value.validate();
+    if (!valid) {
+      showErrorMessage(t('لطفاً فیلدهای الزامی را درست پُر کنید'));
+      return;
     }
 
-    if (isEdit.value && form.value.id) {
-      const updated = await repo.UpdateMahajerat?.(form.value.id, fd);
-      if (updated?.id) {
-        showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
-        goBack();
-        return;
+    saving.value = true;
+    try {
+      const fd = toFormData({ ...form.value });
+
+      // ✅ attach picture file
+      if (!isEdit.value) {
+        if (pictureFile.value) fd.append('picture', pictureFile.value);
+      } else {
+        if (pictureChanged.value && pictureFile.value) fd.append('picture', pictureFile.value);
       }
-    } else {
-      const created = await repo.CreateMahajerat?.(fd);
-      if (created?.id) {
-        showSuccessMsg(t('ریکارډ مهاجرت موفقانه ثبت شد'));
-        goBack();
-        return;
+
+      if (isEdit.value && form.value.id) {
+        const updated = await repo.UpdateMahajerat?.(form.value.id, fd);
+        if (updated?.id) {
+          showSuccessMsg(t('تغییرات موفقانه ذخیره شد'));
+          goBack();
+          return;
+        }
+      } else {
+        const created = await repo.CreateMahajerat?.(fd);
+        if (created?.id) {
+          showSuccessMsg(t('ریکارډ مهاجرت موفقانه ثبت شد'));
+          goBack();
+          return;
+        }
       }
+
+      showErrorMessage(t('خطا در ذخیره معلومات'));
+    } catch (e) {
+      console.error('Mahajerat save error', e);
+      showErrorMessage(t('خطا در ذخیره معلومات') + ' ' + (e?.message || ''));
+    } finally {
+      saving.value = false;
     }
-
-    showErrorMessage(t('خطا در ذخیره معلومات'));
-  } catch (e) {
-    console.error('Mahajerat save error', e);
-    showErrorMessage(t('خطا در ذخیره معلومات') + ' ' + (e?.message || ''));
-  } finally {
-    saving.value = false;
   }
-}
 
-/* ===== Navigation ===== */
-function goBack() {
-  router.push('/app/mahajerats');
-}
-
-/* ===== Load on edit ===== */
-async function loadExisting() {
-  const id = route.params.id;
-  if (!id) return;
-
-  try {
-    await repo.FetchMahajeratData?.(id);
-    const rec =
-      repo.Mahajerat && Array.isArray(repo.Mahajerat) ? repo.Mahajerat[0] : repo.Mahajerat || {};
-    fillFormFromRecord(rec);
-  } catch (e) {
-    console.error('loadExisting error', e);
-    showErrorMessage(t('خطا در دریافت معلومات مهاجرت'));
+  /* ===== Navigation ===== */
+  function goBack() {
+    router.push('/app/mahajerats');
   }
-}
 
-/* =========================
+  /* ===== Load on edit ===== */
+  async function loadExisting() {
+    const id = route.params.id;
+    if (!id) return;
+
+    try {
+      await repo.FetchMahajeratData?.(id);
+      const rec =
+        repo.Mahajerat && Array.isArray(repo.Mahajerat) ? repo.Mahajerat[0] : repo.Mahajerat || {};
+      fillFormFromRecord(rec);
+    } catch (e) {
+      console.error('loadExisting error', e);
+      showErrorMessage(t('خطا در دریافت معلومات مهاجرت'));
+    }
+  }
+
+  /* =========================
    ✅ SIMPLE EXPORT (PDF/Word)
    - Works even if form is blank
    - NO images
    - Clean RTL table + signature lines
 ========================= */
-function escapeHtml(s) {
-  return String(s ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
+  function escapeHtml(s) {
+    return String(s ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
 
-function buildExportHtml() {
-  const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
+  function buildExportHtml() {
+    const rid = form.value.id ? `#${form.value.id}` : t('بدون شماره');
 
-  const rows = [
-    [t('نام'), form.value.name],
-    [t('نام پدر'), form.value.father_name],
-    [t('سطح علمی'), form.value.scientific_level],
-    [t('ولایت مربوطه'), form.value.Province_addr],
+    const rows = [
+      [t('نام'), form.value.name],
+      [t('نام پدر'), form.value.father_name],
+      [t('سطح علمی'), form.value.scientific_level],
+      [t('ولایت مربوطه'), form.value.Province_addr],
 
-    [t('ولایت اصلی'), form.value.main_province],
-    [t('ولسوالی اصلی'), form.value.main_district],
-    [t('قریه/ناحیه اصلی'), form.value.main_village],
+      [t('ولایت اصلی'), form.value.main_province],
+      [t('ولسوالی اصلی'), form.value.main_district],
+      [t('قریه/ناحیه اصلی'), form.value.main_village],
 
-    [t('ولایت فعلی'), form.value.now_province],
-    [t('زون فعلی'), form.value.now_zone],
-    [t('ولسوالی فعلی'), form.value.now_district],
-    [t('قریه/ناحیه فعلی'), form.value.now_vinage],
+      [t('ولایت فعلی'), form.value.now_province],
+      [t('زون فعلی'), form.value.now_zone],
+      [t('ولسوالی فعلی'), form.value.now_district],
+      [t('قریه/ناحیه فعلی'), form.value.now_vinage],
 
-    [t('موقعیت مشخص'), form.value.specific_place],
-    [t('سرک نمبر'), form.value.street_number],
-    [t('نمبر خانه'), form.value.home_number],
-    [t('مختصات'), form.value.cordinates],
+      [t('موقعیت مشخص'), form.value.specific_place],
+      [t('سرک نمبر'), form.value.street_number],
+      [t('نمبر خانه'), form.value.home_number],
+      [t('مختصات'), form.value.cordinates],
 
-    [t('کشور مقصد'), form.value.country],
-    [t('تعداد مرد'), form.value.male_amount],
-    [t('تعداد زن'), form.value.female_amount],
-    [t('شماره تماس'), form.value.phone_number],
+      [t('کشور مقصد'), form.value.country],
+      [t('تعداد مرد'), form.value.male_amount],
+      [t('تعداد زن'), form.value.female_amount],
+      [t('شماره تماس'), form.value.phone_number],
 
-    [t('کود منبع'), form.value.resource_code],
-    [t('شماره منبع'), form.value.resource_phone_number],
+      [t('کود منبع'), form.value.resource_code],
+      [t('شماره منبع'), form.value.resource_phone_number],
 
-    [t('ملاحظات'), form.value.note],
-  ];
+      [t('ملاحظات'), form.value.note],
+    ];
 
-  return `
+    return `
 <!doctype html>
 <html dir="rtl" lang="fa">
 <head>
@@ -735,49 +744,49 @@ function buildExportHtml() {
 </body>
 </html>
   `.trim();
-}
+  }
 
-function downloadPdf() {
-  const html = buildExportHtml();
-  const w = window.open('', '_blank');
-  if (!w) return;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  setTimeout(() => w.print(), 250);
-}
+  function downloadPdf() {
+    const html = buildExportHtml();
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 250);
+  }
 
-function downloadWord() {
-  const html = buildExportHtml();
-  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
+  function downloadWord() {
+    const html = buildExportHtml();
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
 
-  const namePart = form.value.id ? `mahajerat_${form.value.id}` : 'mahajerat_blank';
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${namePart}.doc`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+    const namePart = form.value.id ? `mahajerat_${form.value.id}` : 'mahajerat_blank';
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${namePart}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-}
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
 
-/* ===== Init ===== */
-onMounted(async () => {
-  if (isEdit.value) await loadExisting();
-});
+  /* ===== Init ===== */
+  onMounted(async () => {
+    if (isEdit.value) await loadExisting();
+  });
 </script>
 
 <style scoped>
-.section-title {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 4px;
-  color: #37474f;
-}
-.ga-2 {
-  gap: 8px;
-}
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #37474f;
+  }
+  .ga-2 {
+    gap: 8px;
+  }
 </style>

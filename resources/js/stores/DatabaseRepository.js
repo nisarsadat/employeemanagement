@@ -428,7 +428,33 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         throw e;
       }
     },
+    async OpenResourcesPrintView(payload = {}) {
+      try {
+        const { filters = {}, selected_columns = [] } = payload;
 
+        const response = await axios.get('/resources/print', {
+          params: {
+            ...filters,
+            selected_columns,
+          },
+          responseType: 'text',
+        });
+
+        const printWindow = window.open('', '_blank');
+
+        if (!printWindow) {
+          throw new Error('Popup blocked or failed to open print window.');
+        }
+
+        printWindow.document.open();
+        printWindow.document.write(response.data);
+        printWindow.document.close();
+        printWindow.focus();
+      } catch (e) {
+        console.error('OpenResourcesPrintView error:', e);
+        throw e;
+      }
+    },
     async UpdateResource(id, data) {
       try {
         let res;
@@ -597,6 +623,9 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           ...(params?.resource_id !== undefined ? { resource_id: params.resource_id } : {}),
           ...(params?.office_employee_id !== undefined
             ? { office_employee_id: params.office_employee_id }
+            : {}),
+          ...(params?.only_finance_queue !== undefined
+            ? { only_finance_queue: params.only_finance_queue }
             : {}),
           ...(params?.information_id !== undefined
             ? { information_id: params.information_id }
@@ -852,7 +881,9 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           ...(params?.date_to !== undefined ? { date_to: params.date_to } : {}),
           ...(params?.from_date !== undefined ? { from_date: params.from_date } : {}),
           ...(params?.to_date !== undefined ? { to_date: params.to_date } : {}),
-
+          ...(params?.only_finance_queue !== undefined
+            ? { only_finance_queue: params.only_finance_queue }
+            : {}),
           // related route filters
           ...(params?.information_id !== undefined
             ? { information_id: params.information_id }

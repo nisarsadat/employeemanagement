@@ -83,7 +83,6 @@
         title-key="hostel_name"
         :fields="headersFT"
         :cols="3"
-        :dir="isRtl ? 'rtl' : 'ltr'"
         @fetch="fetchOne"
       />
     </v-container>

@@ -12,13 +12,14 @@ use Illuminate\Support\Facades\Storage;
 use App\Services\NotificationService;
 use Illuminate\Database\QueryException;
 use App\Exports\ResourcesExport;
+use App\Http\Controllers\Concerns\HandlesTablePrintExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
 class ResourceController extends Controller
 {
     use AppliesRelatedFilters;
-
+    use HandlesTablePrintExport;
     protected function relatedFilterRules(): array
     {
         return [
@@ -883,6 +884,223 @@ public function filterOptions(Request $request)
 
     return response()->json([
         'options' => $options,
+    ]);
+}
+
+private function buildIndexQuery(Request $req)
+{
+    $search = trim((string) $req->get('search', ''));
+    $searchField = $this->resolveSearchField($req->get('search_field'));
+    $year  = $req->filled('year') ? (int) $req->get('year') : null;
+    $month = $req->filled('month') ? (int) $req->get('month') : null;
+    $searchValue = $req->get('search_value');
+
+    $stat = trim((string) $req->get('stat', 'all'));
+    $allowedStats = ['all', 'today', 'active', 'inactive'];
+    if (!in_array($stat, $allowedStats, true)) {
+        $stat = 'all';
+    }
+
+    $dateField = $req->get('date_field', 'resource_saved_date');
+    $allowedDateFields = ['resource_saved_date', 'created_at', 'updated_at'];
+    if (!in_array($dateField, $allowedDateFields, true)) {
+        $dateField = 'resource_saved_date';
+    }
+
+    $today = now()->toDateString();
+
+    $q = Resource::query()
+        ->with(['officeEmployee:id,name,code_number,father_name'])
+        ->withSum('finances as payed_money', 'money_amount_number')
+        ->withCount([
+            'events',
+            'informations',
+            'khayratReports',
+        ])
+        ->when($stat === 'today', function ($w) use ($dateField, $today) {
+            $w->whereNotNull($dateField)->whereDate($dateField, $today);
+        })
+        ->when($stat === 'active', function ($w) {
+            $w->where('activity', 'فعال');
+        })
+        ->when($stat === 'inactive', function ($w) {
+            $w->where('activity', 'غیر فعال');
+        })
+        ->latest('id');
+
+    $this->applyCommonFilters($q, $search, $searchField, $searchValue);
+    $this->applyShamsiDateFilter($q, $year, $month, $dateField);
+    $this->applyRelatedFilters($q, $req);
+    $this->applyDateRangeFilter($q, $req, $dateField);
+
+    return $q;
+}
+private function printableColumns(): array
+{
+    return [
+        'letry_format_name',
+        'resedint_code',
+        'code_number',
+        'name',
+        'father_name',
+        'grand_father_name',
+        'nick_name',
+        'tazkira',
+        'main_province',
+        'main_district',
+        'main_village',
+        'now_province',
+        'now_district',
+        'office_employee_id',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+        'old_job',
+        'now_job',
+        'job_place',
+        'zone',
+        'hawza',
+        'specefic_place',
+        'coordinates',
+        'activity',
+        'halat_madani',
+        'age',
+        'elmi_level',
+        'faculty',
+        'specific_skills',
+        'resource_saved_date',
+        'resource_activity_type',
+        'resource_cover',
+        'language',
+        'nation',
+        'blood_group',
+        'train',
+        'project',
+        'phone_number',
+        'trust_percentage',
+        'note',
+        'payed_money',
+        'events_count',
+        'informations_count',
+        'khayrat_reports_count',
+    ];
+}
+
+private function printableColumnLabels(): array
+{
+    return [
+        'letry_format_name' => '۵۶ فارمټ',
+        'resedint_code' => 'رزیدنت مربوطه',
+        'code_number' => 'کود نمبر',
+        'name' => 'نام',
+        'father_name' => 'نام پدر',
+        'grand_father_name' => 'نام پدرکلان',
+        'nick_name' => 'نام مستعار',
+        'tazkira' => 'تذکره نمبر',
+        'main_province' => 'ولایت اصلی',
+        'main_district' => 'ولسوالی',
+        'main_village' => 'قریه',
+        'now_province' => 'ولایت فعلی',
+        'now_district' => 'ولسوالی فعلی',
+        'office_employee_id' => 'کارمند مربوطه',
+        'now_village' => 'قریه فعلی',
+        'now_specific_place' => 'موقعیت مشخص فعلی',
+        'now_street_number' => 'شماره سرک',
+        'now_home_number' => 'شماره خانه',
+        'old_job' => 'وظیفه سابقه',
+        'now_job' => 'وظیفه فعلی',
+        'job_place' => 'محل وظیفه',
+        'zone' => 'زون تدارک',
+        'hawza' => 'حوزه تدارک',
+        'specefic_place' => 'محل مشخص تدارک',
+        'coordinates' => 'کوردینات',
+        'activity' => 'فعالیت',
+        'halat_madani' => 'حالت مدنی',
+        'age' => 'عمر',
+        'elmi_level' => 'رتبه علمی',
+        'faculty' => 'فاکولته/دیپارتمنت',
+        'specific_skills' => 'مهارت‌های خاص',
+        'resource_saved_date' => 'تاریخ ثبت منبع',
+        'resource_activity_type' => 'نوع فعالیت منبع',
+        'resource_cover' => 'پوشش منبع',
+        'language' => 'زبان',
+        'nation' => 'قوم',
+        'blood_group' => 'گروپ خون',
+        'train' => 'دوره/آموزش',
+        'project' => 'مربوطه پروژه',
+        'phone_number' => 'شماره تماس',
+        'trust_percentage' => 'میزان اعتماد',
+        'note' => 'نوت',
+        'payed_money' => 'پول داده شده',
+        'events_count' => 'تعداد واقعات',
+        'informations_count' => 'تعداد اطلاعات',
+        'khayrat_reports_count' => 'تعداد راپور خیریت',
+    ];
+}
+private function printableFilterLabels(): array
+{
+    return [
+        'search' => 'جستجو',
+        'search_field' => 'ستون جستجو',
+        'search_value' => 'ارزش ستون',
+        'year' => 'سال',
+        'month' => 'ماه',
+        'date_field' => 'فیلد تاریخ',
+        'stat' => 'حالت',
+        'resource_id' => 'resource_id',
+        'office_employee_id' => 'office_employee_id',
+        'information_id' => 'information_id',
+        'event_id' => 'event_id',
+        'fifty_six_format_id' => 'fifty_six_format_id',
+        'date' => 'تاریخ',
+        'date_from' => 'از تاریخ',
+        'date_to' => 'تا تاریخ',
+        'from_date' => 'از تاریخ',
+        'to_date' => 'تا تاریخ',
+        'selected_columns' => 'ستون‌های انتخاب‌شده',
+    ];
+}
+public function printView(Request $request)
+{
+    $request->validate([
+        'search'              => 'nullable|string',
+        'search_field'        => 'nullable|string',
+        'search_value'        => 'nullable',
+        'year'                => 'nullable|integer|min:1|max:2500',
+        'month'               => 'nullable|integer|min:1|max:12',
+        'stat'                => 'nullable|string',
+        'date_field'          => 'nullable|string',
+        'resource_id'         => 'nullable|integer',
+        'office_employee_id'  => 'nullable|integer',
+        'information_id'      => 'nullable|integer',
+        'event_id'            => 'nullable|integer',
+        'fifty_six_format_id' => 'nullable|integer',
+        'date'                => 'nullable|string',
+        'date_from'           => 'nullable|string',
+        'date_to'             => 'nullable|string',
+        'from_date'           => 'nullable|string',
+        'to_date'             => 'nullable|string',
+        'selected_columns'    => 'nullable|array',
+        'selected_columns.*'  => 'string',
+    ]);
+
+    $selectedColumns = $this->normalizeSelectedColumns(
+        $request,
+        $this->printableColumns()
+    );
+
+    $rows = $this->buildIndexQuery($request)->get();
+
+    $meta = $this->buildPrintMeta($request);
+
+    return response()->view('prints.resources-table', [
+        'title' => 'منابع',
+        'rows' => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels' => $this->printableColumnLabels(),
+        'filterLabels' => $this->printableFilterLabels(),
+        'meta' => $meta,
     ]);
 }
 }

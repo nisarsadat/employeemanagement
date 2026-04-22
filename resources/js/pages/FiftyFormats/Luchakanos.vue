@@ -155,7 +155,6 @@
         title-key="name"
         :fields="headersFT"
         :cols="3"
-        :dir="isRtl ? 'rtl' : 'ltr'"
         :auto-detect-dates="false"
         :date-keys="[]"
         @fetch="fetchOne"

@@ -512,7 +512,7 @@ class InformationsExport implements FromQuery, WithHeadings, WithMapping, WithEv
     {
         return [
             'شمېره',
-            'آی ډي',
+            'مسلسل شمیره',
             'تعقیبي اړیکې',
             'د منبع کوډ',
             'اړوند کارکوونکی',

@@ -261,7 +261,7 @@ class WeeklyFoulReportController extends Controller
         ['key' => 'mawads', 'name' => 'د مخدره مواد پلورونکي', 'model' => Mawad::class],
         ['key' => 'lostmujremeens', 'name' => 'ورک شوي مجرمین', 'model' => LostMujremeen::class],
         ['key' => 'oldSoldiersHomes', 'name' => 'د پخوانیو عسکرو کورونه', 'model' => OldSoldiersHomes::class],
-        ['key' => 'robbers', 'name' => 'غله', 'model' => Robbers::class],
+        ['key' => 'robbers', 'name' => 'اختطاف ګران', 'model' => Robbers::class],
         ['key' => 'nonResponsablePeople', 'name' => 'غیر مسوله وسله وال', 'model' => NonResponsablePeople::class],
         ['key' => 'mashkokHomes', 'name' => 'مشکوک کورونه', 'model' => MashkokHomes::class],
         ['key' => 'damagePlaces', 'name' => 'زیانمن ځایونه', 'model' => DamagePlaces::class],

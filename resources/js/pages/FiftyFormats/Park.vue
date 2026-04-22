@@ -169,7 +169,6 @@
         :fields="headersFT"
         image-key="picture"
         :cols="3"
-        :dir="isRtl ? 'rtl' : 'ltr'"
         :auto-detect-dates="false"
         :date-keys="[]"
         @fetch="fetchOne"

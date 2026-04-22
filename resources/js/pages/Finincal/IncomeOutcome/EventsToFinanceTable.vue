@@ -1,9 +1,9 @@
 <template>
   <AppBar :title="t('حساب مالي')" @toggle-drawer="drawer = !drawer">
-      <template #actions>
-        <v-btn icon />
-      </template>
-    </AppBar>
+    <template #actions>
+      <v-btn icon />
+    </template>
+  </AppBar>
   <div class="pa-4">
     <v-card rounded="xl" class="pa-4">
       <div class="d-flex align-center justify-space-between mb-3">
@@ -99,8 +99,8 @@
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import FinanceFormDialog from './FinancesFormDialog.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
-import AppBar from '@/components/AppBar.vue';
-import { useI18n } from 'vue-i18n';
+  import AppBar from '@/components/AppBar.vue';
+  import { useI18n } from 'vue-i18n';
 
   const repo = useDatabaseRepository();
   const financeDialog = ref(false);
@@ -110,7 +110,7 @@ import { useI18n } from 'vue-i18n';
   const totalItems = ref(Number(repo.totalItems || 0));
 
   const itemsPerPageOptions = [5, 10, 20, 50, 100];
-const { t, locale } = useI18n();
+  const { t, locale } = useI18n();
 
   const headers = [
     { title: 'ID', key: 'id', sortable: true },
@@ -121,15 +121,9 @@ const { t, locale } = useI18n();
     { title: 'کړنې', key: 'actions', sortable: false, align: 'center' },
   ];
 
-  const eventsToFinance = computed(() => {
-    const list = Array.isArray(repo.Events)
-      ? repo.Events
-      : Array.isArray(repo.events)
-      ? repo.events
-      : [];
-
-    return list.filter((e) => String(e?.message_to_finance ?? '').trim().length > 0);
-  });
+  const eventsToFinance = computed(() =>
+    Array.isArray(repo.Events) ? repo.Events : Array.isArray(repo.events) ? repo.events : []
+  );
 
   const pageCount = computed(() => {
     const total = Number(totalItems.value || 0);
@@ -153,7 +147,6 @@ const { t, locale } = useI18n();
 
     return flag === true || String(flag) === '1';
   }
-
   async function fetch() {
     repo.page = page.value;
     repo.itemsPerPage = itemsPerPage.value;
@@ -161,16 +154,17 @@ const { t, locale } = useI18n();
     const res = await repo.FetchEventsData({
       page: page.value,
       perPage: itemsPerPage.value,
+      card_filter: 'unpaid',
+      only_finance_queue: 1,
     });
 
     totalItems.value =
       Number(
-        res?.meta?.total ??
-          res?.total ??
-          repo.totalItems ??
-          repo.meta?.total ??
-          0
+        res?.data?.meta?.total ?? res?.meta?.total ?? repo.totalItems ?? repo.meta?.total ?? 0
       ) || 0;
+
+    page.value = Number(repo.page || page.value || 1);
+    itemsPerPage.value = Number(repo.itemsPerPage || itemsPerPage.value || 10);
   }
 
   function onOptionsChange(options) {

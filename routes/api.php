@@ -269,6 +269,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('office-employees/{officeEmployee}/documents/download-all', [OfficeEmployeeDocumentController::class, 'downloadAll']);
     Route::delete('office-employees/{officeEmployee}/documents/{document}', [OfficeEmployeeController::class, 'destroyDocument']);
 
+    Route::get('/resources/print', [ResourceController::class, 'printView'])
+    ->name('resources.print');
     // resources (API) => module: resources_api
     protectResource('resources', 'resources_api', ResourceController::class);
 

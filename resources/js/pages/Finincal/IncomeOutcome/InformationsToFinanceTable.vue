@@ -100,7 +100,7 @@
   import FinanceFormDialog from './FinancesFormDialog.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
   import AppBar from '@/components/AppBar.vue';
-import { useI18n } from 'vue-i18n';
+  import { useI18n } from 'vue-i18n';
 
   const dbRepo = useDatabaseRepository();
   const financeDialog = ref(false);
@@ -110,7 +110,7 @@ import { useI18n } from 'vue-i18n';
   const totalItems = ref(Number(dbRepo.totalItems || 0));
 
   const itemsPerPageOptions = [5, 10, 20, 50, 100];
-const { t, locale } = useI18n();
+  const { t, locale } = useI18n();
 
   const headers = [
     { title: 'ID', key: 'id', sortable: true },
@@ -121,10 +121,9 @@ const { t, locale } = useI18n();
     { title: 'کړنې', key: 'actions', sortable: false, align: 'center' },
   ];
 
-  const informationsToFinance = computed(() => {
-    const list = Array.isArray(dbRepo.Informations) ? dbRepo.Informations : [];
-    return list.filter((x) => String(x?.message_to_finance ?? '').trim().length > 0);
-  });
+  const informationsToFinance = computed(() =>
+    Array.isArray(dbRepo.Informations) ? dbRepo.Informations : []
+  );
 
   const pageCount = computed(() => {
     const total = Number(totalItems.value || 0);
@@ -156,10 +155,17 @@ const { t, locale } = useI18n();
     const res = await dbRepo.FetchInformationsData({
       page: page.value,
       perPage: itemsPerPage.value,
+      stat: 'unpaid',
+      only_finance_queue: 1,
     });
 
     totalItems.value =
-      Number(res?.meta?.total ?? res?.total ?? dbRepo.totalItems ?? dbRepo.meta?.total ?? 0) || 0;
+      Number(
+        res?.data?.meta?.total ?? res?.meta?.total ?? dbRepo.totalItems ?? dbRepo.meta?.total ?? 0
+      ) || 0;
+
+    page.value = Number(dbRepo.page || page.value || 1);
+    itemsPerPage.value = Number(dbRepo.itemsPerPage || itemsPerPage.value || 10);
   }
 
   function onOptionsChange(options) {

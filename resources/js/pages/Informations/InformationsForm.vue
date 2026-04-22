@@ -1307,10 +1307,29 @@
   /* ===== FORM DATA BUILDERS ===== */
   function toFormData(obj) {
     const fd = new FormData();
+
+    const nullableFields = [
+      'resource_id',
+      'office_employee_id',
+      'office_employee_info_id',
+      'office_employee_akhistonky_id',
+      'account_id',
+    ];
+
     Object.entries(obj).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
+      if (v === undefined) return;
+
+      // Important: send cleared nullable foreign keys explicitly
+      if (nullableFields.includes(k)) {
+        fd.append(k, v == null || v === '' ? '' : v);
+        return;
+      }
+
+      if (v === null) return;
+
       fd.append(k, v);
     });
+
     return fd;
   }
 

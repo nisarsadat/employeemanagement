@@ -110,10 +110,11 @@ const items = computed(() => lookup.resources || []);
 
 const defaultTitle = (item) => {
   if (!item) return '';
+  const id = item.id ?? '';
   const code = item.code_number ?? '';
-  const phone = item.phone_number ?? '';
   const name = item.name ?? '';
-  return [code, phone, name].filter(Boolean).join(' — ');
+  const nick = item.nick_name ?? '';
+  return [id, code, name, nick].filter(Boolean).join(' — ');
 };
 
 const resolvedItemTitle = computed(() => {
@@ -146,4 +147,4 @@ onMounted(() => {
     lookup.FetchResourcesLookup({ search: '', perPage: props.perPage }).catch(() => {});
   }
 });
-</script>
+</script> 

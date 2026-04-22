@@ -396,11 +396,7 @@
       <!-- OFFICE EMPLOYEE codes -->
       <template #cell-office_employee_display="{ row }">
         <div class="d-flex flex-column align-start">
-          <v-tooltip
-            v-if="row.office_employee_code_number"
-            text="اړوند کارمند"
-            location="top"
-          >
+          <v-tooltip v-if="row.office_employee_code_number" text="اړوند کارمند" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-btn
                 v-bind="tooltipProps"
@@ -420,18 +416,14 @@
 
       <template #cell-office_employee_info_display="{ row }">
         <div class="d-flex flex-column align-start">
-          <v-tooltip
-            v-if="row.office_employee_info_code_number"
-            text="اړوند کارمند"
-            location="top"
-          >
+          <v-tooltip v-if="row.office_employee_info_code_number" text="اړوند کارمند" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-btn
                 v-bind="tooltipProps"
                 color="deep-orange"
                 variant="tonal"
                 class="text-none px-2 py-1"
-                @click.stop="goToOfficeEmployee(row)"
+                @click.stop="goToOfficeEmployeeInfo(row)"
               >
                 <v-icon start size="16">mdi-account-badge</v-icon>
                 <span class="text-caption">{{ row.office_employee_info_code_number }}</span>
@@ -1189,13 +1181,27 @@
 
   function goToOfficeEmployee(payload) {
     const row = getRow(payload);
-    const id = row?.office_employee_id || row?.office_employee_info_id;
+    const id = row?.office_employee_id ;
     if (!id) return;
 
     router.push({
       path: '/app/officeemployee',
       query: {
         office_employee_id: String(id),
+        open: 'peek',
+        source: 'informations',
+      },
+    });
+  }
+  function goToOfficeEmployeeInfo(payload) {
+    const row = getRow(payload);
+    const id = row?.office_employee_info_id;
+    if (!id) return;
+
+    router.push({
+      path: '/app/officeemployee',
+      query: {
+        office_employee_info_id: String(id),
         open: 'peek',
         source: 'informations',
       },

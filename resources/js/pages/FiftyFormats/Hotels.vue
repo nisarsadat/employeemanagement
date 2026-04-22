@@ -178,7 +178,6 @@
         :fields="headersFT"
         image-key="picture"
         :cols="3"
-        :dir="isRtl ? 'rtl' : 'ltr'"
         @fetch="fetchOne"
       />
     </v-container>

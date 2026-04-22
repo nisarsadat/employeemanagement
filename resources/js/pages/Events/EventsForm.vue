@@ -847,15 +847,31 @@
   }
 
   /* formdata */
-  function toFormData(obj) {
-    const fd = new FormData();
-    Object.entries(obj).forEach(([k, v]) => {
-      if (v === undefined || v === null) return;
-      fd.append(k, v);
-    });
-    return fd;
-  }
+function toFormData(obj) {
+  const fd = new FormData();
 
+  const nullableFields = [
+    'resource_id',
+    'office_employee_id',
+    'office_employee_akhistonky_id',
+    'account_id',
+  ];
+
+  Object.entries(obj).forEach(([k, v]) => {
+    if (v === undefined) return;
+
+    if (nullableFields.includes(k)) {
+      fd.append(k, v == null || v === '' ? '' : v);
+      return;
+    }
+
+    if (v === null) return;
+
+    fd.append(k, v);
+  });
+
+  return fd;
+}
   function buildCreateFormData() {
     const payload = { ...form.value };
     const newDocs = payload._newDocs || [];

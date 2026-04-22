@@ -46,6 +46,18 @@
           <v-icon start size="22">mdi-eye</v-icon>
           {{ viewText }}
         </v-btn>
+
+        <v-btn
+          v-if="displaySrc"
+          size="small"
+          color="error"
+          variant="tonal"
+          class="text-none rounded-pill soft-btn"
+          @click.stop="removePicture"
+        >
+          <v-icon start size="22">mdi-delete</v-icon>
+          {{ removeText }}
+        </v-btn>
       </div>
     </div>
 
@@ -100,6 +112,7 @@ const props = defineProps({
 
   changeText: { type: String, default: 'تغییر عکس' },
   viewText: { type: String, default: 'نمایش' },
+  removeText: { type: String, default: 'حذف عکس' },
   closeText: { type: String, default: 'بستن' },
   previewTitle: { type: String, default: 'پیش نمایش' },
 });
@@ -131,13 +144,27 @@ function onPick(e) {
   if (f) {
     previewBlobUrl.value = URL.createObjectURL(f);
     emit('update:file', f);
-    emit('change', { file: f, changed: true });
+    emit('change', { file: f, changed: true, removed: false });
   } else {
     emit('update:file', null);
-    emit('change', { file: null, changed: false });
+    emit('change', { file: null, changed: false, removed: false });
   }
 
   if (e.target) e.target.value = '';
+}
+
+function removePicture() {
+  revokeBlob();
+  previewSrc.value = null;
+  previewOpen.value = false;
+
+  emit('update:file', null);
+  emit('update:url', null);
+  emit('change', { file: null, changed: true, removed: true });
+
+  if (inputRef.value) {
+    inputRef.value.value = '';
+  }
 }
 
 function openPreview() {
@@ -172,8 +199,6 @@ function revokeBlob() {
 watch(
   () => props.url,
   () => {
-    // if record reload happens, keep file as-is? usually no.
-    // safer: clear local blob if URL changed.
     revokeBlob();
   }
 );

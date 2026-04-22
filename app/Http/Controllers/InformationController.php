@@ -421,7 +421,28 @@ class InformationController extends Controller
                 'finances',
             ]);
     }
+private function applyFinanceQueueFilter($query, bool $onlyFinanceQueue = false)
+{
+    if (!$onlyFinanceQueue) {
+        return $query;
+    }
 
+    $query
+        ->whereNotNull('message_to_finance')
+        ->whereRaw("CHAR_LENGTH(TRIM(message_to_finance)) > 0")
+        ->where(function ($q) {
+            $q->whereNull('finance_status')
+              ->orWhereIn(DB::raw('LOWER(TRIM(finance_status))'), [
+                  '',
+                  'unpaid',
+                  'pending',
+                  'ناپرداخت',
+                  'not_paid',
+              ]);
+        });
+
+    return $query;
+}
     private function applyRelatedFilter($query, ?int $relatedId)
     {
         if (!$relatedId) {
@@ -804,6 +825,7 @@ class InformationController extends Controller
             'event_id'             => 'nullable|integer',
             'fifty_six_format_id'  => 'nullable|integer',
             'type'                 => 'nullable|string',
+            'only_finance_queue' => 'nullable|boolean',
             ]);
 
         $search      = trim((string) $request->input('search', ''));
@@ -822,6 +844,7 @@ class InformationController extends Controller
         $stat      = trim((string) $request->input('stat', ''));
         $statsOnly = $request->boolean('stats_only');
         $type = trim((string) $request->input('type', ''));
+        $onlyFinanceQueue = $request->boolean('only_finance_queue');
 
         $stats = $this->buildStats(
             $request,
@@ -867,6 +890,7 @@ class InformationController extends Controller
         $this->applyTypeFilter($query, $type);
         $this->applyStatFilter($query, $stat);
 
+        $this->applyFinanceQueueFilter($query, $onlyFinanceQueue);
         $query->orderByDesc('id');
 
         if (

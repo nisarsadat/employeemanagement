@@ -371,15 +371,14 @@
             <!-- Resource mapping -->
             <v-col cols="12" md="4">
               <ResourceRemoteAutocomplete
-  v-model="form.resource_id"
-  :label="t('کود منبع')"
-  density="compact"
-  variant="outlined"
-  :rules="[rules.required]"
-  :item-title="resourceTitle"
-  @selected="onResourceSelected"
-  @cleared="onResourceCleared"
-/>
+                v-model="form.resource_id"
+                :label="t('کود منبع')"
+                density="compact"
+                variant="outlined"
+                :item-title="resourceTitle"
+                @selected="onResourceSelected"
+                @cleared="onResourceCleared"
+              />
             </v-col>
 
             <v-col cols="12" md="4">
@@ -651,25 +650,25 @@
     number: (v) => !v || /^[0-9]+$/.test(String(v)) || t('فقط اعداد مجاز است'),
   };
 
-function resourceTitle(r) {
-  if (!r) return '';
-  const code = r.code_number ?? '';
-  const name = r.name ?? '';
-  return [code, name].filter(Boolean).join(' - ');
-}
+  function resourceTitle(r) {
+    if (!r) return '';
+    const code = r.code_number ?? '';
+    const name = r.name ?? '';
+    return [code, name].filter(Boolean).join(' - ');
+  }
 
-function onResourceSelected(r) {
-  if (!r) return;
-  form.value.resource_id = r.id ?? null;
-  form.value.resource_code = r.code_number ?? '';
-  form.value.resource_phone = r.phone_number ?? '';
-}
+  function onResourceSelected(r) {
+    if (!r) return;
+    form.value.resource_id = r.id ?? null;
+    form.value.resource_code = r.code_number ?? '';
+    form.value.resource_phone = r.phone_number ?? '';
+  }
 
-function onResourceCleared() {
-  form.value.resource_id = null;
-  form.value.resource_code = '';
-  form.value.resource_phone = '';
-}
+  function onResourceCleared() {
+    form.value.resource_id = null;
+    form.value.resource_code = '';
+    form.value.resource_phone = '';
+  }
 
   /* MAP FROM API */
   function mapFromApi(payload = {}) {
@@ -777,7 +776,6 @@ function onResourceCleared() {
 
     return fd;
   }
-
 
   /* SCROLL TO FIRST INVALID */
   function scrollToFirstInvalid() {

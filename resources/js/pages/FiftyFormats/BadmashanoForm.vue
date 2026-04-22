@@ -280,7 +280,6 @@
                 :label="t('کود منبع')"
                 density="compact"
                 variant="outlined"
-                :rules="[rules.required]"
                 :item-title="resourceTitle"
                 @selected="onResourceSelected"
                 @cleared="onResourceCleared"

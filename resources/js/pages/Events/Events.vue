@@ -327,7 +327,7 @@
               variant="tonal"
               size="default"
               class="text-none"
-              @click.stop="goOfficeEmployee(row)"
+              @click.stop="goOfficeEmployeeAkh(row)"
             >
               <v-icon size="16" class="mr-1">mdi-account-badge</v-icon>
               {{ getRow(row).office_employee_akhistonky_code || t('کارمند') }}
@@ -833,6 +833,19 @@
       path: '/app/officeemployee',
       query: {
         office_employee_id: empId,
+        source: 'events',
+      },
+    });
+  }
+  function goOfficeEmployeeAkh(payload) {
+    const row = getRow(payload);
+    const empId = row?.office_employee_akhistonky_id;
+    if (!empId) return;
+
+    router.push({
+      path: '/app/officeemployee',
+      query: {
+        office_employee_akhistonky_id: empId,
         source: 'events',
       },
     });

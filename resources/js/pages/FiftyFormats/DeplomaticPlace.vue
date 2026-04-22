@@ -166,7 +166,6 @@
         title-key="deplomatic_place_name"
         :fields="headersFT"
         :cols="3"
-        :dir="isRtl ? 'rtl' : 'ltr'"
         :auto-detect-dates="false"
         image-key="picture"
         :date-keys="[]"

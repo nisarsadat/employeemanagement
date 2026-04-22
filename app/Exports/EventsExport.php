@@ -424,7 +424,6 @@ class EventsExport implements FromQuery, WithHeadings, WithMapping, WithEvents, 
     {
         return [
             ++$this->rowNumber,
-            $row->id,
             $row->resource?->code_number ?? '—',
             $row->officeEmployee?->code_number ?? '—',
             $row->talks ?? '—',

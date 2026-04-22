@@ -150,7 +150,6 @@
         title-key="name"
         :fields="headersFT"
         :cols="3"
-        :dir="isRtl ? 'rtl' : 'ltr'"
         image-key="picture"
         :auto-detect-dates="false"
         :date-keys="[]"
