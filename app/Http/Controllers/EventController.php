@@ -15,7 +15,7 @@ use App\Services\NotificationService;
 use Carbon\Carbon;
 use App\Exports\EventsExport;
 use Maatwebsite\Excel\Facades\Excel;
-
+use Hekmatinasser\Verta\Verta;
 class EventController extends Controller
 {
 use AppliesRelatedFilters;
@@ -997,5 +997,91 @@ public function destroy(Request $request, $id)
             'error'   => $e->getMessage(),
         ], 500);
     }
+}
+public function printView(Request $request)
+{
+    $query = $this->baseListQuery();
+
+    $search = $request->input('search');
+    $searchField = $request->input('search_field');
+    $searchValue = $request->input('search_value');
+    $cardFilter = $request->input('card_filter', 'all');
+    $year = $request->filled('year') ? (int) $request->input('year') : null;
+    $month = $request->filled('month') ? (int) $request->input('month') : null;
+    $dateField = $this->resolveDateField($request->input('date_field'));
+
+    $this->applyCommonFilters(
+        $query,
+        $search,
+        $cardFilter,
+        $searchField,
+        $searchValue
+    );
+
+    $this->applyMonthYearFilter(
+        $query,
+        $year,
+        $month,
+        $dateField
+    );
+
+
+   $rows = $query
+    ->with([
+        'resource:id,code_number',
+        'officeEmployee:id,code_number',
+        'akhistonkyEmployee:id,code_number',
+    ])
+    ->latest()
+    ->get()
+    ->map(function ($event) {
+        $event->resource_display =
+            $event->resource?->code_number
+            ?? $event->resource_id
+            ?? '-';
+
+        $event->office_employee_display =
+            $event->officeEmployee?->code_number
+            ?? $event->office_employee_id
+            ?? '-';
+
+        $event->office_employee_akhistonky_code =
+            $event->akhistonkyEmployee?->code_number
+            ?? $event->office_employee_akhistonky_id
+            ?? '-';
+
+        if (!empty($event->event_date)) {
+            try {
+                $carbon = \Carbon\Carbon::parse($event->event_date);
+
+                [$jy, $jm, $jd] = $this->gregorianToJalali(
+                    (int) $carbon->format('Y'),
+                    (int) $carbon->format('m'),
+                    (int) $carbon->format('d')
+                );
+
+                $event->event_date = sprintf('%04d/%02d/%02d', $jy, $jm, $jd);
+            } catch (\Throwable $e) {
+                // keep original value
+            }
+        }
+
+        return $event;
+    });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels = $request->input('column_labels', []);
+    $printLabels = $request->input('print_labels', []);
+    $locale = $request->input('locale', 'fa');
+    $title = $request->input('title', 'چاپ واقعات');
+
+    return response()->view('prints.table-print', [
+        'title' => $title,
+        'rows' => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels' => $columnLabels,
+        'printLabels' => $printLabels,
+        'locale' => $locale,
+    ]);
 }
 }

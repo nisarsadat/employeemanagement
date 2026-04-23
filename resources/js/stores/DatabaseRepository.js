@@ -430,14 +430,12 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     },
     async OpenResourcesPrintView(payload = {}) {
       try {
-        const { filters = {}, selected_columns = [] } = payload;
-
         const response = await axios.get('/resources/print', {
-          params: {
-            ...filters,
-            selected_columns,
-          },
+          params: payload,
           responseType: 'text',
+          paramsSerializer: {
+            indexes: false,
+          },
         });
 
         const printWindow = window.open('', '_blank');
@@ -740,6 +738,31 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         toast.error('پیښه حذف نشوه');
       }
     },
+    async OpenEventsPrintView(payload = {}) {
+      try {
+        const response = await axios.get('/events/print', {
+          params: payload,
+          responseType: 'text',
+          paramsSerializer: {
+            indexes: false,
+          },
+        });
+
+        const printWindow = window.open('', '_blank');
+
+        if (!printWindow) {
+          throw new Error('Popup blocked or failed to open print window.');
+        }
+
+        printWindow.document.open();
+        printWindow.document.write(response.data);
+        printWindow.document.close();
+        printWindow.focus();
+      } catch (e) {
+        console.error('OpenEventsPrintView error:', e);
+        throw e;
+      }
+    },
     async DownloadEventsExcel({
       search = '',
       search_field = null,
@@ -948,7 +971,31 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         throw e;
       }
     },
+    async OpenInformationsPrintView(payload = {}) {
+      try {
+        const response = await axios.get('/informations/print', {
+          params: payload,
+          responseType: 'text',
+          paramsSerializer: {
+            indexes: false,
+          },
+        });
 
+        const printWindow = window.open('', '_blank');
+
+        if (!printWindow) {
+          throw new Error('Popup blocked or failed to open print window.');
+        }
+
+        printWindow.document.open();
+        printWindow.document.write(response.data);
+        printWindow.document.close();
+        printWindow.focus();
+      } catch (e) {
+        console.error('OpenInformationsPrintView error:', e);
+        throw e;
+      }
+    },
     // --- UPDATE with progress ---
     async UpdateInformation(id, formDataOrJson, onProgress) {
       try {

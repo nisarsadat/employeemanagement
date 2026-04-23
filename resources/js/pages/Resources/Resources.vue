@@ -8,7 +8,7 @@
     </AppBar>
 
     <!-- 🔍 Search + ➕ Create -->
-    <v-row class="align-center px-12 py-12">
+    <v-row class="align-center px-12 py-">
       <!-- Search Column -->
       <v-col cols="12" sm="6" md="6" lg="6">
         <SearchColumnFilter
@@ -580,6 +580,14 @@
     getFilters: () => currentResourceFilters.value,
     getHeaders: () => headersFT.value,
     getSelectedColumnKeys: () => selectedPrintColumns.value,
+    getTitle: () => t('منابع'),
+    getLocale: () => locale.value,
+    getPrintLabels: () => ({
+      index: t('ردیف'),
+      record_count: t('تعداد ریکاردها'),
+      no_data: t('هیچ معلوماتی برای چاپ موجود نیست.'),
+      footer_note: t('این چاپ براساس فلترهای فعلی سیستم و ستون‌های انتخاب‌شده ساخته شده است.'),
+    }),
     defaultFileName: 'resources-print',
   });
   const isRtl = ref(locale.value === 'fa');

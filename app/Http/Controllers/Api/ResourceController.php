@@ -1081,8 +1081,13 @@ public function printView(Request $request)
         'date_to'             => 'nullable|string',
         'from_date'           => 'nullable|string',
         'to_date'             => 'nullable|string',
+
+        'locale'              => 'nullable|string',
+        'title'               => 'nullable|string',
         'selected_columns'    => 'nullable|array',
         'selected_columns.*'  => 'string',
+        'column_labels'       => 'nullable|array',
+        'print_labels'        => 'nullable|array',
     ]);
 
     $selectedColumns = $this->normalizeSelectedColumns(
@@ -1090,17 +1095,47 @@ public function printView(Request $request)
         $this->printableColumns()
     );
 
-    $rows = $this->buildIndexQuery($request)->get();
+    $rows = $this->buildIndexQuery($request)
+    ->get()
+    ->map(function ($row) {
 
-    $meta = $this->buildPrintMeta($request);
+        /*
+        |--------------------------------------------------------------------------
+        | Remove time from resource_saved_date
+        |--------------------------------------------------------------------------
+        */
 
-    return response()->view('prints.resources-table', [
-        'title' => 'منابع',
-        'rows' => $rows,
+        if (!empty($row->resource_saved_date)) {
+            try {
+                $carbon = \Carbon\Carbon::parse($row->resource_saved_date);
+
+                [$jy, $jm, $jd] = $this->gregorianToJalali(
+                    (int) $carbon->format('Y'),
+                    (int) $carbon->format('m'),
+                    (int) $carbon->format('d')
+                );
+
+                $row->resource_saved_date = sprintf(
+                    '%04d/%02d/%02d',
+                    $jy,
+                    $jm,
+                    $jd
+                );
+            } catch (\Throwable $e) {
+                // keep original value
+            }
+        }
+
+        return $row;
+    });
+
+    return response()->view('prints.table-print', [
+        'title'           => $request->input('title', 'Print'),
+        'rows'            => $rows,
         'selectedColumns' => $selectedColumns,
-        'columnLabels' => $this->printableColumnLabels(),
-        'filterLabels' => $this->printableFilterLabels(),
-        'meta' => $meta,
+        'columnLabels'    => $request->input('column_labels', []),
+        'printLabels'     => $request->input('print_labels', []),
+        'locale'          => $request->input('locale', 'fa'),
     ]);
 }
 }

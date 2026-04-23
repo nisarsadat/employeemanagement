@@ -15,10 +15,10 @@ use App\Services\NotificationService;
 use Carbon\Carbon;
 use App\Exports\InformationsExport;
 use Maatwebsite\Excel\Facades\Excel;
-
+use App\Http\Controllers\Concerns\HandlesTablePrintExport;
 class InformationController extends Controller
 {
-    use AppliesRelatedFilters;
+    use AppliesRelatedFilters, HandlesTablePrintExport;
 
     protected function relatedFilterRules(): array
     {
@@ -1181,4 +1181,112 @@ private function applyFinanceQueueFilter($query, bool $onlyFinanceQueue = false)
     {
         return "DATEDIFF(CURDATE(), DATE(COALESCE({$table}.information_saved_date, {$table}.created_at)))";
     }
+    public function printView(Request $request)
+{
+    $query = $this->baseListQuery();
+
+    $search = trim((string) $request->input('search', ''));
+    $searchField = $this->resolveSearchField($request->input('search_field'));
+    $searchValue = $request->input('search_value');
+    $year = $request->filled('year') ? (int) $request->input('year') : null;
+    $month = $request->filled('month') ? (int) $request->input('month') : null;
+    $dateField = $this->resolveDateField($request->input('date_field'));
+    $type = trim((string) $request->input('type', ''));
+    $onlyFinanceQueue = $request->boolean('only_finance_queue');
+    $stat = trim((string) $request->input('stat', ''));
+
+    $this->applyCommonFilters(
+        $query,
+        $search,
+        $searchField,
+        $searchValue
+    );
+
+    $this->applyMonthYearFilter(
+        $query,
+        $year,
+        $month,
+        $dateField
+    );
+
+    $this->applyRelatedFilters($query, $request);
+    $this->applyDateRangeFilter($query, $request, $dateField);
+    $this->applyTypeFilter($query, $type);
+    $this->applyStatFilter($query, $stat);
+    $this->applyFinanceQueueFilter($query, $onlyFinanceQueue);
+
+    $rows = $query
+        ->with([
+            'resource:id,code_number',
+            'officeEmployee:id,code_number',
+            'officeEmployeeInfo:id,code_number',
+        ])
+        ->latest()
+        ->get()
+        ->map(function ($info) {
+            $info->resource_display =
+                $info->resource?->code_number
+                ?? $info->resource_id
+                ?? '-';
+
+            $info->office_employee_display =
+                $info->officeEmployee?->code_number
+                ?? $info->office_employee_id
+                ?? '-';
+
+            $info->office_employee_info_display =
+                $info->officeEmployeeInfo?->code_number
+                ?? $info->office_employee_info_id
+                ?? '-';
+
+            if (!empty($info->information_saved_date)) {
+                try {
+                    $carbon = \Carbon\Carbon::parse($info->information_saved_date);
+
+                    [$jy, $jm, $jd] = $this->gregorianToJalali(
+                        (int) $carbon->format('Y'),
+                        (int) $carbon->format('m'),
+                        (int) $carbon->format('d')
+                    );
+
+                    $info->information_saved_date = sprintf('%04d/%02d/%02d', $jy, $jm, $jd);
+                } catch (\Throwable $e) {
+                    // keep original value
+                }
+            }
+
+            if (!empty($info->hamahangi_date)) {
+                try {
+                    $carbon = \Carbon\Carbon::parse($info->hamahangi_date);
+
+                    [$jy, $jm, $jd] = $this->gregorianToJalali(
+                        (int) $carbon->format('Y'),
+                        (int) $carbon->format('m'),
+                        (int) $carbon->format('d')
+                    );
+
+                    $info->hamahangi_date = sprintf('%04d/%02d/%02d', $jy, $jm, $jd);
+                } catch (\Throwable $e) {
+                    // keep original value
+                }
+            }
+
+            return $info;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels = $request->input('column_labels', []);
+    $printLabels = $request->input('print_labels', []);
+    $locale = $request->input('locale', 'fa');
+    $title = $request->input('title', 'اطلاعات');
+
+    return response()->view('prints.table-print', [
+        'title' => $title,
+        'rows' => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels' => $columnLabels,
+        'printLabels' => $printLabels,
+        'locale' => $locale,
+    ]);
+}
 }

@@ -73,22 +73,7 @@
             class="bg-white"
           />
         </v-col>
-        <v-col cols="12" sm="4" md="2" lg="1">
-          <v-btn
-            color="success"
-            variant="flat"
-            class="text-none"
-            rounded="lg"
-            block
-            prepend-icon="mdi-microsoft-excel"
-            :loading="excelDownloading"
-            :disabled="excelDownloading"
-            @click="downloadExcel"
-          >
-            {{ t('اکسل') }}
-          </v-btn>
-        </v-col>
-        <!-- ✅ NEW: Filter button -->
+
         <v-col cols="12" sm="4" md="1" lg="1">
           <v-btn
             color="primary"
@@ -111,11 +96,26 @@
             prepend-icon="mdi-filter-remove"
             @click="clearAllFilters"
           >
-            {{ t('فلترها') }}
+            {{ t('فلتر') }}
+          </v-btn>
+        </v-col>
+        <v-col cols="12" sm="4" md="2" lg="1">
+          <v-btn
+            color="success"
+            variant="flat"
+            class="text-none"
+            rounded="lg"
+            block
+            prepend-icon="mdi-microsoft-excel"
+            :loading="excelDownloading"
+            :disabled="excelDownloading"
+            @click="downloadExcel"
+          >
+            {{ t('اکسل') }}
           </v-btn>
         </v-col>
         <!-- Create Button -->
-        <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
+        <v-col cols="12" sm="4" md="3" lg="2">
           <v-btn
             v-if="auth.can('events.create')"
             color="primary"
@@ -130,6 +130,44 @@
             {{ t('واقعه جدید') }}
           </v-btn>
         </v-col>
+        <v-col cols="12" sm="10">
+          <v-select
+            v-model="selectedPrintColumns"
+            :items="printableHeaderOptions"
+            item-title="title"
+            item-value="key"
+            multiple
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            class="bg-white"
+            hide-details
+            :label="t('ستون‌های چاپ')"
+            :menu-props="{ maxHeight: 400 }"
+          >
+            <template #selection="{ index }">
+              <span v-if="index === 0" class="text-body-2">
+                {{ selectedPrintColumns.length }}
+                {{ t('ستون انتخاب شده') }}
+              </span>
+            </template>
+          </v-select>
+        </v-col>
+        <v-col cols="12" sm="2">
+          <v-btn
+            color="error"
+            variant="flat"
+            rounded="lg"
+            size="large"
+            block
+            class="text-none"
+            prepend-icon="mdi-printer"
+            @click="printAll"
+          >
+            {{ t('چاپ') }}
+          </v-btn>
+        </v-col>
+        <!-- ✅ NEW: Filter button -->
       </v-row>
     </v-container>
 
@@ -496,6 +534,7 @@
   import { useFinanceRepository } from '@/stores/FinanceRepository';
   import EventFinanceDialog from './EventFinanceDialog.vue';
   import { useRelatedRouteFilters } from '@/composables/useRelatedRouteFilters';
+  import { useTablePrintExport } from '@/composables/useTablePrintExport';
   const financeRepo = useFinanceRepository();
   const accountItems = computed(() =>
     (financeRepo.accounts || []).map((a) => ({
@@ -850,7 +889,56 @@
       },
     });
   }
+  const printLabels = computed(() => ({
+    print: t('چاپ'),
+    record_count: t('تعداد ریکارد'),
+  }));
+  const { printAll } = useTablePrintExport({
+    repo: {
+      OpenResourcesPrintView: repo.OpenEventsPrintView,
+    },
+    moduleKey: 'events',
 
+    getFilters: () => ({
+      search: repo.Search,
+      search_field: searchField.value,
+      search_value: selectedColumnValue.value,
+      year: filterYear.value,
+      month: filterMonth.value,
+      card_filter: activeCard.value,
+    }),
+
+    getHeaders: () => headersFT.value,
+
+    getSelectedColumnKeys: () => selectedPrintColumns.value,
+
+    getTitle: () => t('چاپ واقعات'),
+
+    getPrintLabels: () => printLabels.value,
+
+    getLocale: () => locale.value,
+
+    defaultFileName: 'events-print',
+  });
+  const selectedPrintColumns = ref([]);
+
+  function buildDefaultPrintColumns() {
+    return headersFT.value.map((h) => h.key).filter((key) => !['map', 'picture'].includes(key));
+  }
+
+  const printableHeaderOptions = computed(() => {
+    return headersFT.value.filter((h) => !['map', 'picture'].includes(h.key));
+  });
+
+  watch(
+    printableHeaderOptions,
+    (newColumns) => {
+      if (!selectedPrintColumns.value.length) {
+        selectedPrintColumns.value = newColumns.map((c) => c.key);
+      }
+    },
+    { immediate: true }
+  );
   function goResource(payload) {
     const row = getRow(payload);
     const resId = row?.resource_id;
@@ -987,6 +1075,7 @@
     await fetchMonthItemsFromDb(null);
     await fetchAll();
     await financeRepo.FetchAccountsData();
+    selectedPrintColumns.value = buildDefaultPrintColumns();
   });
   usePageRefresh('/app/events', fetchAll);
 </script>

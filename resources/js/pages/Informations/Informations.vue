@@ -141,6 +141,43 @@
             {{ t('اطلاع جدید') }}
           </v-btn>
         </v-col>
+        <v-col cols="12" sm="10" >
+          <v-select
+            v-model="selectedPrintColumns"
+            :items="printableHeaderOptions"
+            item-title="title"
+            item-value="key"
+            multiple
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            class="bg-white"
+            hide-details
+            :label="t('ستون‌های چاپ')"
+            :menu-props="{ maxHeight: 400 }"
+          >
+            <template #selection="{ index }">
+              <span v-if="index === 0" class="text-body-2">
+                {{ selectedPrintColumns.length }}
+                {{ t('ستون انتخاب شده') }}
+              </span>
+            </template>
+          </v-select>
+        </v-col>
+        <v-col cols="12" sm="2" >
+          <v-btn
+            color="red"
+            variant="flat"
+            class="text-none"
+            rounded="lg"
+            size="large"
+            block
+            prepend-icon="mdi-printer"
+            @click="printAll"
+          >
+            {{ t('چاپ') }}
+          </v-btn>
+        </v-col>
       </v-row>
     </v-container>
 
@@ -657,7 +694,7 @@
   const excelDownloadDialog = ref(false);
   const excelDownloadProgress = ref(0);
   const excelDownloading = ref(false);
-
+  const selectedPrintColumns = ref([]);
   async function fetchAll() {
     try {
       await repo.FetchInformationsData?.({
@@ -1146,7 +1183,57 @@
     expanded.value = true;
     fetchOne(row.id);
   }
+const printableHeaderOptions = computed(() =>
+  (headersFT.value || headersFT || [])
+    .filter((h) => h.key && h.key !== 'actions' && h.key !== 'map')
+    .map((h) => ({
+      title: h.title,
+      key: h.key,
+    }))
+);
 
+onMounted(() => {
+  if (!selectedPrintColumns.value.length) {
+    selectedPrintColumns.value = printableHeaderOptions.value.map((x) => x.key);
+  }
+});
+async function printAll() {
+  try {
+    await repo.OpenInformationsPrintView({
+      search: repo.Search,
+      search_field: searchField.value,
+      search_value: searchValue.value,
+      year: filterYear.value,
+      month: filterMonth.value,
+      date_field: 'information_saved_date',
+      stat: activeStat.value || 'resources',
+
+      resource_id: relatedFilters.value?.resource_id,
+      office_employee_id: relatedFilters.value?.office_employee_id,
+      information_id: relatedFilters.value?.information_id,
+      event_id: relatedFilters.value?.event_id,
+      fifty_six_format_id: relatedFilters.value?.fifty_six_format_id,
+
+      selected_columns: selectedPrintColumns.value,
+
+      column_labels: Object.fromEntries(
+        printableHeaderOptions.value.map((h) => [h.key, h.title])
+      ),
+
+      print_labels: {
+        index: '#',
+        record_count: t('تعداد ریکاردها'),
+        no_data: t('د چاپ لپاره معلومات نشته.'),
+      },
+
+      locale: locale.value,
+      title: t('چاپ اطلاعات'),
+    });
+  } catch (e) {
+    console.error(e);
+    showErrorMessage(t('چاپ ناموفق بود'));
+  }
+}
   /* ===== Navigation ===== */
   function goCreate() {
     router.push('/app/informationform');
@@ -1181,7 +1268,7 @@
 
   function goToOfficeEmployee(payload) {
     const row = getRow(payload);
-    const id = row?.office_employee_id ;
+    const id = row?.office_employee_id;
     if (!id) return;
 
     router.push({

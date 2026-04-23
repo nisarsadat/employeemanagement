@@ -7,6 +7,9 @@ export function useTablePrintExport(options = {}) {
     getFilters,
     getHeaders,
     getSelectedColumnKeys,
+    getTitle,
+    getPrintLabels,
+    getLocale,
     defaultFileName = 'table-print',
   } = options;
 
@@ -16,14 +19,19 @@ export function useTablePrintExport(options = {}) {
     const selectedColumns =
       typeof getSelectedColumnKeys === 'function' ? getSelectedColumnKeys() : [];
 
+    const columnLabels = headers.reduce((acc, h) => {
+      if (h?.key) acc[h.key] = h.title ?? h.key;
+      return acc;
+    }, {});
+
     return {
       module: moduleKey,
-      filters,
+      ...filters,
+      locale: typeof getLocale === 'function' ? getLocale() : 'fa',
+      title: typeof getTitle === 'function' ? getTitle() : defaultFileName,
       selected_columns: selectedColumns,
-      headers: headers.map((h) => ({
-        key: h.key,
-        title: h.title,
-      })),
+      column_labels: columnLabels,
+      print_labels: typeof getPrintLabels === 'function' ? getPrintLabels() : {},
       file_name: defaultFileName,
     };
   });
@@ -32,6 +40,7 @@ export function useTablePrintExport(options = {}) {
     if (!repo?.OpenResourcesPrintView) {
       throw new Error('OpenResourcesPrintView method is missing on repo.');
     }
+
     return await repo.OpenResourcesPrintView(exportPayload.value);
   }
 
