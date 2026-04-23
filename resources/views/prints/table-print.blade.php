@@ -72,6 +72,14 @@
             table-layout: auto;
         }
 
+        .print-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 1px solid #dbe4ea;
+            background: #fff;
+        }
         thead th {
             background: #4b93a8;
             color: #ffffff;
@@ -280,6 +288,12 @@
                                     'trust_percentage',
                                     'finance_paid_amount',
                                 ];
+                                $imageColumns = [
+                                    'picture',
+                                    'image',
+                                    'photo',
+                                    'profile_picture',
+                                ];
                             @endphp
 
                             <td>
@@ -298,9 +312,19 @@
                                 @elseif (in_array($column, $redNumberColumns, true))
                                     <span class="num-red">{{ $value ?: 0 }}</span>
 
-                                @elseif (in_array($column, $darkNumberColumns, true))
-                                    <span class="num-dark">{{ $value ?: 0 }}</span>
+                                    @elseif (in_array($column, $darkNumberColumns, true))
+                                            <span class="num-dark">{{ $value ?: 0 }}</span>
 
+                                        @elseif (in_array($column, $imageColumns, true))
+                                            @if (!empty($value))
+                                                <img
+                                                    src="{{ asset($value) }}"
+                                                    alt="انځور نشته"
+                                                    class="print-image"
+                                                >
+                                            @else
+                                                -
+                                            @endif
                                 @elseif ($column === 'activity')
                                     @if (trim((string) $value) === 'فعال')
                                         <span class="status-dot status-active"></span>

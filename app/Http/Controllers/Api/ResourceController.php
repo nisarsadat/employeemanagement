@@ -940,6 +940,7 @@ private function printableColumns(): array
     return [
         'letry_format_name',
         'resedint_code',
+        'picture',
         'code_number',
         'name',
         'father_name',
@@ -987,80 +988,8 @@ private function printableColumns(): array
     ];
 }
 
-private function printableColumnLabels(): array
-{
-    return [
-        'letry_format_name' => '۵۶ فارمټ',
-        'resedint_code' => 'رزیدنت مربوطه',
-        'code_number' => 'کود نمبر',
-        'name' => 'نام',
-        'father_name' => 'نام پدر',
-        'grand_father_name' => 'نام پدرکلان',
-        'nick_name' => 'نام مستعار',
-        'tazkira' => 'تذکره نمبر',
-        'main_province' => 'ولایت اصلی',
-        'main_district' => 'ولسوالی',
-        'main_village' => 'قریه',
-        'now_province' => 'ولایت فعلی',
-        'now_district' => 'ولسوالی فعلی',
-        'office_employee_id' => 'کارمند مربوطه',
-        'now_village' => 'قریه فعلی',
-        'now_specific_place' => 'موقعیت مشخص فعلی',
-        'now_street_number' => 'شماره سرک',
-        'now_home_number' => 'شماره خانه',
-        'old_job' => 'وظیفه سابقه',
-        'now_job' => 'وظیفه فعلی',
-        'job_place' => 'محل وظیفه',
-        'zone' => 'زون تدارک',
-        'hawza' => 'حوزه تدارک',
-        'specefic_place' => 'محل مشخص تدارک',
-        'coordinates' => 'کوردینات',
-        'activity' => 'فعالیت',
-        'halat_madani' => 'حالت مدنی',
-        'age' => 'عمر',
-        'elmi_level' => 'رتبه علمی',
-        'faculty' => 'فاکولته/دیپارتمنت',
-        'specific_skills' => 'مهارت‌های خاص',
-        'resource_saved_date' => 'تاریخ ثبت منبع',
-        'resource_activity_type' => 'نوع فعالیت منبع',
-        'resource_cover' => 'پوشش منبع',
-        'language' => 'زبان',
-        'nation' => 'قوم',
-        'blood_group' => 'گروپ خون',
-        'train' => 'دوره/آموزش',
-        'project' => 'مربوطه پروژه',
-        'phone_number' => 'شماره تماس',
-        'trust_percentage' => 'میزان اعتماد',
-        'note' => 'نوت',
-        'payed_money' => 'پول داده شده',
-        'events_count' => 'تعداد واقعات',
-        'informations_count' => 'تعداد اطلاعات',
-        'khayrat_reports_count' => 'تعداد راپور خیریت',
-    ];
-}
-private function printableFilterLabels(): array
-{
-    return [
-        'search' => 'جستجو',
-        'search_field' => 'ستون جستجو',
-        'search_value' => 'ارزش ستون',
-        'year' => 'سال',
-        'month' => 'ماه',
-        'date_field' => 'فیلد تاریخ',
-        'stat' => 'حالت',
-        'resource_id' => 'resource_id',
-        'office_employee_id' => 'office_employee_id',
-        'information_id' => 'information_id',
-        'event_id' => 'event_id',
-        'fifty_six_format_id' => 'fifty_six_format_id',
-        'date' => 'تاریخ',
-        'date_from' => 'از تاریخ',
-        'date_to' => 'تا تاریخ',
-        'from_date' => 'از تاریخ',
-        'to_date' => 'تا تاریخ',
-        'selected_columns' => 'ستون‌های انتخاب‌شده',
-    ];
-}
+
+
 public function printView(Request $request)
 {
     $request->validate([

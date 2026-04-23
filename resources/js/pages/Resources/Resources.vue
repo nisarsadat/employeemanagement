@@ -595,7 +595,7 @@
   function buildDefaultPrintColumns() {
     return headersFT.value
       .map((h) => h.key)
-      .filter((key) => !['picture', 'map', 'fifty_six_formats_count'].includes(key));
+      .filter((key) => !['map', 'fifty_six_formats_count'].includes(key));
   }
   function getRow(payload) {
     return payload?.raw ?? payload;
@@ -1150,13 +1150,14 @@
     }
   }
   const printableHeaderOptions = computed(() => {
-    return headersFT.value.filter(
-      (h) => !['picture', 'map', 'fifty_six_formats_count'].includes(h.key)
-    );
+    return headersFT.value.filter((h) => !['map', 'fifty_six_formats_count'].includes(h.key));
   });
   onMounted(async () => {
     selectedPrintColumns.value = buildDefaultPrintColumns();
-
+    selectedPrintColumns.value = [
+      ...selectedPrintColumns.value.filter((k) => k === 'picture'),
+      ...selectedPrintColumns.value.filter((k) => k !== 'picture'),
+    ];
     await fetchYearItemsFromDb();
     await fetchMonthItemsFromDb(null);
     await fetchAll();
