@@ -339,16 +339,30 @@ class OfficeEmployeeController extends Controller
                 });
             }
         })
-        ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
-            $activeVals   = ['active', OfficeEmployee::ACTIVE];
-            $inactiveVals = ['inactive', OfficeEmployee::INACTIVE];
+       ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
+    $from = now()->subDays(30)->startOfDay();
+    $to   = now()->endOfDay();
 
-            if (in_array($status, $activeVals, true)) {
-                $q->active();
-            } elseif (in_array($status, $inactiveVals, true)) {
-                $q->inactive();
-            }
-        })
+    if ($status === 'active') {
+        $q->whereHas('resources', function ($r) use ($from, $to) {
+            $r->where('activity', 'فعال')
+              ->whereBetween('resource_saved_date', [$from, $to]);
+        }, '>=', 100);
+    }
+
+    if ($status === 'inactive') {
+        $q->where(function ($qq) use ($from, $to) {
+            $qq->whereDoesntHave('resources', function ($r) use ($from, $to) {
+                $r->where('activity', 'فعال')
+                  ->whereBetween('resource_saved_date', [$from, $to]);
+            })
+            ->orWhereHas('resources', function ($r) use ($from, $to) {
+                $r->where('activity', 'فعال')
+                  ->whereBetween('resource_saved_date', [$from, $to]);
+            }, '<', 100);
+        });
+    }
+})
         ->when($jobType, function ($q) use ($jobType) {
             if ($jobType === 'اداری') {
                 $q->whereIn('job_type', ['اداری', 'اداري']);
@@ -385,8 +399,24 @@ class OfficeEmployeeController extends Controller
             'total'      => (clone $base)->count(),
             'edari'      => (clone $base)->whereIn('job_type', ['اداری', 'اداري'])->count(),
             'operatifi'  => (clone $base)->whereIn('job_type', ['اوپراتیفی', 'اوپراتیفي'])->count(),
-            'active'     => (clone $base)->where('activity', 'فعال')->count(),
-            'inactive'   => (clone $base)->where('activity', 'غیر فعال')->count(),
+           
+            'active' => (clone $base)
+    ->whereHas('resources', function ($q) {
+        $q->where('activity', 'فعال')
+          ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
+    }, '>=', 100)
+    ->count(),
+
+'inactive' => (clone $base)
+    ->whereDoesntHave('resources', function ($q) {
+        $q->where('activity', 'فعال')
+          ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
+    })
+    ->orWhereHas('resources', function ($q) {
+        $q->where('activity', 'فعال')
+          ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
+    }, '<', 100)
+    ->count(),
         ];
     }
 
@@ -617,7 +647,6 @@ class OfficeEmployeeController extends Controller
         $user = $request->user();
 
         $data = $request->validated();
-        $data['activity'] = OfficeEmployee::ACTIVE;
 
         $employee = OfficeEmployee::create($data);
 
@@ -702,8 +731,6 @@ public function update(UpdateOfficeEmployeeRequest $request, $id)
         $data = $request->validated();
         unset($data['code_number']);
 
-        // this temporary
-        $data['activity'] = OfficeEmployee::ACTIVE;
 
         if ($request->input('remove_picture') == '1') {
             if ($officeEmployee->picture) {
@@ -922,6 +949,65 @@ public function update(UpdateOfficeEmployeeRequest $request, $id)
 
     return response()->json([
         'options' => $options,
+    ]);
+}
+public function printView(Request $request)
+{
+    $query = $this->baseListQuery();
+
+    $search      = $request->input('search');
+    $searchField = $this->resolveSearchField($request->input('search_field'));
+    $searchValue = $request->input('search_value');
+    $status      = $request->input('status', 'all');
+    $jobType     = $request->input('job_type');
+
+    $year      = $request->filled('year') ? (int) $request->input('year') : null;
+    $month     = $request->filled('month') ? (int) $request->input('month') : null;
+    $dateField = $this->resolveDateField($request->input('date_field'));
+
+    $this->applyCommonFilters($query, $search, $status, $jobType, $searchField, $searchValue);
+    $this->applyMonthYearFilter($query, $year, $month, $dateField);
+    $this->applyRelatedFilters($query, $request);
+
+   $rows = $query
+    ->latest('id')
+    ->get()
+    ->map(function ($employee) {
+        foreach (['join_date', 'left_date'] as $field) {
+            if (!empty($employee->{$field})) {
+                try {
+                    $carbon = \Carbon\Carbon::parse($employee->{$field});
+
+                    [$jy, $jm, $jd] = $this->gregorianToJalali(
+                        (int) $carbon->format('Y'),
+                        (int) $carbon->format('m'),
+                        (int) $carbon->format('d')
+                    );
+
+                    $employee->{$field} = sprintf('%04d/%02d/%02d', $jy, $jm, $jd);
+                } catch (\Throwable $e) {
+                    //
+                }
+            }
+        }
+
+        $activeResourcesCount = $employee->resources()
+            ->where('activity', 'فعال')
+            ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString())
+            ->count();
+
+        $employee->activity = $activeResourcesCount >= 100 ? 'فعال' : 'غیر فعال';
+
+        return $employee;
+    });
+
+    return response()->view('prints.table-print', [
+        'title'           => $request->input('title', 'چاپ کارمندان مدیریت'),
+        'rows'            => $rows,
+        'selectedColumns' => $request->input('selected_columns', []),
+        'columnLabels'    => $request->input('column_labels', []),
+        'printLabels'     => $request->input('print_labels', []),
+        'locale'          => $request->input('locale', 'fa'),
     ]);
 }
 }

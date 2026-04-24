@@ -12,8 +12,7 @@ class OfficeEmployee extends Model
     use HasFactory;
     use HasMapPoint;
 
-    public const ACTIVE   = 'فعال';
-    public const INACTIVE = 'غیر فعال';
+   
 
     protected $table = 'office_employees';
 
@@ -207,4 +206,27 @@ public function scopeInactive(Builder $q): Builder
     {
         return $this->hasMany(KhayratReport::class, 'office_employee_id', 'id');
     }
+
+    public const ACTIVE = 'فعال';
+public const INACTIVE = 'غیر فعال';
+
+
+
+public function syncActivityFromResources(): void
+{
+    $activeResourcesCount = $this->resources()
+        ->where('activity', self::ACTIVE)
+        ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString())
+        ->count();
+
+    $newActivity = $activeResourcesCount >= 100
+        ? self::ACTIVE
+        : self::INACTIVE;
+
+    if ($this->activity !== $newActivity) {
+        $this->update([
+            'activity' => $newActivity,
+        ]);
+    }
+}
 }

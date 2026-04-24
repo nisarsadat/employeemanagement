@@ -260,6 +260,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('officeemployees/date-options', [OfficeEmployeeController::class, 'dateOptions']);
 
+    Route::get('/office-employees/print', [OfficeEmployeeController::class, 'printView']);
+    Route::get('/captive-deliveries/print', [CaptiveDeliveryController::class, 'printView']);
     Route::get('informations/print', [InformationController::class, 'printView']);
     Route::get('/officeemployee/filter-options', [OfficeEmployeeController::class, 'filterOptions']);
     protectResource('office-employees', 'office_employees', OfficeEmployeeController::class);

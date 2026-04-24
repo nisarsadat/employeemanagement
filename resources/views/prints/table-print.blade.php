@@ -33,9 +33,7 @@
             font-size: 11px;
         }
 
-        .page {
-            width: 100%;
-        }
+        .page { width: 100%; }
 
         .header {
             margin-bottom: 12px;
@@ -80,6 +78,7 @@
             border: 1px solid #dbe4ea;
             background: #fff;
         }
+
         thead th {
             background: #4b93a8;
             color: #ffffff;
@@ -91,13 +90,8 @@
             border-left: 1px solid rgba(255,255,255,0.15);
         }
 
-        tbody tr:nth-child(odd) {
-            background: #f7f8f9;
-        }
-
-        tbody tr:nth-child(even) {
-            background: #edf0f2;
-        }
+        tbody tr:nth-child(odd) { background: #f7f8f9; }
+        tbody tr:nth-child(even) { background: #edf0f2; }
 
         tbody td {
             text-align: center;
@@ -108,9 +102,7 @@
             color: #374151;
         }
 
-        .index-col {
-            width: 52px;
-        }
+        .index-col { width: 52px; }
 
         .index-pill {
             display: inline-block;
@@ -158,6 +150,34 @@
             color: #d97706;
         }
 
+        .relation-btn-teal,
+        .relation-btn-purple,
+        .relation-btn-blue {
+            display: inline-block;
+            min-width: 44px;
+            padding: 7px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 11px;
+            line-height: 1;
+            text-align: center;
+        }
+
+        .relation-btn-teal {
+            background: #d9f0ec;
+            color: #0f766e;
+        }
+
+        .relation-btn-purple {
+            background: #ede3ff;
+            color: #6d28d9;
+        }
+
+        .relation-btn-blue {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
         .num-red {
             color: #ef4444;
             font-weight: 700;
@@ -177,17 +197,19 @@
             border-radius: 999px;
         }
 
-        .status-active {
-            background: #22c55e;
-        }
-
-        .status-inactive {
-            background: #ef4444;
-        }
+        .status-active { background: #22c55e; }
+        .status-inactive { background: #ef4444; }
     </style>
 </head>
 
 <body onload="window.print()">
+
+@php
+    $imageColumns = ['picture', 'image', 'photo', 'profile_picture'];
+
+    $selectedImageColumn = collect($selectedColumns)
+        ->first(fn ($col) => in_array($col, $imageColumns, true));
+@endphp
 
 <div class="page">
     <div class="header">
@@ -204,7 +226,12 @@
                 <tr>
                     <th class="index-col">{{ $printLabels['index'] ?? '#' }}</th>
 
+                    @if ($selectedImageColumn)
+                        <th>{{ $columnLabels[$selectedImageColumn] ?? $selectedImageColumn }}</th>
+                    @endif
+
                     @foreach ($selectedColumns as $column)
+                        @continue(in_array($column, $imageColumns, true))
                         <th>{{ $columnLabels[$column] ?? $column }}</th>
                     @endforeach
                 </tr>
@@ -212,12 +239,45 @@
 
             <tbody>
                 @forelse ($rows as $index => $row)
+                    @php
+                        $imageValue = $selectedImageColumn
+                            ? data_get($row, $selectedImageColumn)
+                            : null;
+                    @endphp
+
                     <tr>
                         <td class="index-col">
                             <span class="index-pill">{{ $index + 1 }}</span>
                         </td>
 
+                        @if ($selectedImageColumn)
+                            <td>
+                                @if (!empty($imageValue))
+                                    <img
+                                        src="{{
+                                            str_starts_with($imageValue, 'http://') ||
+                                            str_starts_with($imageValue, 'https://') ||
+                                            str_starts_with($imageValue, 'data:') ||
+                                            str_starts_with($imageValue, 'blob:')
+                                                ? $imageValue
+                                                : asset(
+                                                    str_starts_with($imageValue, 'storage/')
+                                                        ? $imageValue
+                                                        : 'storage/' . ltrim($imageValue, '/')
+                                                )
+                                        }}"
+                                        alt="انځور نشته"
+                                        class="print-image"
+                                    >
+                                @else
+                                    -
+                                @endif
+                            </td>
+                        @endif
+
                         @foreach ($selectedColumns as $column)
+                            @continue(in_array($column, $imageColumns, true))
+
                             @php
                                 $value = data_get($row, $column, '-');
 
@@ -225,6 +285,9 @@
                                     'event_date',
                                     'resource_saved_date',
                                     'information_saved_date',
+                                    'captive_date',
+                                    'join_date',
+                                    'left_date',
                                     'created_at',
                                     'updated_at',
                                     'date',
@@ -272,6 +335,20 @@
                                     'fifty_six_formats_count',
                                 ];
 
+                                $tealRelationColumns = [
+                                    'resources_count',
+                                    'resources_active_count',
+                                    'resources_inactive_count',
+                                ];
+
+                                $purpleRelationColumns = [
+                                    'events_count',
+                                ];
+
+                                $blueRelationColumns = [
+                                    'informations_count',
+                                ];
+
                                 $warningRelationColumns = [
                                     'letry_format_name',
                                     'format_name',
@@ -288,12 +365,6 @@
                                     'trust_percentage',
                                     'finance_paid_amount',
                                 ];
-                                $imageColumns = [
-                                    'picture',
-                                    'image',
-                                    'photo',
-                                    'profile_picture',
-                                ];
                             @endphp
 
                             <td>
@@ -302,6 +373,15 @@
 
                                 @elseif (in_array($column, $cyanRelationColumns, true))
                                     <span class="relation-btn-cyan">{{ $value ?: '-' }}</span>
+
+                                @elseif (in_array($column, $tealRelationColumns, true))
+                                    <span class="relation-btn-teal">{{ $value ?: 0 }}</span>
+
+                                @elseif (in_array($column, $purpleRelationColumns, true))
+                                    <span class="relation-btn-purple">{{ $value ?: 0 }}</span>
+
+                                @elseif (in_array($column, $blueRelationColumns, true))
+                                    <span class="relation-btn-blue">{{ $value ?: 0 }}</span>
 
                                 @elseif (in_array($column, $pinkRelationColumns, true) && (int) $value > 0)
                                     <span class="relation-btn-pink">{{ $value }}</span>
@@ -312,27 +392,48 @@
                                 @elseif (in_array($column, $redNumberColumns, true))
                                     <span class="num-red">{{ $value ?: 0 }}</span>
 
-                                    @elseif (in_array($column, $darkNumberColumns, true))
-                                            <span class="num-dark">{{ $value ?: 0 }}</span>
+                                @elseif (in_array($column, $darkNumberColumns, true))
+                                    <span class="num-dark">{{ $value ?: 0 }}</span>
 
-                                        @elseif (in_array($column, $imageColumns, true))
-                                            @if (!empty($value))
-                                                <img
-                                                    src="{{ asset($value) }}"
-                                                    alt="انځور نشته"
-                                                    class="print-image"
-                                                >
-                                            @else
-                                                -
-                                            @endif
-                                @elseif ($column === 'activity')
-                                    @if (trim((string) $value) === 'فعال')
-                                        <span class="status-dot status-active"></span>
-                                    @elseif (trim((string) $value) === 'غیر فعال')
-                                        <span class="status-dot status-inactive"></span>
-                                    @else
-                                        -
-                                    @endif
+                                
+                                    @elseif ($column === 'activity')
+    @php
+        $activityValue = trim((string) $value);
+
+        $normalizedActivity = str_replace(['ي', 'ى', 'ك'], ['ی', 'ی', 'ک'], $activityValue);
+        $normalizedActivity = preg_replace('/[\s\x{200c}\x{200d}]+/u', '', $normalizedActivity);
+
+        $activityLower = strtolower($normalizedActivity);
+
+        $isInactive = in_array($normalizedActivity, [
+            'غیرفعال',
+            'غيرفعال',
+            'نافعال',
+        ], true) || in_array($activityLower, [
+            'inactive',
+            'disabled',
+            'false',
+            '0',
+        ], true);
+
+        $isActive = !$isInactive && (
+            $normalizedActivity === 'فعال' ||
+            in_array($activityLower, [
+                'active',
+                'enabled',
+                'true',
+                '1',
+            ], true)
+        );
+    @endphp
+
+    @if ($isInactive)
+        <span class="status-dot status-inactive"></span>
+    @elseif ($isActive)
+        <span class="status-dot status-active"></span>
+    @else
+        -
+    @endif
 
                                 @elseif ($isDateColumn)
                                     <span dir="ltr" style="unicode-bidi: embed; white-space: nowrap;">

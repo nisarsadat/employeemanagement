@@ -328,7 +328,31 @@ export let useEmployeOfficeRepository = defineStore('EmployeOfficeRepository', {
         throw e;
       }
     },
+    async OpenEmployeesPrintView(payload = {}) {
+      try {
+        const response = await axios.get('/office-employees/print', {
+          params: payload,
+          responseType: 'text',
+          paramsSerializer: {
+            indexes: false,
+          },
+        });
 
+        const printWindow = window.open('', '_blank');
+
+        if (!printWindow) {
+          throw new Error('Popup blocked or failed to open print window.');
+        }
+
+        printWindow.document.open();
+        printWindow.document.write(response.data);
+        printWindow.document.close();
+        printWindow.focus();
+      } catch (e) {
+        console.error('OpenEmployeesPrintView error:', e);
+        throw e;
+      }
+    },
     async UpdateEmployee(id, data) {
       try {
         let res;

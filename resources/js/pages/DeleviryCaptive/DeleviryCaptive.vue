@@ -91,6 +91,44 @@
             {{ t('اکسل') }}
           </v-btn>
         </v-col>
+        <v-col cols="12" sm="10">
+          <v-select
+            v-model="selectedPrintColumns"
+            :items="printableHeaderOptions"
+            item-title="title"
+            item-value="key"
+            multiple
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            class="bg-white"
+            hide-details
+            :label="t('ستون‌های چاپ')"
+            :menu-props="{ maxHeight: 400 }"
+          >
+            <template #selection="{ index }">
+              <span v-if="index === 0" class="text-body-2">
+                {{ selectedPrintColumns.length }}
+                {{ t('ستون انتخاب شده') }}
+              </span>
+            </template>
+          </v-select>
+        </v-col>
+
+        <v-col cols="12" sm="2">
+          <v-btn
+            color="error"
+            variant="flat"
+            rounded="lg"
+            size="large"
+            block
+            class="text-none"
+            prepend-icon="mdi-printer"
+            @click="printAll"
+          >
+            {{ t('چاپ') }}
+          </v-btn>
+        </v-col>
       </v-row>
 
       <!-- ✅ Cards now filter from backend -->
@@ -371,7 +409,7 @@
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import { useLoginRepository } from '@/stores/LoginRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
-
+  import { useTablePrintExport } from '@/composables/useTablePrintExport';
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
   const router = useRouter();
@@ -717,7 +755,52 @@
     },
     { immediate: true }
   );
+  const selectedPrintColumns = ref([]);
 
+  const printLabels = computed(() => ({
+    print: t('چاپ'),
+    record_count: t('تعداد ریکارد'),
+  }));
+
+  function buildDefaultPrintColumns() {
+    return headersFT.value.map((h) => h.key).filter((key) => !['map'].includes(key));
+  }
+
+  const printableHeaderOptions = computed(() => {
+    return headersFT.value.filter((h) => !['map'].includes(h.key));
+  });
+
+  watch(
+    printableHeaderOptions,
+    (newColumns) => {
+      if (!selectedPrintColumns.value.length) {
+        selectedPrintColumns.value = newColumns.map((c) => c.key);
+      }
+    },
+    { immediate: true }
+  );
+
+  const printRepo = {
+    OpenResourcesPrintView: (payload) => repo.OpenCaptiveDeliveriesPrintView(payload),
+  };
+
+  const { printAll } = useTablePrintExport({
+    repo: printRepo,
+    moduleKey: 'captive-deliveries',
+    getFilters: () => ({
+      stat: cardFilter.value,
+      search: repo.Search,
+      search_field: normalizedSearchField.value,
+      search_value: normalizedSearchValue.value,
+      fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
+    }),
+    getHeaders: () => headersFT.value,
+    getSelectedColumnKeys: () => selectedPrintColumns.value,
+    getTitle: () => t('چاپ زندانی های تسلیم شده'),
+    getPrintLabels: () => printLabels.value,
+    getLocale: () => locale.value,
+    defaultFileName: 'captive-deliveries-print',
+  });
   watch(
     () => route.query,
     async () => {
@@ -731,6 +814,7 @@
     if (!relatedFilters.value.fifty_six_format_id) {
       await fetchAll();
     }
+    selectedPrintColumns.value = buildDefaultPrintColumns();
   });
 </script>
 

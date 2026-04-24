@@ -97,7 +97,6 @@
             {{ t('فلترها') }}
           </v-btn>
         </v-col>
-        <!-- Create Button -->
         <v-col cols="12" sm="4" md="3" lg="2" class="pl-sm-2">
           <v-btn
             v-if="auth.can('officeemployee.create')"
@@ -113,6 +112,44 @@
             {{ t('کارمند جدید') }}
           </v-btn>
         </v-col>
+        <v-col cols="12" sm="10">
+          <v-select
+            v-model="selectedPrintColumns"
+            :items="printableHeaderOptions"
+            item-title="title"
+            item-value="key"
+            multiple
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            class="bg-white"
+            hide-details
+            :label="t('ستون‌های چاپ')"
+            :menu-props="{ maxHeight: 400 }"
+          >
+            <template #selection="{ index }">
+              <span v-if="index === 0" class="text-body-2">
+                {{ selectedPrintColumns.length }} {{ t('ستون انتخاب شده') }}
+              </span>
+            </template>
+          </v-select>
+        </v-col>
+
+        <v-col cols="12" sm="2">
+          <v-btn
+            color="error"
+            variant="flat"
+            rounded="lg"
+            size="large"
+            block
+            class="text-none"
+            prepend-icon="mdi-printer"
+            @click="printAll"
+          >
+            {{ t('چاپ') }}
+          </v-btn>
+        </v-col>
+        <!-- Create Button -->
       </v-row>
     </v-container>
 
@@ -345,11 +382,7 @@
       </template>
 
       <template #cell-resources_active_count="{ row }">
-        <v-tooltip
-          v-if="getRow(row).resources_active_count > 0"
-          text="فعاله منابع"
-          location="top"
-        >
+        <v-tooltip v-if="getRow(row).resources_active_count > 0" text="فعاله منابع" location="top">
           <template #activator="{ props }">
             <v-btn
               v-bind="props"
@@ -532,7 +565,7 @@
 
   import { useEmployeOfficeRepository } from '../../stores/EmployeeRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
-
+  import { useTablePrintExport } from '@/composables/useTablePrintExport';
   import GlobalPagination from '@/components/GlobalPagination.vue';
   import { usePageRefresh } from '@/composables/usePageRefresh';
   import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
@@ -1013,13 +1046,57 @@
   }
 
   usePageRefresh('/app/officeemployee', fetchAll);
+  const selectedPrintColumns = ref([]);
 
+  const printLabels = computed(() => ({
+    print: t('چاپ'),
+    record_count: t('تعداد ریکارد'),
+  }));
+
+  function buildDefaultPrintColumns() {
+    return headersFT.value.map((h) => h.key).filter((key) => !['map'].includes(key));
+  }
+
+  const printableHeaderOptions = computed(() => {
+    return headersFT.value.filter((h) => !['map'].includes(h.key));
+  });
+
+  const printRepo = {
+    OpenResourcesPrintView: (payload) => repo.OpenEmployeesPrintView(payload),
+  };
+
+  const { printAll } = useTablePrintExport({
+    repo: printRepo,
+    moduleKey: 'office-employees',
+
+    getFilters: () => ({
+      search: repo.Search,
+      search_field: searchField.value,
+      search_value: selectedColumnValue.value,
+      year: filterYear.value,
+      month: filterMonth.value,
+      date_field: 'join_date',
+      status: selectedCardStatus.value,
+      job_type: selectedCardJobType.value,
+      office_employee_id: relatedFilters.value.office_employee_id,
+      resource_id: relatedFilters.value.resource_id,
+      information_id: relatedFilters.value.information_id,
+      event_id: relatedFilters.value.event_id,
+    }),
+
+    getHeaders: () => headersFT.value,
+    getSelectedColumnKeys: () => selectedPrintColumns.value,
+    getTitle: () => t('چاپ کارمندان مدیریت'),
+    getPrintLabels: () => printLabels.value,
+    getLocale: () => locale.value,
+    defaultFileName: 'office-employees-print',
+  });
   onMounted(async () => {
     syncCardFiltersFromRoute(); // 🔥 IMPORTANT
 
     await fetchYearItemsFromDb();
     await fetchMonthItemsFromDb(filterYear.value);
-
+    selectedPrintColumns.value = buildDefaultPrintColumns();
     await fetchAll();
   });
   watch(

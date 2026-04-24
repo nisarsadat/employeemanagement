@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use App\Exports\CaptiveDeliveriesExport;
 use Maatwebsite\Excel\Facades\Excel;
-
+use Hekmatinasser\Verta\Verta;
 class CaptiveDeliveryController extends Controller
 {
     private function searchableColumns(): array
@@ -514,4 +514,113 @@ class CaptiveDeliveryController extends Controller
             'captive_deliveries.xlsx'
         );
     }
+    private function gregorianToJalali(int $gy, int $gm, int $gd): array
+{
+    $g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+
+    if ($gy > 1600) {
+        $jy = 979;
+        $gy -= 1600;
+    } else {
+        $jy = 0;
+        $gy -= 621;
+    }
+
+    $gy2 = ($gm > 2) ? ($gy + 1) : $gy;
+    $days = (365 * $gy)
+        + intdiv(($gy2 + 3), 4)
+        - intdiv(($gy2 + 99), 100)
+        + intdiv(($gy2 + 399), 400)
+        - 80
+        + $gd
+        + $g_d_m[$gm - 1];
+
+    $jy += 33 * intdiv($days, 12053);
+    $days %= 12053;
+
+    $jy += 4 * intdiv($days, 1461);
+    $days %= 1461;
+
+    if ($days > 365) {
+        $jy += intdiv(($days - 1), 365);
+        $days = ($days - 1) % 365;
+    }
+
+    if ($days < 186) {
+        $jm = 1 + intdiv($days, 31);
+        $jd = 1 + ($days % 31);
+    } else {
+        $jm = 7 + intdiv(($days - 186), 30);
+        $jd = 1 + (($days - 186) % 30);
+    }
+
+    return [$jy, $jm, $jd];
+}
+    public function printView(Request $request)
+{
+    $query = $this->baseListQuery();
+
+    $search      = $request->input('search');
+    $searchField = $request->input('search_field');
+    $searchValue = $request->input('search_value');
+    $stat        = $request->input('stat', 'all');
+
+    $this->applyCommonFilters(
+        $query,
+        $search,
+        $searchField,
+        $searchValue,
+        $stat
+    );
+
+    $fiftySixFormatId = $request->input('fifty_six_format_id');
+
+    $query->when(
+        is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0,
+        function (Builder $q) use ($fiftySixFormatId) {
+            $q->where('id', (int) $fiftySixFormatId);
+        }
+    );
+
+    
+    $rows = $query
+    ->latest('id')
+    ->get()
+    ->map(function ($item) {
+
+        // ✅ ADD IT HERE
+        if (!empty($item->captive_date)) {
+            try {
+                $carbon = \Carbon\Carbon::parse($item->captive_date);
+
+                [$jy, $jm, $jd] = $this->gregorianToJalali(
+                    (int) $carbon->format('Y'),
+                    (int) $carbon->format('m'),
+                    (int) $carbon->format('d')
+                );
+
+                $item->captive_date = sprintf('%04d/%02d/%02d', $jy, $jm, $jd);
+            } catch (\Throwable $e) {
+                // keep original value
+            }
+        }
+
+        return $item;
+    });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ زندانی های تسلیم شده');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

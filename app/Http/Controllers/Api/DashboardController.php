@@ -63,15 +63,30 @@ class DashboardController extends Controller
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
 
-        $employeesActive = OfficeEmployee::query()
-            ->active()
-            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
-            ->count();
+       
+            $employeeActivityFrom = now()->subDays(30)->startOfDay();
+            $employeeActivityTo   = now()->endOfDay();
 
-        $employeesInactive = OfficeEmployee::query()
-            ->inactive()
-            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
-            ->count();
+            $employeesActive = OfficeEmployee::query()
+                ->whereHas('resources', function ($q) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
+                    $q->where('activity', 'فعال')
+                        ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
+                }, '>=', 100)
+                ->count();
+
+            $employeesInactive = OfficeEmployee::query()
+                ->where(function ($query) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
+                    $query
+                        ->whereDoesntHave('resources', function ($q) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
+                            $q->where('activity', 'فعال')
+                                ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
+                        })
+                        ->orWhereHas('resources', function ($q) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
+                            $q->where('activity', 'فعال')
+                                ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
+                        }, '<', 100);
+                })
+                ->count();
 
         /* -------------------------------------------------
         | ✅ EMPLOYEES BY JOB TYPE (chips) - MAIN period
