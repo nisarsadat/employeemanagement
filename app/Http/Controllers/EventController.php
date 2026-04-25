@@ -906,6 +906,26 @@ public function update(UpdateEventRequest $request, $id)
 
             $event->update($validated);
 
+            $removedDocumentIds = $request->input('removed_document_ids', []);
+
+            if (!empty($removedDocumentIds)) {
+                $docsToDelete = $event->documents()
+                    ->whereIn('id', $removedDocumentIds)
+                    ->get();
+
+                foreach ($docsToDelete as $doc) {
+                    if ($doc->file_path) {
+                        Storage::disk('public')->delete($doc->file_path);
+                    }
+
+                    $doc->delete();
+                }
+
+                $changes['documents_removed'] = [
+                    'old' => $docsToDelete->pluck('file_name')->values()->all(),
+                    'new' => null,
+                ];
+            }
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
                     $path = $file->store("events/{$event->id}", 'public');

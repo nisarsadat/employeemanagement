@@ -389,7 +389,47 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     finance.value = resp.data?.data ?? resp.data;
     return finance.value;
   }
+  async function OpenFinancesPrintView(payload = {}) {
+    const {
+      filters = {},
+      selected_columns = [],
+      column_labels = {},
+      print_labels = {},
+      locale = 'fa',
+      title = 'چاپ حساب مالی',
+      file_name,
+      module,
+      ...directFilters
+    } = payload;
 
+    const params = {
+      // ✅ supports both styles:
+      // 1) payload.filters.search
+      // 2) payload.search
+      ...directFilters,
+      ...filters,
+
+      selected_columns,
+      column_labels,
+      print_labels,
+      locale,
+      title,
+    };
+
+    const response = await axios.get('/finances/print', {
+      params,
+      responseType: 'text',
+    });
+
+    const printWindow = window.open('', '_blank');
+
+    if (!printWindow) return;
+
+    printWindow.document.open();
+    printWindow.document.write(response.data);
+    printWindow.document.close();
+    printWindow.focus();
+  }
   async function CreateFinance(payload) {
     const resp = await axios.post('/finances', payload);
     return resp.data?.data ?? resp.data;
@@ -516,5 +556,6 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     availableYears,
     yearsLoading,
     FetchYears,
+    OpenFinancesPrintView,
   };
 });

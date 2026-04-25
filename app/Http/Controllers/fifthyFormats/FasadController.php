@@ -65,6 +65,7 @@ class FasadController extends Controller
         'resource_id',
         'coordinates',
         'notes',
+        
         ];
 
         $q = Fasad::query()

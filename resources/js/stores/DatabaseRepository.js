@@ -395,7 +395,10 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     async FetchResourceDateOptions(params = {}) {
       return await axios.get('/resources/date-options', { params });
     },
-
+    async FetchResourceFiftySixFormatCounts(id) {
+      const { data } = await axios.get(`/resources/${id}/fifty-six-format-counts`);
+      return data;
+    },
     async FetchResourceData(id) {
       try {
         setContentType('application/json');

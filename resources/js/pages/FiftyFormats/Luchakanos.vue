@@ -416,7 +416,7 @@
     { title: t('سابقه جرم'), key: 'history_jorm' },
     { title: t('نوع تخلف'), key: 'takhlof_type' },
 
-    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('کود منبع'), key: 'resource_id' },
     { title: t('شماره منبع'), key: 'resource_phone' },
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('یادداشت'), key: 'note' },
@@ -565,8 +565,8 @@
     try {
       await repo.FetchLuchakanosData?.({
         search: repo.Search,
-        search_field: normalizedSearchField.value,
-        search_value: normalizedSearchValue.value,
+      search_field: normalizedSearchField.value || route.query.search_field || null,
+search_value: normalizedSearchValue.value || route.query.search_value || null,
         ...route.query,
       });
     } catch (e) {

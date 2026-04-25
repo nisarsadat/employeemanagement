@@ -68,6 +68,9 @@ class UpdateInformationRequest extends FormRequest
             'account_id' => ['nullable', 'integer', 'exists:accounts,id'],  
             'documents'   => ['nullable','array'],
             'documents.*' => ['file'],
+
+            'removed_document_ids'   => ['nullable', 'array'],
+            'removed_document_ids.*' => ['integer', 'exists:information_documents,id'],
         ];
     }
 }

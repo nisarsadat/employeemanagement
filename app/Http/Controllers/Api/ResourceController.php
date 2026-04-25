@@ -15,7 +15,8 @@ use App\Exports\ResourcesExport;
 use App\Http\Controllers\Concerns\HandlesTablePrintExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 class ResourceController extends Controller
 {
     use AppliesRelatedFilters;
@@ -44,10 +45,18 @@ class ResourceController extends Controller
             ],
 
             'fifty_six_format_id' => [
-                'callback' => function ($query, $value) {
-                    $query->whereHas('fiftySixFormats', fn ($q) => $q->where('id', $value));
-                },
-            ],
+            'callback' => function ($query, $value) {
+                $query->where(function ($q) use ($value) {
+                    foreach (Resource::fiftySixFormatSources() as $source) {
+                        $relation = $source['relation'];
+
+                        if (method_exists(Resource::class, $relation)) {
+                            $q->orWhereHas($relation, fn ($sub) => $sub->where('id', $value));
+                        }
+                    }
+                });
+            },
+        ],
         ];
     }
 
@@ -422,6 +431,42 @@ class ResourceController extends Controller
         return new ResourceResource($row);
     }
 
+    public function fiftySixFormatCounts($id)
+{
+    $resource = Resource::findOrFail($id);
+
+    $formats = collect(Resource::fiftySixFormatSources())
+        ->map(function ($source) use ($resource) {
+            $table = $source['table'];
+
+            $count = 0;
+
+            if (Schema::hasTable($table) && Schema::hasColumn($table, 'resource_id')) {
+                $count = DB::table($table)
+                    ->where('resource_id', $resource->id)
+                    ->count();
+            }
+
+            return [
+                'type'       => $source['type'],
+                'name'       => $source['label'],      // Pashto name
+                'count'      => $count,
+                'front_path' => $source['path'],
+                'query_key'  => 'resource_id',
+                'query_value'=> $resource->id,
+                'url'        => $source['path'] . '?resource_id=' . $resource->id,
+            ];
+        })
+        ->filter(fn ($item) => $item['count'] > 0)
+        ->values();
+
+    return response()->json([
+        'resource_id' => $resource->id,
+        'resource_code' => $resource->code_number,
+        'total_count' => $formats->sum('count'),
+        'formats' => $formats,
+    ]);
+}
     public function store(ResourceRequest $req)
     {
         try {

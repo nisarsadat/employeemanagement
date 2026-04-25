@@ -450,7 +450,7 @@ const headersFT = computed(() => [
   { title: t('موقعیت مشخص'), key: 'specific_place' },
   { title: t('مختصات'), key: 'coordinates' },
 
-  { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('کود منبع'), key: 'resource_id' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 
   { title: t('نقشه'), key: 'map', sortable: false },
@@ -550,8 +550,8 @@ async function fetchAll() {
   try {
     await repo.FetchRahnomaMamlatsData?.({
       search: repo.Search,
-      search_field: normalizedSearchField.value,
-      search_value: normalizedSearchValue.value,
+search_field: normalizedSearchField.value || route.query.search_field || null,
+search_value: normalizedSearchValue.value || route.query.search_value || null,
       ...route.query,
     });
   } catch (e) {

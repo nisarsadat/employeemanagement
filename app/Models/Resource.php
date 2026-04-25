@@ -298,6 +298,90 @@ class Resource extends Model
         return $this->hasMany(Tujaran::class, 'resource_id', 'id');
     }
 
+    public static function fiftySixFormatSources(): array
+{
+
+    return [
+        // ---------------- Base ----------------
+        ['relation' => 'fasads', 'table' => 'fasads', 'type' => 'fasad', 'label' => 'شر او فساد', 'path' => '/app/fasads'],
+        ['relation' => 'saeenFasads', 'table' => 'saeen_fasads', 'type' => 'saeen_fasad', 'label' => 'ساعین بالفساد', 'path' => '/app/saeenfasad'],
+        ['relation' => 'heists', 'table' => 'heists', 'type' => 'heist', 'label' => 'سرقت کوونکی', 'path' => '/app/heist'],
+        ['relation' => 'captives', 'table' => 'captives', 'type' => 'captive', 'label' => 'راخوشي شوي بندي', 'path' => '/app/captives'],
+        ['relation' => 'mulkanos', 'table' => 'mulkanos', 'type' => 'mulkano', 'label' => 'د کوڅې نماینده', 'path' => '/app/mulkanos'],
+        ['relation' => 'entryExits', 'table' => 'entry_exits', 'type' => 'entry_exit', 'label' => 'د ښار اړوند دخولي/خروجي دروازه او فرعي لاره', 'path' => '/app/entry-exits'],
+        ['relation' => 'sarafyanos', 'table' => 'sarafyanos', 'type' => 'sarafyano', 'label' => 'صرافي', 'path' => '/app/sarafyanos'],
+        ['relation' => 'clubs', 'table' => 'clubs', 'type' => 'clubs', 'label' => 'ورزشي کلپ', 'path' => '/app/clubs'],
+        ['relation' => 'mahajerats', 'table' => 'mahajerats', 'type' => 'mahajerat', 'label' => 'نوی راغلی کور', 'path' => '/app/mahajerats'],
+        ['relation' => 'soldiers', 'table' => 'soldiers', 'type' => 'soldier', 'label' => 'پخوانی چارواکی', 'path' => '/app/soldiers'],
+
+        // ---------------- Format One ----------------
+        ['relation' => 'mawads', 'table' => 'mawads', 'type' => 'mawad', 'label' => 'د نشه یی توکو پلورونکی', 'path' => '/app/mawads'],
+        ['relation' => 'lostmujremeens', 'table' => 'lost_mujremeens', 'type' => 'lost_mujremeen', 'label' => 'نادرکه شوي مجرم', 'path' => '/app/lostmujremeens'],
+        ['relation' => 'oldSoldiersHomes', 'table' => 'old_soldiers_homes', 'type' => 'old_soldiers_homes', 'label' => 'د پخوانی چارواکی کور', 'path' => '/app/oldsoldiershomes'],
+        ['relation' => 'robbers', 'table' => 'robbers', 'type' => 'robbers', 'label' => 'اختطاف ګر', 'path' => '/app/robbers'],
+        ['relation' => 'nonResponsablePeople', 'table' => 'non_responsable_people', 'type' => 'non_responsable_people', 'label' => 'غیر مسؤوله وسله وال', 'path' => '/app/nonresponsablepeople'],
+        ['relation' => 'mashkokHomes', 'table' => 'mashkok_homes', 'type' => 'mashkok_homes', 'label' => 'مشکوک کور', 'path' => '/app/mashkokhomes'],
+        ['relation' => 'damagePlaces', 'table' => 'damage_places', 'type' => 'damage_places', 'label' => 'آسیب پذیره ساحې', 'path' => '/app/damageplaces'],
+        ['relation' => 'damageRasanPlaces', 'table' => 'damage_rasan_places', 'type' => 'damage_rasan_places', 'label' => 'آسیب رسانه ساحه', 'path' => '/app/damagerasanplaces'],
+        ['relation' => 'mashkokShops', 'table' => 'mashkok_shops', 'type' => 'mashkok_shops', 'label' => 'مشکوک دوکان', 'path' => '/app/mashkokshops'],
+        ['relation' => 'luchakano', 'table' => 'luchakanos', 'type' => 'luchakanos', 'label' => 'لوچک او بی بند و باره فرد', 'path' => '/app/luchakanos'],
+
+        // ---------------- Format Two ----------------
+        ['relation' => 'schools', 'table' => 'schools', 'type' => 'schools', 'label' => 'ښونځی او روزنیز مرکز', 'path' => '/app/schools'],
+        ['relation' => 'hadoBusStops', 'table' => 'hado_bus_stops', 'type' => 'hado_bus_stops', 'label' => 'هډه', 'path' => '/app/hadobusstops'],
+        ['relation' => 'transportCompanies', 'table' => 'transport_companies', 'type' => 'transport_companies', 'label' => 'ترانسپورتي شرکت', 'path' => '/app/transportcompanies'],
+        ['relation' => 'carSalesCompanies', 'table' => 'car_sales_companies', 'type' => 'car_sales_companies', 'label' => 'موټر پلورونځی', 'path' => '/app/carsalescompanies'],
+        ['relation' => 'parkings', 'table' => 'parkings', 'type' => 'parkings', 'label' => 'موټرو تمځای(پارکینګ)', 'path' => '/app/parkings'],
+        ['relation' => 'banks', 'table' => 'banks', 'type' => 'banks', 'label' => 'بانک', 'path' => '/app/banks'],
+        ['relation' => 'apartments', 'table' => 'apartments', 'type' => 'apartments', 'label' => 'رهایشي بلاک', 'path' => '/app/apartments'],
+        ['relation' => 'rahnomaMamlats', 'table' => 'rahnoma_mamlats', 'type' => 'rahnoma_mamlats', 'label' => 'د معاملاتو رهنما', 'path' => '/app/rahnomamamlats'],
+        ['relation' => 'hosppitals', 'table' => 'hosppitals', 'type' => 'hosppitals', 'label' => 'روغتون او صحي مرکز', 'path' => '/app/hosppitals'],
+        ['relation' => 'workshops', 'table' => 'work_shops', 'type' => 'work_shops', 'label' => 'مستري خانه', 'path' => '/app/workshops'],
+
+        // ---------------- Format Three ----------------
+        ['relation' => 'badmashanos', 'table' => 'badmashanos', 'type' => 'badmashanos', 'label' => 'زورواک او ولکه دار', 'path' => '/app/badmashanos'],
+        ['relation' => 'emaratOffices', 'table' => 'emarat_offices', 'type' => 'emarat_offices', 'label' => 'امارتي مسوول کور او میلمستون', 'path' => '/app/emaratoffices'],
+        ['relation' => 'hostels', 'table' => 'hostels', 'type' => 'hostels', 'label' => 'لیله او کرایي اطاق', 'path' => '/app/hostels'],
+        ['relation' => 'hotels', 'table' => 'hotels', 'type' => 'hotels', 'label' => 'میلمستون ،مسافرخانه ،هوټل او رسټوردانټ', 'path' => '/app/hotels'],
+        ['relation' => 'madrasas', 'table' => 'madrasas', 'type' => 'madrasas', 'label' => 'دینې مدرسه', 'path' => '/app/madrasas'],
+        ['relation' => 'mashkokPeople', 'table' => 'mashkok_people', 'type' => 'mashkok_people', 'label' => 'مشکوک فرد', 'path' => '/app/mashkokpeoples'],
+        ['relation' => 'mujahedinos', 'table' => 'mujahedinos', 'type' => 'mujahedinos', 'label' => 'مجاهد', 'path' => '/app/mujahedinos'],
+        ['relation' => 'oldJahadis', 'table' => 'old_jahadis', 'type' => 'old_jahadis', 'label' => 'پخوانی جهادي قومندان', 'path' => '/app/oldjahadis'],
+        ['relation' => 'sarayanos', 'table' => 'sarayanos', 'type' => 'sarayanos', 'label' => 'سرای', 'path' => '/app/sarayanos'],
+        ['relation' => 'tujarans', 'table' => 'tujarans', 'type' => 'tujarans', 'label' => 'عالم ، متنفذ ، تجار او عالي رتبه شخص', 'path' => '/app/tujarans'],
+
+        // ---------------- Format Four ----------------
+        ['relation' => 'checkpoints', 'table' => 'checkpoints', 'type' => 'checkpoints', 'label' => 'چک پواینټ او پوسته', 'path' => '/app/checkpoints'],
+        ['relation' => 'masjids', 'table' => 'masjids', 'type' => 'masjids', 'label' => 'مسجد، خاناقا او تکیه خانه', 'path' => '/app/masjids'],
+        ['relation' => 'highways', 'table' => 'highways', 'type' => 'highways', 'label' => 'څلور لارې او درې لارې', 'path' => '/app/highways'],
+        ['relation' => 'companies', 'table' => 'companies', 'type' => 'companies', 'label' => 'فابریکه او شرکت', 'path' => '/app/companies'],
+        ['relation' => 'donelostplaces', 'table' => 'done_lost_places', 'type' => 'done_lost_places', 'label' => 'هغه ساحه چې اختطاف پکې ترسره شوی', 'path' => '/app/donelostplaces'],
+        ['relation' => 'econemyProjects', 'table' => 'econemy_projects', 'type' => 'econemy_projects', 'label' => 'مهم تاسیسات او اقتصادي پرو‌ژه', 'path' => '/app/econemyprojects'],
+        ['relation' => 'criminalCapturePlaces', 'table' => 'criminal_capture_places', 'type' => 'criminal_capture_places', 'label' => 'هغې ساحه چې مجرم پکې نیول شوی', 'path' => '/app/criminalcaptureplaces'],
+        ['relation' => 'pumps', 'table' => 'pumps', 'type' => 'pumps', 'label' => 'پمپ', 'path' => '/app/pumps'],
+        ['relation' => 'shoras', 'table' => 'shoras', 'type' => 'shoras', 'label' => 'محلي شورا', 'path' => '/app/shoras'],
+        ['relation' => 'governmentplaces', 'table' => 'governmentplaces', 'type' => 'governmentplaces', 'label' => 'امارتي ځاي', 'path' => '/app/governmentplaces'],
+        ['relation' => 'supermarkets', 'table' => 'supermarkets', 'type' => 'supermarkets', 'label' => 'تجارتي مرکز او سوپر مارکیټ', 'path' => '/app/supermarkets'],
+        ['relation' => 'parks', 'table' => 'parks', 'type' => 'parks', 'label' => 'تفریحي پارک او سیاحتي سیمه', 'path' => '/app/parks'],
+        ['relation' => 'complexes', 'table' => 'complexes', 'type' => 'complexes', 'label' => 'داخلي موسسه او بنسټ', 'path' => '/app/complexes'],
+        ['relation' => 'deplomaticplaces', 'table' => 'deplomaticplaces', 'type' => 'deplomaticplaces', 'label' => 'دیپلوماتیک ځای،خارجي موسسه،دبهرنیانو د اوسیدو او کار ځای', 'path' => '/app/deplomaticplaces'],
+        ['relation' => 'universities', 'table' => 'universities', 'type' => 'universities', 'label' => 'پوهنتونون ، دلوړو زده کړو موسسه او انسټیټیوټ', 'path' => '/app/universities'],
+        ['relation' => 'wakilanos', 'table' => 'wakilanos', 'type' => 'wakilanos', 'label' => 'وکیل او ملک', 'path' => '/app/wakilanos'],
+    ];
+
+}
+
+public function fiftySixFormatsTotalCount(): int
+{
+    return collect(self::fiftySixFormatSources())
+        ->sum(function ($source) {
+            $relation = $source['relation'];
+
+            return method_exists($this, $relation)
+                ? $this->{$relation}()->count()
+                : 0;
+        });
+}
 
    protected static function booted()
 {

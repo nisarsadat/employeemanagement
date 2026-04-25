@@ -807,4 +807,158 @@ class FinanceController extends Controller
             ]);
         }
     }
+    private function resolveDateField(?string $dateField): string
+{
+    $field = trim((string) $dateField);
+
+    return in_array($field, ['date', 'created_at', 'updated_at'], true)
+        ? $field
+        : 'date';
+}
+
+private function formatFinancePrintDate($value): string
+{
+    if (empty($value)) {
+        return '';
+    }
+
+    try {
+        $carbon = Carbon::parse($value);
+
+        [$jy, $jm, $jd] = $this->gregorianToJalali(
+            (int) $carbon->format('Y'),
+            (int) $carbon->format('m'),
+            (int) $carbon->format('d')
+        );
+
+        return sprintf('%04d/%02d/%02d', $jy, $jm, $jd);
+    } catch (\Throwable $e) {
+        $stringValue = trim((string) $value);
+
+        if (preg_match('/(\d{4}[\/-]\d{2}[\/-]\d{2})/', $stringValue, $matches)) {
+            return str_replace('-', '/', $matches[1]);
+        }
+
+        return trim(preg_replace('/\s*\d{2}:\d{2}:\d{2}$/', '', $stringValue));
+    }
+}
+public function printView(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+
+    // Same style as index()
+    $searchField = $this->resolveSearchField($request->get('search_field'));
+    $searchValue = trim((string) $request->get('search_value', ''));
+
+    $year  = $request->filled('year') ? (int) $request->get('year') : null;
+    $month = $request->filled('month') ? (int) $request->get('month') : null;
+
+    // Same style as index()
+    $accountId        = $request->get('account_id');
+    $officeEmployeeId = $request->get('office_employee_id');
+
+    // Same style as index()
+    $dateField = $request->get('date_field', 'date');
+    if (!in_array($dateField, ['date', 'created_at', 'updated_at'], true)) {
+        $dateField = 'date';
+    }
+
+    $query = Finance::query()
+        ->with([
+            'resource:id,name,code_number,phone_number,nick_name',
+            'officeEmployee:id,name,code_number,phone_number',
+            'account:id,name,price',
+            'event:id,finance_status,finance_paid_at',
+            'information:id,finance_status,finance_paid_at',
+        ])
+        ->orderByDesc('id');
+
+    // ✅ Same search filter as index()
+    $this->applyFinanceSearch($query, $search, $searchField, $searchValue);
+
+    // ✅ Same account filter as index()
+    if (is_numeric($accountId) && (int) $accountId > 0) {
+        $query->where('account_id', (int) $accountId);
+    }
+
+    // ✅ Same employee filter as index()
+    if (is_numeric($officeEmployeeId) && (int) $officeEmployeeId > 0) {
+        $query->where('office_employee_id', (int) $officeEmployeeId);
+    }
+
+    // ✅ Same date filter as index()
+    $this->applyShamsiDateFilter($query, $year, $month, $dateField);
+
+    $rows = $query
+        ->get()
+        ->map(function ($finance, $index) {
+            $finance->index = $index + 1;
+
+            $finance->employee_code =
+                $finance->officeEmployee?->code_number
+                ?? $finance->office_employee_id
+                ?? '-';
+
+            $finance->employee_name =
+                $finance->officeEmployee?->name
+                ?? '-';
+
+            $finance->employee_phone =
+                $finance->officeEmployee?->phone_number
+                ?? $finance->employee_phone
+                ?? '-';
+
+            $finance->resource_nick_name =
+                $finance->resource?->nick_name
+                ?? '-';
+
+            $finance->source_code =
+                $finance->resource?->code_number
+                ?? '-';
+
+            $finance->source_nick_name =
+                $finance->resource?->nick_name
+                ?? '-';
+
+            $finance->account_name =
+                $finance->account?->name
+                ?? '-';
+
+            $finance->account =
+                $finance->account?->name
+                ?? '-';
+
+            // ✅ clean Shamsi date, no 00:00:00
+            $finance->date = $this->formatFinancePrintDate($finance->date);
+            $finance->created_at = $this->formatFinancePrintDate($finance->created_at);
+            $finance->updated_at = $this->formatFinancePrintDate($finance->updated_at);
+
+            if (!empty($finance->information_id)) {
+                $finance->expense_result = 'اطلاع ' . $finance->information_id;
+            } elseif (!empty($finance->event_id)) {
+                $finance->expense_result = 'واقعه ' . $finance->event_id;
+            } else {
+                $finance->expense_result = $finance->expense_result ?: '-';
+            }
+
+            $finance->signature = $finance->signature ?? '-';
+
+            return $finance;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ حساب مالی');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

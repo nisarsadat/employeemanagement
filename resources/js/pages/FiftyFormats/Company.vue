@@ -481,7 +481,7 @@
     { title: t('بیرونی زن'), key: 'female_employee_quantity_out' },
     { title: t('تعداد محافظ'), key: 'guard_quantity' },
 
-    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('کود منبع'), key: 'resource_id' },
     { title: t('شماره منبع'), key: 'resource_phone_number' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
@@ -604,8 +604,8 @@
     try {
       await repo.FetchCompaniesData?.({
         search: repo.Search,
-        search_field: normalizedSearchField.value,
-        search_value: normalizedSearchValue.value,
+      search_field: normalizedSearchField.value || route.query.search_field || null,
+search_value: normalizedSearchValue.value || route.query.search_value || null,
         fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
         source: relatedFilters.value.source,
         open: relatedFilters.value.open,

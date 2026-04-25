@@ -220,6 +220,15 @@
                         >
                           <v-icon start>mdi-eye</v-icon>{{ t('نمایش') }}
                         </v-btn>
+                        <v-btn
+                          size="small"
+                          color="error"
+                          variant="flat"
+                          v-if="form.previewUrl || form.picture_url || form.picture"
+                          @click.stop="removePicture"
+                        >
+                          <v-icon start>mdi-delete</v-icon>{{ t('حذف') }}
+                        </v-btn>
                       </div>
                     </div>
                   </div>
@@ -863,6 +872,7 @@
     picture: null,
     picture_url: null,
     previewUrl: null,
+    remove_picture: false,
 
     // identity & personal
     name: '',
@@ -958,7 +968,23 @@
     if (!url) return;
     window.open(url, '_blank');
   }
+  function removePicture() {
+    if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(form.value.previewUrl);
+    }
 
+    form.value.picture = null;
+    form.value.picture_url = null;
+    form.value.previewUrl = null;
+    form.value.remove_picture = true;
+
+    pictureFile.value = null;
+    pictureChanged.value = false;
+
+    if (pictureInput.value) {
+      pictureInput.value.value = '';
+    }
+  }
   function markDocForRemoval(doc) {
     if (!doc?.id) return;
     if (!Array.isArray(form.value.removed_document_ids)) {
@@ -981,13 +1007,17 @@
     pictureChanged.value = !!file;
 
     if (file) {
+      form.value.remove_picture = false;
+
       if (form.value.previewUrl && form.value.previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(form.value.previewUrl);
       }
+
       form.value.previewUrl = URL.createObjectURL(file);
     } else {
       form.value.previewUrl = form.value.picture_url || form.value.picture || null;
     }
+
     if (e.target) e.target.value = '';
   }
 
@@ -1149,8 +1179,13 @@
     delete payload._newDocs;
     delete payload.removed_document_ids;
     delete payload.picture;
+    delete payload.remove_picture;
 
     const fd = toFormData(payload);
+
+    if (form.value.remove_picture) {
+      fd.append('remove_picture', '1');
+    }
 
     if (pictureChanged.value && pictureFile.value) {
       fd.append('picture', pictureFile.value);
@@ -1169,7 +1204,6 @@
 
     return fd;
   }
-
   /* ===== SUBMIT ===== */
   async function onSubmit() {
     clearBackendErrors();

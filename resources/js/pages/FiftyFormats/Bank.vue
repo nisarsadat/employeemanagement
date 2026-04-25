@@ -133,9 +133,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای شماره مسئول') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withPhone }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withPhone }}</div>
               </div>
             </div>
           </v-card>
@@ -154,9 +152,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای محافظین') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withGuards }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withGuards }}</div>
               </div>
             </div>
           </v-card>
@@ -193,7 +189,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class=" mx-2"
+      class="mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -245,12 +241,7 @@
           <!-- مشاهده -->
           <v-tooltip :text="t('مشاهده بانک')" location="top">
             <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                size="small"
-                color="blue"
-                @click.stop="openPeek(item)"
-              >
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
               </v-icon>
             </template>
@@ -314,423 +305,423 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter, useRoute } from 'vue-router';
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter, useRoute } from 'vue-router';
 
-import AppBar from '@/components/AppBar.vue';
-import FilterableTable from '@/components/FilterableTable.vue';
-import PeekButton from '@/components/PeekButton.vue';
-import FlyToMapButton from '@/components/FlyToMapButton.vue';
-import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
-import PictureCell from '@/components/table/PictureCell.vue';
-import GlobalPagination from '@/components/GlobalPagination.vue';
-import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
+  import AppBar from '@/components/AppBar.vue';
+  import FilterableTable from '@/components/FilterableTable.vue';
+  import PeekButton from '@/components/PeekButton.vue';
+  import FlyToMapButton from '@/components/FlyToMapButton.vue';
+  import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
+  import PictureCell from '@/components/table/PictureCell.vue';
+  import GlobalPagination from '@/components/GlobalPagination.vue';
+  import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
 
-import { useSchoolRepository } from '@/stores/SchoolRepository';
-import { usePageRefresh } from '@/composables/usePageRefresh';
-import { useRelatedRouteFilters } from '@/composables/useRelatedRouteFilters';
+  import { useSchoolRepository } from '@/stores/SchoolRepository';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { useRelatedRouteFilters } from '@/composables/useRelatedRouteFilters';
 
-const repo = useSchoolRepository();
-const router = useRouter();
-const route = useRoute();
-const { relatedFilters, clearRelationQueries } = useRelatedRouteFilters();
+  const repo = useSchoolRepository();
+  const router = useRouter();
+  const route = useRoute();
+  const { relatedFilters, clearRelationQueries } = useRelatedRouteFilters();
 
-/* i18n / RTL */
-const { t, locale } = useI18n();
-const isRtl = ref(locale.value === 'fa');
-watch(locale, (l) => (isRtl.value = l === 'fa'));
+  /* i18n / RTL */
+  const { t, locale } = useI18n();
+  const isRtl = ref(locale.value === 'fa');
+  watch(locale, (l) => (isRtl.value = l === 'fa'));
 
-const drawer = ref(false);
+  const drawer = ref(false);
 
-const searchField = ref(null);
-const selectedColumnValue = ref(null);
+  const searchField = ref(null);
+  const selectedColumnValue = ref(null);
 
-/* Snackbar */
-const showError = ref(false);
-const errorMessage = ref('');
-const showErrorMessage = (m) => {
-  errorMessage.value = m;
-  showError.value = true;
-};
+  /* Snackbar */
+  const showError = ref(false);
+  const errorMessage = ref('');
+  const showErrorMessage = (m) => {
+    errorMessage.value = m;
+    showError.value = true;
+  };
 
-/* 🔗 go to Resources page for this resource_code */
-function goToResource(row) {
-  const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
-  if (!resourceId) return;
+  /* 🔗 go to Resources page for this resource_code */
+  function goToResource(row) {
+    const resourceId = row?.resource_id ?? row?.resource?.id ?? null;
+    if (!resourceId) return;
 
-  router.push({
-    path: '/app/resources',
-    query: {
-      resource_id: resourceId,
-      source: 'related',
-    },
+    router.push({
+      path: '/app/resources',
+      query: {
+        resource_id: resourceId,
+        source: 'related',
+      },
+    });
+  }
+
+  /* helper */
+  const getRow = (s) => (s && s.raw ? s.raw : s);
+
+  const normalizedSearchField = computed(() => {
+    const v = searchField.value;
+    if (!v) return null;
+    if (typeof v === 'string') return v;
+    return v.key ?? v.value ?? null;
   });
-}
 
-/* helper */
-const getRow = (s) => (s && s.raw ? s.raw : s);
+  const normalizedSearchValue = computed(() => {
+    const v = selectedColumnValue.value;
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof v === 'string' || typeof v === 'number') return v;
+    return v.value ?? v.title ?? null;
+  });
 
-const normalizedSearchField = computed(() => {
-  const v = searchField.value;
-  if (!v) return null;
-  if (typeof v === 'string') return v;
-  return v.key ?? v.value ?? null;
-});
-
-const normalizedSearchValue = computed(() => {
-  const v = selectedColumnValue.value;
-  if (v === null || v === undefined || v === '') return null;
-  if (typeof v === 'string' || typeof v === 'number') return v;
-  return v.value ?? v.title ?? null;
-});
-
-/* rows from store */
-const rowsFT = computed(() => {
-  const list = repo.Banks || [];
-  if (Array.isArray(list)) return list;
-  if (Array.isArray(list.data)) return list.data;
-  return [];
-});
-
-/* 🔢 Filter cards state */
-const cardFilter = ref('all');
-
-const stats = computed(() => {
-  const rows = rowsFT.value || [];
-  const total = rows.length;
-  const withCoordinates = rows.filter(
-    (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
-  ).length;
-  const withPhone = rows.filter(
-    (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
-  ).length;
-  const withGuards = rows.filter(
-    (r) =>
-      r &&
-      r.guard_quantity !== null &&
-      r.guard_quantity !== undefined &&
-      String(r.guard_quantity).trim() !== '' &&
-      Number(r.guard_quantity) > 0
-  ).length;
-
-  return { total, withCoordinates, withPhone, withGuards };
-});
-
-const filteredRowsFT = computed(() => {
-  const base = rowsFT.value || [];
-  switch (cardFilter.value) {
-    case 'withCoordinates':
-      return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
-    case 'withPhone':
-      return base.filter(
-        (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
-      );
-    case 'withGuards':
-      return base.filter(
-        (r) =>
-          r &&
-          r.guard_quantity !== null &&
-          r.guard_quantity !== undefined &&
-          String(r.guard_quantity).trim() !== '' &&
-          Number(r.guard_quantity) > 0
-      );
-    default:
-      return base;
-  }
-});
-
-/* TABLE HEADERS – ALL INPUTS + map */
-const headersFT = computed(() => [
-  { title: t('picture'), key: 'picture' },
-  { title: t('نام بانک'), key: 'bank_name' },
-  { title: t('نوع بانک'), key: 'bank_type' },
-  { title: t('مالک بانک'), key: 'bank_owner' },
-
-  { title: t('نام مسئول'), key: 'responsible_name' },
-  { title: t('نام پدر مسئول'), key: 'responsible_f_name' },
-  { title: t('وظیفه مسئول'), key: 'responsible_position' },
-  { title: t('شماره مسئول'), key: 'responsible_phone' },
-
-  { title: t('ولایت'), key: 'province' },
-  { title: t('زون'), key: 'zone' },
-  { title: t('ولسوالی'), key: 'district' },
-  { title: t('قریه'), key: 'village' },
-
-  { title: t('موقعیت مشخص'), key: 'specific_place' },
-  { title: t('مختصات'), key: 'coordinates' },
-  { title: t('د کومو ادارو معاشات تادیه کوی'), key: 'which_offices_sallary' },
-  { title: t('تعداد محافظین'), key: 'guard_quantity' },
-
-  { title: t('کود منبع'), key: 'resource_code' },
-  { title: t('شماره منبع'), key: 'resource_phone' },
-
-  { title: t('نقشه'), key: 'map', sortable: false },
-  { title: t('یادداشت'), key: 'note' },
-]);
-
-/* TOP GROUPS */
-const topGroups = computed(() => [
-  { title: t('بانک'), keys: ['bank_name', 'bank_type', 'bank_owner'] },
-  {
-    title: t('مسئول'),
-    keys: ['responsible_name', 'responsible_f_name', 'responsible_position', 'responsible_phone'],
-  },
-  { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village'] },
-  { title: t('موقعیت/مختصات'), keys: ['specific_place', 'coordinates'] },
-  { title: t('محافظین/یادداشت'), keys: ['guard_quantity', 'note', 'Province_addr'] },
-  { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
-]);
-
-const filters = ref({});
-
-/* Peek */
-const expanded = ref(false);
-const selectedId = ref(null);
-const loadingOne = ref(false);
-const detail = ref(null);
-
-async function fetchOne(id) {
-  loadingOne.value = true;
-  try {
-    if (typeof repo.FetchBankData === 'function') {
-      await repo.FetchBankData(id);
-      const single = Array.isArray(repo.Bank) ? repo.Bank[0] : repo.Bank;
-      detail.value = single || {};
-    } else {
-      await fetchAll();
-      const list = rowsFT.value || [];
-      detail.value = list.find((r) => r.id === id) || {};
-    }
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت معلومات بانک'));
-  } finally {
-    loadingOne.value = false;
-  }
-}
-
-function openPeek(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  selectedId.value = row.id;
-  expanded.value = true;
-  fetchOne(row.id);
-}
-
-/* navigation */
-function goCreate() {
-  router.push('/app/bankform');
-}
-
-function goEdit(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  router.push(`/app/bankform/${row.id}`);
-}
-
-/* delete with dialog */
-const deleteDialog = ref(false);
-const deleteTarget = ref(null);
-
-function openDeleteDialog(payload) {
-  const row = getRow(payload);
-  if (!row?.id) return;
-  deleteTarget.value = row;
-  deleteDialog.value = true;
-}
-
-async function handleDeleteConfirmed(target) {
-  const row = target || deleteTarget.value;
-  deleteDialog.value = false;
-  if (!row?.id) return;
-  try {
-    await repo.DeleteBank?.(row.id);
-    await fetchAll();
-    showErrorMessage(t('حذف شد'));
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در حذف'));
-  } finally {
-    deleteTarget.value = null;
-  }
-}
-
-/* fetch all */
-async function fetchAll() {
-  try {
-    await repo.FetchBanksData?.({
-      search: repo.Search,
-      search_field: normalizedSearchField.value,
-      search_value: normalizedSearchValue.value,
-      fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
-      source: relatedFilters.value.source,
-      open: relatedFilters.value.open,
-    });
-  } catch (e) {
-    console.error(e);
-    showErrorMessage(t('خطا در دریافت فهرست بانک‌ها'));
-  }
-}
-
-async function fetchColumnValues(field, q = '') {
-  try {
-    const normalizedField =
-      typeof field === 'string' ? field : field?.key ?? field?.value ?? null;
-
-    if (!normalizedField) return [];
-
-    const res = await repo.FetchBankFilterOptions?.({
-      field: normalizedField,
-      q,
-    });
-
-    return res?.data?.options || [];
-  } catch (e) {
-    console.error('fetchColumnValues error', e);
+  /* rows from store */
+  const rowsFT = computed(() => {
+    const list = repo.Banks || [];
+    if (Array.isArray(list)) return list;
+    if (Array.isArray(list.data)) return list.data;
     return [];
-  }
-}
+  });
 
-async function handleSearch() {
-  repo.page = 1;
-  await fetchAll();
-}
+  /* 🔢 Filter cards state */
+  const cardFilter = ref('all');
 
-async function clearSearch() {
-  repo.Search = '';
-  repo.page = 1;
-  await fetchAll();
-}
+  const stats = computed(() => {
+    const rows = rowsFT.value || [];
+    const total = rows.length;
+    const withCoordinates = rows.filter(
+      (r) => r && r.coordinates && String(r.coordinates).trim() !== ''
+    ).length;
+    const withPhone = rows.filter(
+      (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
+    ).length;
+    const withGuards = rows.filter(
+      (r) =>
+        r &&
+        r.guard_quantity !== null &&
+        r.guard_quantity !== undefined &&
+        String(r.guard_quantity).trim() !== '' &&
+        Number(r.guard_quantity) > 0
+    ).length;
 
-async function clearSelectedValue() {
-  selectedColumnValue.value = null;
-  repo.page = 1;
-  await fetchAll();
-}
+    return { total, withCoordinates, withPhone, withGuards };
+  });
 
-async function clearAllFilters() {
-  repo.Search = '';
-  searchField.value = null;
-  selectedColumnValue.value = null;
-  cardFilter.value = 'all';
-  filters.value = {};
-  repo.page = 1;
-
-  expanded.value = false;
-  selectedId.value = null;
-  detail.value = null;
-
-  await clearRelationQueries();
-  await fetchAll();
-}
-
-function handlePageChange(page) {
-  repo.page = page;
-  fetchAll();
-}
-
-function handlePerPageChange(perPage) {
-  repo.itemsPerPage = perPage;
-  repo.page = 1;
-  fetchAll();
-}
-
-usePageRefresh('/app/banks', fetchAll);
-
-watch(
-  () => [relatedFilters.value.fifty_six_format_id, relatedFilters.value.open],
-  async ([id, open]) => {
-    if (!id) return;
-
-    await fetchAll();
-
-    if (open === 'peek') {
-      openPeek({ id });
+  const filteredRowsFT = computed(() => {
+    const base = rowsFT.value || [];
+    switch (cardFilter.value) {
+      case 'withCoordinates':
+        return base.filter((r) => r && r.coordinates && String(r.coordinates).trim() !== '');
+      case 'withPhone':
+        return base.filter(
+          (r) => r && r.responsible_phone && String(r.responsible_phone).trim() !== ''
+        );
+      case 'withGuards':
+        return base.filter(
+          (r) =>
+            r &&
+            r.guard_quantity !== null &&
+            r.guard_quantity !== undefined &&
+            String(r.guard_quantity).trim() !== '' &&
+            Number(r.guard_quantity) > 0
+        );
+      default:
+        return base;
     }
-  },
-  { immediate: true }
-);
+  });
 
-watch(
-  () => route.query,
-  async () => {
+  /* TABLE HEADERS – ALL INPUTS + map */
+  const headersFT = computed(() => [
+    { title: t('picture'), key: 'picture' },
+    { title: t('نام بانک'), key: 'bank_name' },
+    { title: t('نوع بانک'), key: 'bank_type' },
+    { title: t('مالک بانک'), key: 'bank_owner' },
+
+    { title: t('نام مسئول'), key: 'responsible_name' },
+    { title: t('نام پدر مسئول'), key: 'responsible_f_name' },
+    { title: t('وظیفه مسئول'), key: 'responsible_position' },
+    { title: t('شماره مسئول'), key: 'responsible_phone' },
+
+    { title: t('ولایت'), key: 'province' },
+    { title: t('زون'), key: 'zone' },
+    { title: t('ولسوالی'), key: 'district' },
+    { title: t('قریه'), key: 'village' },
+
+    { title: t('موقعیت مشخص'), key: 'specific_place' },
+    { title: t('مختصات'), key: 'coordinates' },
+    { title: t('د کومو ادارو معاشات تادیه کوی'), key: 'which_offices_sallary' },
+    { title: t('تعداد محافظین'), key: 'guard_quantity' },
+
+    { title: t('کود منبع'), key: 'resource_id' },
+    { title: t('شماره منبع'), key: 'resource_phone' },
+
+    { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('یادداشت'), key: 'note' },
+  ]);
+
+  /* TOP GROUPS */
+  const topGroups = computed(() => [
+    { title: t('بانک'), keys: ['bank_name', 'bank_type', 'bank_owner'] },
+    {
+      title: t('مسئول'),
+      keys: ['responsible_name', 'responsible_f_name', 'responsible_position', 'responsible_phone'],
+    },
+    { title: t('آدرس'), keys: ['province', 'zone', 'district', 'village'] },
+    { title: t('موقعیت/مختصات'), keys: ['specific_place', 'coordinates'] },
+    { title: t('محافظین/یادداشت'), keys: ['guard_quantity', 'note', 'Province_addr'] },
+    { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
+  ]);
+
+  const filters = ref({});
+
+  /* Peek */
+  const expanded = ref(false);
+  const selectedId = ref(null);
+  const loadingOne = ref(false);
+  const detail = ref(null);
+
+  async function fetchOne(id) {
+    loadingOne.value = true;
+    try {
+      if (typeof repo.FetchBankData === 'function') {
+        await repo.FetchBankData(id);
+        const single = Array.isArray(repo.Bank) ? repo.Bank[0] : repo.Bank;
+        detail.value = single || {};
+      } else {
+        await fetchAll();
+        const list = rowsFT.value || [];
+        detail.value = list.find((r) => r.id === id) || {};
+      }
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت معلومات بانک'));
+    } finally {
+      loadingOne.value = false;
+    }
+  }
+
+  function openPeek(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    selectedId.value = row.id;
+    expanded.value = true;
+    fetchOne(row.id);
+  }
+
+  /* navigation */
+  function goCreate() {
+    router.push('/app/bankform');
+  }
+
+  function goEdit(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    router.push(`/app/bankform/${row.id}`);
+  }
+
+  /* delete with dialog */
+  const deleteDialog = ref(false);
+  const deleteTarget = ref(null);
+
+  function openDeleteDialog(payload) {
+    const row = getRow(payload);
+    if (!row?.id) return;
+    deleteTarget.value = row;
+    deleteDialog.value = true;
+  }
+
+  async function handleDeleteConfirmed(target) {
+    const row = target || deleteTarget.value;
+    deleteDialog.value = false;
+    if (!row?.id) return;
+    try {
+      await repo.DeleteBank?.(row.id);
+      await fetchAll();
+      showErrorMessage(t('حذف شد'));
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در حذف'));
+    } finally {
+      deleteTarget.value = null;
+    }
+  }
+
+  /* fetch all */
+  async function fetchAll() {
+    try {
+      await repo.FetchBanksData?.({
+        search: repo.Search,
+        search_field: normalizedSearchField.value || route.query.search_field || null,
+search_value: normalizedSearchValue.value || route.query.search_value || null,
+        fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
+        source: relatedFilters.value.source,
+        open: relatedFilters.value.open,
+      });
+    } catch (e) {
+      console.error(e);
+      showErrorMessage(t('خطا در دریافت فهرست بانک‌ها'));
+    }
+  }
+
+  async function fetchColumnValues(field, q = '') {
+    try {
+      const normalizedField =
+        typeof field === 'string' ? field : field?.key ?? field?.value ?? null;
+
+      if (!normalizedField) return [];
+
+      const res = await repo.FetchBankFilterOptions?.({
+        field: normalizedField,
+        q,
+      });
+
+      return res?.data?.options || [];
+    } catch (e) {
+      console.error('fetchColumnValues error', e);
+      return [];
+    }
+  }
+
+  async function handleSearch() {
     repo.page = 1;
     await fetchAll();
-  },
-  { deep: true }
-);
+  }
 
-/* init */
-onMounted(async () => {
-  await repo.GetResourceCode?.();
-  if (!relatedFilters.value.fifty_six_format_id) {
+  async function clearSearch() {
+    repo.Search = '';
+    repo.page = 1;
     await fetchAll();
   }
-});
+
+  async function clearSelectedValue() {
+    selectedColumnValue.value = null;
+    repo.page = 1;
+    await fetchAll();
+  }
+
+  async function clearAllFilters() {
+    repo.Search = '';
+    searchField.value = null;
+    selectedColumnValue.value = null;
+    cardFilter.value = 'all';
+    filters.value = {};
+    repo.page = 1;
+
+    expanded.value = false;
+    selectedId.value = null;
+    detail.value = null;
+
+    await clearRelationQueries();
+    await fetchAll();
+  }
+
+  function handlePageChange(page) {
+    repo.page = page;
+    fetchAll();
+  }
+
+  function handlePerPageChange(perPage) {
+    repo.itemsPerPage = perPage;
+    repo.page = 1;
+    fetchAll();
+  }
+
+  usePageRefresh('/app/banks', fetchAll);
+
+  watch(
+    () => [relatedFilters.value.fifty_six_format_id, relatedFilters.value.open],
+    async ([id, open]) => {
+      if (!id) return;
+
+      await fetchAll();
+
+      if (open === 'peek') {
+        openPeek({ id });
+      }
+    },
+    { immediate: true }
+  );
+
+  watch(
+    () => route.query,
+    async () => {
+      repo.page = 1;
+      await fetchAll();
+    },
+    { deep: true }
+  );
+
+  /* init */
+  onMounted(async () => {
+    await repo.GetResourceCode?.();
+    if (!relatedFilters.value.fifty_six_format_id) {
+      await fetchAll();
+    }
+  });
 </script>
 
 <style scoped>
-.ga-2 {
-  gap: 8px;
-}
+  .ga-2 {
+    gap: 8px;
+  }
 
-/* Background like Heist */
-.page-bg {
-  background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
-  font-family: inherit;
-}
+  /* Background like Heist */
+  .page-bg {
+    background: radial-gradient(circle at top, #f2f5ff 0, #f5f5f5 40%, #fafafa 100%);
+    font-family: inherit;
+  }
 
-/* Stats cards */
-.stat-card {
-  cursor: pointer;
-  border-radius: 14px;
-  border: 1px solid rgba(33, 150, 243, 0.08);
-  background: #ffffff;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
-    background-color 0.2s ease;
-}
+  /* Stats cards */
+  .stat-card {
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(33, 150, 243, 0.08);
+    background: #ffffff;
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
 
-.stat-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-  border-color: rgba(33, 150, 243, 0.35);
-}
+  .stat-card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+    border-color: rgba(33, 150, 243, 0.35);
+  }
 
-.stat-card--active {
-  border-color: rgba(25, 118, 210, 0.9);
-  background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
-}
+  .stat-card--active {
+    border-color: rgba(25, 118, 210, 0.9);
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 60%);
+  }
 
-.stat-card-body {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-}
+  .stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
 
-.stat-card-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e3f2fd;
-}
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+  }
 
-.stat-card-text {
-  display: flex;
-  flex-direction: column;
-}
+  .stat-card-text {
+    display: flex;
+    flex-direction: column;
+  }
 
-.stat-card-title {
-  font-size: 13px;
-  font-weight: 700;
-}
+  .stat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+  }
 
-.stat-card-subtitle {
-  font-size: 11px;
-  color: #666;
-}
+  .stat-card-subtitle {
+    font-size: 11px;
+    color: #666;
+  }
 </style>

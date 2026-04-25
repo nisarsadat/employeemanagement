@@ -1014,6 +1014,26 @@ private function applyFinanceQueueFilter($query, bool $onlyFinanceQueue = false)
 
             $information->save();
 
+            $removedDocumentIds = $request->input('removed_document_ids', []);
+
+            if (!empty($removedDocumentIds)) {
+                $docsToDelete = $information->documents()
+                    ->whereIn('id', $removedDocumentIds)
+                    ->get();
+
+                foreach ($docsToDelete as $doc) {
+                    if ($doc->file_path) {
+                        Storage::disk('public')->delete($doc->file_path);
+                    }
+
+                    $doc->delete();
+                }
+
+                $changes['documents_removed'] = [
+                    'old' => $docsToDelete->pluck('file_name')->values()->all(),
+                    'new' => null,
+                ];
+            }
             if (
                 array_key_exists('result', $validated) &&
                 !is_null($validated['result']) &&

@@ -369,7 +369,45 @@ export const useOilRepository = defineStore('OilRepository', {
       await axios.delete(`/expense-oils/${id}`);
       await this.FetchExpenseOils({ page: this.page, itemsPerPage: this.itemsPerPage });
     },
+    async OpenExpenseOilsPrintView(payload = {}) {
+      const {
+        filters = {},
+        selected_columns = [],
+        column_labels = {},
+        print_labels = {},
+        locale = 'fa',
+        title = 'چاپ مصرف تیل',
+        file_name,
+        module,
+        ...directFilters
+      } = payload;
 
+      const params = {
+        // supports both payload.filters and direct payload filters
+        ...directFilters,
+        ...filters,
+
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+      };
+
+      const response = await axios.get('/expense-oils/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) return;
+
+      printWindow.document.open();
+      printWindow.document.write(response.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     ResetExpenseOilsFilters() {
       this.page = 1;
       this.itemsPerPage = 10;

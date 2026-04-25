@@ -75,6 +75,7 @@
           color="primary"
           variant="flat"
           rounded="lg"
+          size="x-large"
           block
           class="text-none"
           prepend-icon="mdi-filter"
@@ -110,6 +111,7 @@
         <v-btn
           color="orange"
           rounded="lg"
+          size="x-large"
           block
           class="text-none"
           prepend-icon="mdi-filter-remove"
@@ -124,6 +126,7 @@
           variant="flat"
           class="text-none"
           rounded="lg"
+          size="x-large"
           block
           prepend-icon="mdi-microsoft-excel"
           :loading="excelDownloading"
@@ -140,6 +143,7 @@
           variant="flat"
           class="text-none"
           rounded="lg"
+          size="x-large"
           block
           prepend-icon="mdi-plus"
           @click="goCreate"
@@ -153,6 +157,7 @@
           variant="flat"
           class="text-none"
           rounded="lg"
+          size="x-large"
           block
           prepend-icon="mdi-printer"
           @click="printAll"
@@ -532,7 +537,14 @@
       :is-rtl="isRtl"
       @confirm="handleDeleteConfirmed"
     />
-
+    <ResourceFiftySixFormatDialog
+      v-model="fiftySixDialog"
+      :owner-id="fiftySixDialogResourceId"
+      :owner-code="fiftySixDialogResourceCode"
+      filter-key="resource_id"
+      source="resources"
+      :is-rtl="isRtl"
+    />
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
@@ -562,6 +574,11 @@
   import { useRelatedRouteFilters } from '@/composables/useRelatedRouteFilters';
   import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
   import { useTablePrintExport } from '@/composables/useTablePrintExport';
+  import ResourceFiftySixFormatDialog from '@/components/ResourceFiftySixFormatDialog.vue';
+
+  const fiftySixDialog = ref(false);
+  const fiftySixDialogResourceId = ref(null);
+  const fiftySixDialogResourceCode = ref(null);
   const route = useRoute();
   const router = useRouter();
   const { t, locale } = useI18n();
@@ -810,7 +827,10 @@
   function goResourceFiftySixFormats(payload) {
     const row = getRow(payload);
     if (!row?.id) return;
-    router.push({ path: '/app/fifthyformatsroute', query: { resource_id: row.id } });
+
+    fiftySixDialogResourceId.value = row.id;
+    fiftySixDialogResourceCode.value = row.code_number || row.id;
+    fiftySixDialog.value = true;
   }
 
   const totalCount = computed(() => Number(repo.resourceStats?.total_count) || 0);
@@ -1167,12 +1187,6 @@
 
   onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleCtrlP);
-  });
-
-  onMounted(async () => {
-    await fetchYearItemsFromDb();
-    await fetchMonthItemsFromDb(null);
-    await fetchAll();
   });
 </script>
 

@@ -259,7 +259,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('office-employees/inactive',       [AE::class, 'inactive']);
 
     Route::get('officeemployees/date-options', [OfficeEmployeeController::class, 'dateOptions']);
-
+    Route::get('/finances/print', [FinanceController::class, 'printView']);
     Route::get('/office-employees/print', [OfficeEmployeeController::class, 'printView']);
     Route::get('/captive-deliveries/print', [CaptiveDeliveryController::class, 'printView']);
     Route::get('informations/print', [InformationController::class, 'printView']);
@@ -271,7 +271,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('office-employees/{officeEmployee}/documents/download-all', [OfficeEmployeeDocumentController::class, 'downloadAll']);
     Route::delete('office-employees/{officeEmployee}/documents/{document}', [OfficeEmployeeController::class, 'destroyDocument']);
-
+    Route::get('/expense-oils/print', [ExpenseOilController::class, 'printView']);
+    Route::get('/resources/{id}/fifty-six-format-counts', [ResourceController::class, 'fiftySixFormatCounts']);
     Route::get('/resources/print', [ResourceController::class, 'printView'])
     ->name('resources.print');
     // resources (API) => module: resources_api

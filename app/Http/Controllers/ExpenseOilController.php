@@ -682,4 +682,117 @@ class ExpenseOilController extends Controller
         $acc->quantity = (float) $acc->quantity + $delta;
         $acc->save();
     }
+    private function formatExpenseOilPrintDate($value): string
+{
+    if (empty($value)) {
+        return '';
+    }
+
+    try {
+        $carbon = Carbon::parse($value);
+
+        [$jy, $jm, $jd] = $this->gregorianToJalali(
+            (int) $carbon->format('Y'),
+            (int) $carbon->format('m'),
+            (int) $carbon->format('d')
+        );
+
+        return sprintf('%04d/%02d/%02d', $jy, $jm, $jd);
+    } catch (\Throwable $e) {
+        $stringValue = trim((string) $value);
+
+        if (preg_match('/(\d{4}[\/-]\d{2}[\/-]\d{2})/', $stringValue, $matches)) {
+            return str_replace('-', '/', $matches[1]);
+        }
+
+        return trim(preg_replace('/\s*\d{2}:\d{2}:\d{2}$/', '', $stringValue));
+    }
+}
+public function printView(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $this->resolveSearchField($request->get('search_field'));
+    $searchValue = trim((string) $request->get('search_value', ''));
+
+    $year  = $request->filled('year') ? (int) $request->get('year') : null;
+    $month = $request->filled('month') ? (int) $request->get('month') : null;
+
+    $accountId  = $request->get('oil_account_id');
+    $employeeId = $request->get('employee_id');
+
+    $dateField = $request->get('date_field', 'date');
+    if (!in_array($dateField, ['date', 'created_at', 'updated_at'], true)) {
+        $dateField = 'date';
+    }
+
+    $query = ExpenseOil::query()
+        ->with([
+            'account:id,name,quantity',
+            'employee:id,name,code_number,phone_number',
+        ])
+        ->orderByDesc('id');
+
+    // Same filters as index()
+    $this->applyExpenseOilSearch($query, $search, $searchField, $searchValue);
+
+    if (is_numeric($accountId) && (int) $accountId > 0) {
+        $query->where('oil_account_id', (int) $accountId);
+    }
+
+    if (is_numeric($employeeId) && (int) $employeeId > 0) {
+        $query->where('employee_id', (int) $employeeId);
+    }
+
+    $this->applyShamsiDateFilter($query, $year, $month, $dateField);
+
+    $rows = $query
+        ->get()
+        ->map(function ($expenseOil, $index) {
+            $expenseOil->index = $index + 1;
+
+            $expenseOil->employee_code =
+                $expenseOil->employee?->code_number
+                ?? $expenseOil->employee_id
+                ?? '-';
+
+            $expenseOil->employee_name =
+                $expenseOil->employee?->name
+                ?? '-';
+
+            $expenseOil->employee_phone =
+                $expenseOil->employee?->phone_number
+                ?? '-';
+
+            $expenseOil->account_name =
+                $expenseOil->account?->name
+                ?? '-';
+
+            $expenseOil->account =
+                $expenseOil->account?->name
+                ?? '-';
+
+            $expenseOil->date = $this->formatExpenseOilPrintDate($expenseOil->date);
+            $expenseOil->created_at = $this->formatExpenseOilPrintDate($expenseOil->created_at);
+            $expenseOil->updated_at = $this->formatExpenseOilPrintDate($expenseOil->updated_at);
+
+            $expenseOil->signature = '-';
+
+            return $expenseOil;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ مصرف تیل');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

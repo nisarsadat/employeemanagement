@@ -377,7 +377,19 @@ class CaptiveDeliveryController extends Controller
 
             $captive->save();
 
-            if ($request->hasFile('picture')) {
+            if ($request->boolean('remove_picture')) {
+                if ($captive->picture) {
+                    Storage::disk('public')->delete($captive->picture);
+                }
+
+                $captive->update(['picture' => null]);
+
+                $changes['picture'] = [
+                    'old' => $original['picture'] ?? null,
+                    'new' => null,
+                ];
+            }
+            if (!$request->boolean('remove_picture') && $request->hasFile('picture')) {
                 if ($captive->picture) {
                     Storage::disk('public')->delete($captive->picture);
                 }

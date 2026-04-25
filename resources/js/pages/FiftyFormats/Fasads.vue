@@ -19,7 +19,7 @@
             :column-label="t('ستون جستجو')"
             :all-columns-label="t('همه ستون‌ها')"
             :value-label="t('ارزش ستون')"
-            :exclude-keys="['picture', 'map', 'resource_code', 'resource_phone']"
+            :exclude-keys="['picture', 'map', 'resource_phone']"
             :fetch-column-values="fetchColumnValues"
             @search="handleSearch"
             @clearSearch="clearSearch"
@@ -185,19 +185,19 @@
       </template>
 
       <!-- 🔗 RESOURCE CODE CLICKABLE -->
-      <template #cell-resource_code="{ row }">
+      <template #cell-resource_id="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
           <template #activator="{ props: tooltipProps }">
             <v-btn
               v-bind="tooltipProps"
-              v-if="row.resource_code"
+              v-if="row.resource_id"
               variant="tonal"
               color="primary"
               append-icon="mdi-account"
               size="default"
               @click.stop="goToResource(row)"
             >
-              {{ row.resource_code }}
+              {{ row.resource_id }}
             </v-btn>
             <span v-else>-</span>
           </template>
@@ -406,7 +406,7 @@
       (r) => r?.phone_number && String(r.phone_number).trim() !== ''
     ).length;
     const withResource = rows.filter(
-      (r) => r?.resource_code && String(r.resource_code).trim() !== ''
+      (r) => r?.resource_id && String(r.resource_id).trim() !== ''
     ).length;
     return { total, withCoordinates, withPhone, withResource };
   });
@@ -417,7 +417,7 @@
     if (cardFilter.value === 'withPhone')
       return base.filter((r) => r?.phone_number && String(r.phone_number).trim() !== '');
     if (cardFilter.value === 'withResource')
-      return base.filter((r) => r?.resource_code && String(r.resource_code).trim() !== '');
+      return base.filter((r) => r?.resource_id && String(r.resource_id).trim() !== '');
     return base;
   });
 
@@ -465,7 +465,7 @@
     { title: t('وظیفه فعلی'), key: 'now_job' },
     { title: t('تفصیل'), key: 'tafseel' },
 
-    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('کود منبع'), key: 'resource_id' },
     { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
@@ -496,7 +496,7 @@
       title: t('سوابق'),
       keys: ['last_band_reason', 'band_place', 'friends_number', 'bond_distance'],
     },
-    { title: t('منبع'), keys: ['resource_code', 'resource_phone'] },
+    { title: t('منبع'), keys: ['resource_id', 'resource_phone'] },
   ]);
 
   const filters = ref({});
@@ -613,8 +613,9 @@
     try {
       await repo.FetchFasadsData?.({
         search: repo.Search,
-        search_field: normalizedSearchField.value,
-        search_value: normalizedSearchValue.value,
+        search_field: normalizedSearchField.value || route.query.search_field || null,
+        search_value: normalizedSearchValue.value || route.query.search_value || null,
+
         fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
         source: relatedFilters.value.source,
         open: relatedFilters.value.open,

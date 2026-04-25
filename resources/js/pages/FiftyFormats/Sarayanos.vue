@@ -447,7 +447,7 @@ const headersFT = computed(() => [
 
   { title: t('تعداد کارگران'), key: 'employee_quantity' },
 
-  { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('کود منبع'), key: 'resource_id' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 
   { title: t('نقشه'), key: 'map', sortable: false },

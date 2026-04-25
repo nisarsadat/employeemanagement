@@ -72,7 +72,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('اضافه کردن زندانی جدید') }}
+            {{ t('حدید') }}
           </v-btn>
         </v-col>
 

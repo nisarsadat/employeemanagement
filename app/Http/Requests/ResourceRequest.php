@@ -14,40 +14,27 @@ class ResourceRequest extends FormRequest
 
     public function rules(): array
     {
-        $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
 
         return [
             'picture' => ['nullable', 'image'],
 
             // intro
-            'name' => $isUpdate
-                ? [Rule::excludeIf(true)]
-                : ['required', 'string'],
+            'name' =>  ['required', 'string'],
 
-            'father_name' => $isUpdate
-                ? [Rule::excludeIf(true)]
-                : ['nullable', 'string'],
+            'father_name' =>  ['nullable', 'string'],
 
-            'grand_father_name' => $isUpdate
-                ? [Rule::excludeIf(true)]
-                : ['nullable', 'string'],
+            'grand_father_name' =>  ['nullable', 'string'],
 
             'nick_name' => ['nullable', 'string'],
             'code_number' => ['nullable', 'string'],
             'tazkira' => ['nullable', 'string'],
 
             // main address
-            'main_province' => $isUpdate
-                ? [Rule::excludeIf(true)]
-                : ['nullable', 'string'],
+            'main_province' =>  ['nullable', 'string'],
 
-            'main_district' => $isUpdate
-                ? [Rule::excludeIf(true)]
-                : ['nullable', 'string'],
+            'main_district' =>  ['nullable', 'string'],
 
-            'main_village' => $isUpdate
-                ? [Rule::excludeIf(true)]
-                : ['nullable', 'string'],
+            'main_village' =>  ['nullable', 'string'],
 
             'remove_picture' => ['nullable', 'in:1'],
             // current address
@@ -79,9 +66,7 @@ class ResourceRequest extends FormRequest
             'resource_saved_date' => ['nullable', 'string'],
             'resource_activity_type' => ['nullable', 'string'],
 
-            'office_employee_id' => $isUpdate
-                ? [Rule::excludeIf(true)]
-                : ['nullable', 'exists:office_employees,id'],
+            'office_employee_id' =>  ['nullable', 'exists:office_employees,id'],
 
             'resource_cover' => ['nullable', 'string'],
             'language' => ['nullable', 'string'],
@@ -102,11 +87,5 @@ class ResourceRequest extends FormRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            // no prohibited messages needed anymore,
-            // because these fields are silently ignored on update
-        ];
-    }
+   
 }

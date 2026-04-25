@@ -23,7 +23,7 @@
             :column-label="t('ستون جستجو')"
             :all-columns-label="t('همه ستون‌ها')"
             :value-label="t('ارزش ستون')"
-            :exclude-keys="['picture', 'map', 'resource_code', 'resource_phone']"
+            :exclude-keys="['picture', 'map',  'resource_phone']"
             :fetch-column-values="fetchColumnValues"
             @search="handleSearch"
             @clearSearch="clearSearch"
@@ -459,7 +459,7 @@
 
     { title: t('تعداد محافظین'), key: 'guard_quantity' },
 
-    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('کود منبع'), key: 'resource_id' },
     { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
@@ -559,8 +559,8 @@
     try {
       await repo.FetchApartmentsData?.({
         search: repo.Search,
-        search_field: normalizedSearchField.value,
-        search_value: normalizedSearchValue.value,
+        search_field: normalizedSearchField.value || route.query.search_field || null,
+search_value: normalizedSearchValue.value || route.query.search_value || null,
         ...route.query,
       });
     } catch (e) {

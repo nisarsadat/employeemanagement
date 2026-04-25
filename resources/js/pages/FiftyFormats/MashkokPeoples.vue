@@ -499,7 +499,7 @@ const headersFT = computed(() => [
   { title: t('نوعیت مشکوکیت'), key: 'mashkokyat_type' },
   { title: t('شماره تماس'), key: 'phone_number' },
 
-  { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('کود منبع'), key: 'resource_id' },
   { title: t('شماره منبع'), key: 'resource_phone' },
 
   { title: t('تفصیل'), key: 'tafseel' },
@@ -623,8 +623,8 @@ async function fetchAll() {
   try {
     await repo.FetchMashkokPeoplesData?.({
       search: repo.Search,
-      search_field: normalizedSearchField.value,
-      search_value: normalizedSearchValue.value,
+   search_field: normalizedSearchField.value || route.query.search_field || null,
+search_value: normalizedSearchValue.value || route.query.search_value || null,
       source: relatedFilters.value.source,
       open: relatedFilters.value.open,
       resource_id: relatedFilters.value.resource_id,

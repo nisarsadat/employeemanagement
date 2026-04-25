@@ -461,7 +461,7 @@
     { title: t('سابقه جرم'), key: 'history_form' },
     { title: t('تنظیم/ وابستگی'), key: 'tanzim' },
 
-    { title: t('کود منبع'), key: 'resource_code' },
+    { title: t('کود منبع'), key: 'resource_id' },
     { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
@@ -580,8 +580,8 @@ function goToResource(row) {
     try {
       await repo.FetchWakilanosData?.({
         search: repo.Search,
-        search_field: normalizedSearchField.value,
-        search_value: normalizedSearchValue.value,
+search_field: normalizedSearchField.value || route.query.search_field || null,
+search_value: normalizedSearchValue.value || route.query.search_value || null,
         ...route.query,
       });
     } catch (e) {
