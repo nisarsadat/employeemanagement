@@ -383,4 +383,242 @@ class CaptiveController extends Controller
             return response()->noContent();
         });
     }
+    private function printSearchFields(): array
+{
+    $table = (new Captive())->getTable();
+
+    $candidates = [
+        'information_id',
+        'name',
+        'picture',
+        'nick_name',
+        'father_name',
+        'main_province',
+        'main_district',
+        'main_village',
+        'now_province',
+        'now_zone',
+        'now_district',
+        'now_village',
+        'specific_place',
+        'street_number',
+        'home_number',
+        'specific_form',
+        'band_distince',
+        'now_activity',
+        'phone_number',
+        'note',
+        'Province_addr',
+        'coordinates',
+        'resource_id',
+
+        // relation display fields
+        'resource_code',
+        'resource_phone_number',
+    ];
+
+    return array_values(array_filter($candidates, function ($field) use ($table) {
+        return in_array($field, ['resource_code', 'resource_phone_number'], true)
+            || Schema::hasColumn($table, $field);
+    }));
+}
+
+private function gregorianToJalali(int $gy, int $gm, int $gd): array
+{
+    $g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+
+    if ($gy > 1600) {
+        $jy = 979;
+        $gy -= 1600;
+    } else {
+        $jy = 0;
+        $gy -= 621;
+    }
+
+    $gy2 = ($gm > 2) ? ($gy + 1) : $gy;
+    $days = (365 * $gy)
+        + intdiv(($gy2 + 3), 4)
+        - intdiv(($gy2 + 99), 100)
+        + intdiv(($gy2 + 399), 400)
+        - 80
+        + $gd
+        + $g_d_m[$gm - 1];
+
+    $jy += 33 * intdiv($days, 12053);
+    $days %= 12053;
+
+    $jy += 4 * intdiv($days, 1461);
+    $days %= 1461;
+
+    if ($days > 365) {
+        $jy += intdiv(($days - 1), 365);
+        $days = ($days - 1) % 365;
+    }
+
+    if ($days < 186) {
+        $jm = 1 + intdiv($days, 31);
+        $jd = 1 + ($days % 31);
+    } else {
+        $jm = 7 + intdiv(($days - 186), 30);
+        $jd = 1 + (($days - 186) % 30);
+    }
+
+    return [$jy, $jm, $jd];
+}
+
+private function cleanPrintDate($value): string
+{
+    if ($value === null || trim((string) $value) === '') {
+        return '';
+    }
+
+    $raw = trim((string) $value);
+
+    if (preg_match('/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/', $raw, $matches)) {
+        try {
+            [$jy, $jm, $jd] = $this->gregorianToJalali(
+                (int) $matches[1],
+                (int) $matches[2],
+                (int) $matches[3]
+            );
+
+            return sprintf('%04d/%02d/%02d', $jy, $jm, $jd);
+        } catch (\Throwable $e) {
+            return str_replace('-', '/', $matches[0]);
+        }
+    }
+
+    $raw = preg_replace('/\s+\d{2}:\d{2}:\d{2}$/', '', $raw);
+    $raw = preg_replace('/T\d{2}:\d{2}:\d{2}(\.\d+)?Z?$/', '', $raw);
+
+    return trim($raw);
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search      = trim((string) $request->query('search', ''));
+    $searchField = trim((string) $request->query('search_field', ''));
+    $searchValue = trim((string) $request->query('search_value', ''));
+    $resourceId  = $request->query('resource_id');
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($x) use ($search) {
+            $x->where('captives.name', 'like', "%{$search}%")
+                ->orWhere('captives.father_name', 'like', "%{$search}%")
+                ->orWhere('captives.nick_name', 'like', "%{$search}%")
+                ->orWhere('captives.main_province', 'like', "%{$search}%")
+                ->orWhere('captives.main_district', 'like', "%{$search}%")
+                ->orWhere('captives.main_village', 'like', "%{$search}%")
+                ->orWhere('captives.now_province', 'like', "%{$search}%")
+                ->orWhere('captives.now_zone', 'like', "%{$search}%")
+                ->orWhere('captives.now_district', 'like', "%{$search}%")
+                ->orWhere('captives.now_village', 'like', "%{$search}%")
+                ->orWhere('captives.specific_place', 'like', "%{$search}%")
+                ->orWhere('captives.street_number', 'like', "%{$search}%")
+                ->orWhere('captives.home_number', 'like', "%{$search}%")
+                ->orWhere('captives.specific_form', 'like', "%{$search}%")
+                ->orWhere('captives.band_distince', 'like', "%{$search}%")
+                ->orWhere('captives.now_activity', 'like', "%{$search}%")
+                ->orWhere('captives.phone_number', 'like', "%{$search}%")
+                ->orWhere('captives.note', 'like', "%{$search}%")
+                ->orWhere('captives.Province_addr', 'like', "%{$search}%")
+                ->orWhere('captives.coordinates', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone_number') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where("captives.{$searchField}", 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if ($resourceId !== null && $resourceId !== '') {
+        $query->where('captives.resource_id', $resourceId);
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = Captive::query()
+        ->leftJoin('resources', 'captives.resource_id', '=', 'resources.id')
+        ->select([
+            'captives.*',
+            'resources.code_number as resource_code',
+            'resources.phone_number as resource_phone_number',
+        ])
+        ->with([
+            'resource:id,name,code_number,phone_number',
+            'documents',
+        ]);
+
+    $this->applyPrintFilters($query, $request);
+
+    $dateColumns = [
+        'captive_date',
+        'date',
+        'from_date',
+        'to_date',
+        'created_at',
+        'updated_at',
+    ];
+
+    $rows = $query
+        ->orderByDesc('captives.id')
+        ->get()
+        ->map(function ($row) use ($dateColumns) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_code
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone_number =
+                $row->resource?->phone_number
+                ?? $row->resource_phone_number
+                ?? '-';
+
+            foreach ($dateColumns as $column) {
+                if (isset($row->{$column}) && trim((string) $row->{$column}) !== '') {
+                    $row->{$column} = $this->cleanPrintDate($row->{$column});
+                }
+            }
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ محبوسین رها شده');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

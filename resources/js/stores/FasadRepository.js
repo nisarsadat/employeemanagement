@@ -207,7 +207,47 @@ export const useFasadRepository = defineStore('FasadRepository', {
         throw e;
       }
     },
+    async OpenFasadsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'fasads-print',
+      };
+
+      const res = await axios.get('/fasads/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateFasad(id, data) {
       try {
         let res;
@@ -283,7 +323,35 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.loading = false;
       }
     },
+    async OpenSaeenFasadPrintView(payload = {}) {
+      const params = {
+        ...(payload.filters || {}),
 
+        selected_columns: payload.selected_columns || [],
+        column_labels: payload.column_labels || {},
+        print_labels: payload.print_labels || {},
+        locale: payload.locale || 'fa',
+        title: payload.title || '',
+        file_name: payload.file_name || 'saeen-fasad-print',
+      };
+
+      const res = await axios.get('/saeen-fasadas/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+
+      printWindow.focus();
+    },
     async FetchSaeenFasadFilterOptions(params = {}) {
       try {
         setContentType('application/json');
@@ -451,7 +519,47 @@ export const useFasadRepository = defineStore('FasadRepository', {
         throw e;
       }
     },
+    async OpenHeistsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'heists-print',
+      };
+
+      const res = await axios.get('/heists/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateHeist(id, data) {
       try {
         let res;
@@ -573,7 +681,47 @@ export const useFasadRepository = defineStore('FasadRepository', {
         throw e;
       }
     },
+    async OpenCaptivesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'captives-print',
+      };
+
+      const res = await axios.get('/captives/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateCaptive(id, data) {
       try {
         let res;
@@ -774,7 +922,45 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+    async OpenMulkanoPrintView(payload = {}) {
+      const {
+        selected_columns = [],
+        column_labels = {},
+        print_labels = {},
+        locale = 'fa',
+        title = '',
+        file_name = 'mulkanos-print',
+        module,
+        ...filters
+      } = payload;
 
+      const params = {
+        ...filters,
+
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+      };
+
+      const res = await axios.get('/mulkano/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     /* ============================ Entry Exit ============================ */
     async FetchEntryExitsData(params = {}) {
       this.loading = true;
@@ -896,7 +1082,45 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+    async OpenEntryExitPrintView(payload = {}) {
+      const {
+        selected_columns = [],
+        column_labels = {},
+        print_labels = {},
+        locale = 'fa',
+        title = '',
+        file_name = 'entry-exits-print',
+        module,
+        ...filters
+      } = payload;
 
+      const params = {
+        ...filters,
+
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+      };
+
+      const res = await axios.get('/entry-exits/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     /* ============================ Sarafyano ============================ */
     async FetchSarafyanosData(params = {}) {
       this.loading = true;
@@ -978,7 +1202,45 @@ export const useFasadRepository = defineStore('FasadRepository', {
         throw e;
       }
     },
+    async OpenSarafyanoPrintView(payload = {}) {
+      const {
+        selected_columns = [],
+        column_labels = {},
+        print_labels = {},
+        locale = 'fa',
+        title = '',
+        file_name = 'sarafyanos-print',
+        module,
+        ...filters
+      } = payload;
 
+      const params = {
+        ...filters,
+
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+      };
+
+      const res = await axios.get('/sarafyanos/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateSarafyano(id, data) {
       try {
         let res;
@@ -1100,7 +1362,45 @@ export const useFasadRepository = defineStore('FasadRepository', {
         throw e;
       }
     },
+    async OpenClubsPrintView(payload = {}) {
+      const {
+        selected_columns = [],
+        column_labels = {},
+        print_labels = {},
+        locale = 'fa',
+        title = '',
+        file_name = 'clubs-print',
+        module,
+        ...filters
+      } = payload;
 
+      const params = {
+        ...filters,
+
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+      };
+
+      const res = await axios.get('/clubs/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateClub(id, data) {
       try {
         let res;
@@ -1245,7 +1545,45 @@ export const useFasadRepository = defineStore('FasadRepository', {
         throw e;
       }
     },
+    async OpenMahajeratsPrintView(payload = {}) {
+      const {
+        selected_columns = [],
+        column_labels = {},
+        print_labels = {},
+        locale = 'fa',
+        title = '',
+        file_name = 'mahajerats-print',
+        module,
+        ...filters
+      } = payload;
 
+      const params = {
+        ...filters,
+
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+      };
+
+      const res = await axios.get('/mahajerats/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async DeleteMahajerat(id) {
       try {
         await axios.delete(`/mahajerats/${id}`);
@@ -1344,7 +1682,45 @@ export const useFasadRepository = defineStore('FasadRepository', {
         throw e;
       }
     },
+    async OpenSoldiersPrintView(payload = {}) {
+      const {
+        selected_columns = [],
+        column_labels = {},
+        print_labels = {},
+        locale = 'fa',
+        title = '',
+        file_name = 'soldiers-print',
+        module,
+        ...filters
+      } = payload;
 
+      const params = {
+        ...filters,
+
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+      };
+
+      const res = await axios.get('/soldiers/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateSoldier(id, data) {
       try {
         let res;

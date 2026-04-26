@@ -275,9 +275,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/resources/{id}/fifty-six-format-counts', [ResourceController::class, 'fiftySixFormatCounts']);
     Route::get('/resources/print', [ResourceController::class, 'printView'])
     ->name('resources.print');
+    Route::get('/saeen-fasadas/print', [SaeenFasadController::class, 'printView']);
+    Route::get('/fasads/print', [FasadController::class, 'printView']);
+    Route::get('/jawasis/print', [JawasisController::class, 'printView']);
+    Route::get('/heists/print', [HeistController::class, 'printView']);
+    Route::get('/captives/print', [CaptiveController::class, 'printView']);
+    Route::get('/mulkano/print', [MulkanoController::class, 'printView']);
+    Route::get('/entry-exits/print', [EntryExitController::class, 'printView']);
+    Route::get('/sarafyanos/print', [SarafyanoController::class, 'printView']);
+    Route::get('/clubs/print', [ClubsController::class, 'printView']);
+    Route::get('/mahajerats/print', [MahajeratController::class, 'printView']);
+    Route::get('/soldiers/print', [SoldierController::class, 'printView']);
     // resources (API) => module: resources_api
+    Route::get('/outgoing-incomings/print', [OutgoingIncomingController::class, 'printView']);
     protectResource('resources', 'resources_api', ResourceController::class);
-
+    Route::get('/khayrat-reports/print', [KhayratReportController::class, 'printView']);
     Route::get('fasads/filter-options', [FasadController::class, 'filterOptions']);
 
     Route::get('saeen-fasads/filter-options', [SaeenFasadController::class, 'filterOptions']);

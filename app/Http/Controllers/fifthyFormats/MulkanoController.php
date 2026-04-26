@@ -300,4 +300,165 @@ class MulkanoController extends Controller
             return response()->noContent();
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'name',
+        'picture',
+        'father_name',
+        'grand_father_name',
+        'main_province',
+        'main_district',
+        'main_village',
+        'now_province',
+        'now_zone',
+        'now_district',
+        'now_village',
+        'specific_place',
+        'street_number',
+        'home_number',
+        'guzar',
+        'tafseel_sahi',
+        'street_amount',
+        'old_job',
+        'new_job',
+        'agent_quantity',
+        'home_quantity',
+        'phone_number',
+        'Province_addr',
+        'coordinates',
+        'hawza',
+        'nahya',
+        'street',
+        'jorm_history',
+        'tanzim',
+        'notes',
+        'resource_id',
+        'resource_code',
+        'resource_phone_number',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search      = trim((string) $request->query('search', ''));
+    $searchField = trim((string) $request->query('search_field', ''));
+    $searchValue = trim((string) $request->query('search_value', ''));
+
+    $resourceId = $request->query('resource_id');
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($x) use ($search) {
+            $x->where('mulkanos.name', 'like', "%{$search}%")
+                ->orWhere('mulkanos.father_name', 'like', "%{$search}%")
+                ->orWhere('mulkanos.grand_father_name', 'like', "%{$search}%")
+                ->orWhere('mulkanos.main_province', 'like', "%{$search}%")
+                ->orWhere('mulkanos.main_district', 'like', "%{$search}%")
+                ->orWhere('mulkanos.main_village', 'like', "%{$search}%")
+                ->orWhere('mulkanos.now_province', 'like', "%{$search}%")
+                ->orWhere('mulkanos.now_zone', 'like', "%{$search}%")
+                ->orWhere('mulkanos.now_district', 'like', "%{$search}%")
+                ->orWhere('mulkanos.now_village', 'like', "%{$search}%")
+                ->orWhere('mulkanos.specific_place', 'like', "%{$search}%")
+                ->orWhere('mulkanos.street_number', 'like', "%{$search}%")
+                ->orWhere('mulkanos.home_number', 'like', "%{$search}%")
+                ->orWhere('mulkanos.guzar', 'like', "%{$search}%")
+                ->orWhere('mulkanos.tafseel_sahi', 'like', "%{$search}%")
+                ->orWhere('mulkanos.old_job', 'like', "%{$search}%")
+                ->orWhere('mulkanos.new_job', 'like', "%{$search}%")
+                ->orWhere('mulkanos.phone_number', 'like', "%{$search}%")
+                ->orWhere('mulkanos.jorm_history', 'like', "%{$search}%")
+                ->orWhere('mulkanos.tanzim', 'like', "%{$search}%")
+                ->orWhere('mulkanos.notes', 'like', "%{$search}%")
+                ->orWhere('mulkanos.coordinates', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone_number') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_id') {
+                $query->where('mulkanos.resource_id', 'like', "%{$value}%");
+            } else {
+                $query->where("mulkanos.{$searchField}", 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if (is_numeric($resourceId) && (int) $resourceId > 0) {
+        $query->where('mulkanos.resource_id', (int) $resourceId);
+    }
+
+    return $query;
+}
+
+private function cleanPrintValue($value): string
+{
+    if ($value === null || $value === '') {
+        return '';
+    }
+
+    $value = trim((string) $value);
+
+    return preg_replace('/\s+00:00:00$/', '', $value);
+}
+
+public function printView(Request $request)
+{
+    $query = Mulkano::query()
+        ->with(['resource:id,name,code_number,phone_number']);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone_number =
+                $row->resource?->phone_number
+                ?? '-';
+
+            foreach ($row->getAttributes() as $key => $value) {
+                if (is_string($value)) {
+                    $row->{$key} = $this->cleanPrintValue($value);
+                }
+            }
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ مُلکانو');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

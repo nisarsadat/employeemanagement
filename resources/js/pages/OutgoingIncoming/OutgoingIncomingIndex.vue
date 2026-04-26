@@ -56,7 +56,6 @@
             {{ t('ریست فلتر') }}
           </v-btn>
         </v-col>
-
         <v-col cols="12" sm="12" md="8" lg="8" class="pl-sm-2">
           <v-btn
             v-if="auth.can('outgoingincomming.create')"
@@ -70,6 +69,44 @@
             @click="goCreate"
           >
             {{ t('ثبت جدید') }}
+          </v-btn>
+        </v-col>
+        <v-col cols="12" sm="10">
+          <v-select
+            v-model="selectedPrintColumns"
+            :items="printableHeaderOptions"
+            item-title="title"
+            item-value="key"
+            multiple
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            class="bg-white"
+            hide-details
+            :label="t('ستون‌های چاپ')"
+            :menu-props="{ maxHeight: 400 }"
+          >
+            <template #selection="{ index }">
+              <span v-if="index === 0" class="text-body-2">
+                {{ selectedPrintColumns.length }}
+                {{ t('ستون انتخاب شده') }}
+              </span>
+            </template>
+          </v-select>
+        </v-col>
+
+        <v-col cols="12" sm="2">
+          <v-btn
+            color="error"
+            variant="flat"
+            rounded="lg"
+            size="large"
+            block
+            class="text-none"
+            prepend-icon="mdi-printer"
+            @click="printAll"
+          >
+            {{ t('چاپ') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -282,12 +319,13 @@
   import { useOutgoingIncomingRepository } from '@/stores/OutgoingIncomingRepository';
   import { useLoginRepository } from '@/stores/LoginRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
-
+  import { useTablePrintExport } from '@/composables/useTablePrintExport';
   const auth = useLoginRepository();
   const router = useRouter();
   const { t, locale } = useI18n();
   const repo = useOutgoingIncomingRepository();
-
+  const activeDocsType = ref(null);
+  const selectedPrintColumns = ref([]);
   const searchField = ref(null);
   const selectedColumnValue = ref(null);
 
@@ -394,6 +432,8 @@
   );
 
   function applyDocsTypeFilter(typeValue) {
+    activeDocsType.value = typeValue || null;
+
     const next = { ...(filters.value || {}) };
     delete next.__docsType;
 
@@ -570,7 +610,58 @@
 
     router.push(`/app/outgoingincomingform/${row.id}`);
   }
+  const printLabels = computed(() => ({
+    print: t('چاپ'),
+    record_count: t('تعداد ریکارد'),
+    index: t('شماره'),
+    no_data: t('معلومات برای چاپ موجود نیست'),
+    footer_note: '',
+  }));
 
+  const printableHeaderOptions = computed(() => {
+    return headersFT.value.filter((h) => !['actions'].includes(h.key));
+  });
+
+  function buildDefaultPrintColumns() {
+    return printableHeaderOptions.value.map((h) => h.key);
+  }
+
+  const { printAll } = useTablePrintExport({
+    repo: {
+      OpenResourcesPrintView: repo.OpenOutgoingIncomingPrintView,
+    },
+
+    moduleKey: 'outgoing-incomings',
+
+    getFilters: () => ({
+      search: repo.Search || '',
+      search_field: normalizedSearchField.value,
+      search_value: normalizedSearchValue.value,
+      docs_type: activeDocsType.value,
+    }),
+
+    getHeaders: () => headersFT.value,
+
+    getSelectedColumnKeys: () => selectedPrintColumns.value,
+
+    getTitle: () => t('چاپ مکتوب های صادره/وارده'),
+
+    getPrintLabels: () => printLabels.value,
+
+    getLocale: () => locale.value,
+
+    defaultFileName: 'outgoing-incomings-print',
+  });
+
+  watch(
+    printableHeaderOptions,
+    (newColumns) => {
+      if (!selectedPrintColumns.value.length) {
+        selectedPrintColumns.value = newColumns.map((c) => c.key);
+      }
+    },
+    { immediate: true }
+  );
   /* Delete */
   const deleteDialog = ref(false);
   const deleteTarget = ref(null);
@@ -604,6 +695,7 @@
   }
 
   onMounted(() => {
+    selectedPrintColumns.value = buildDefaultPrintColumns();
     fetchAll();
   });
 

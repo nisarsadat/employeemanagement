@@ -315,4 +315,135 @@ class SarafyanoController extends Controller
             return response()->noContent();
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'name',
+        'sarafi_name',
+        'sarafi_type',
+        'father_name',
+        'position',
+        'phone_number',
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'market_name',
+        'shop_number',
+        'cordinate',
+        'provinces_hawala',
+        'countries_hawala',
+        'employee_quantity',
+        'Province_addr',
+        'picture',
+        'notes',
+        'resource_id',
+        'resource_code',
+        'resource_phone_number',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search      = trim((string) $request->query('search', ''));
+    $searchField = trim((string) $request->query('search_field', ''));
+    $searchValue = trim((string) $request->query('search_value', ''));
+    $resourceId  = $request->query('resource_id');
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($x) use ($search) {
+            $x->where('name', 'like', "%{$search}%")
+                ->orWhere('sarafi_name', 'like', "%{$search}%")
+                ->orWhere('sarafi_type', 'like', "%{$search}%")
+                ->orWhere('father_name', 'like', "%{$search}%")
+                ->orWhere('position', 'like', "%{$search}%")
+                ->orWhere('phone_number', 'like', "%{$search}%")
+                ->orWhere('province', 'like', "%{$search}%")
+                ->orWhere('zone', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('village', 'like', "%{$search}%")
+                ->orWhere('specific_place', 'like', "%{$search}%")
+                ->orWhere('market_name', 'like', "%{$search}%")
+                ->orWhere('shop_number', 'like', "%{$search}%")
+                ->orWhere('cordinate', 'like', "%{$search}%")
+                ->orWhere('provinces_hawala', 'like', "%{$search}%")
+                ->orWhere('countries_hawala', 'like', "%{$search}%")
+                ->orWhere('employee_quantity', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('notes', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone_number') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if ($resourceId !== null && $resourceId !== '') {
+        $query->where('resource_id', $resourceId);
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = Sarafyano::query()
+        ->with([
+            'resource:id,name,code_number,phone_number',
+        ]);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone_number =
+                $row->resource?->phone_number
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ صرافیانو');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

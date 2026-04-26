@@ -54,6 +54,44 @@
             {{ t('خیریت جدید') }}
           </v-btn>
         </v-col>
+        <v-col cols="12" sm="10">
+          <v-select
+            v-model="selectedPrintColumns"
+            :items="printableHeaderOptions"
+            item-title="title"
+            item-value="key"
+            multiple
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            class="bg-white"
+            hide-details
+            :label="t('ستون‌های چاپ')"
+            :menu-props="{ maxHeight: 400 }"
+          >
+            <template #selection="{ index }">
+              <span v-if="index === 0" class="text-body-2">
+                {{ selectedPrintColumns.length }}
+                {{ t('ستون انتخاب شده') }}
+              </span>
+            </template>
+          </v-select>
+        </v-col>
+
+        <v-col cols="12" sm="2">
+          <v-btn
+            color="error"
+            variant="flat"
+            rounded="lg"
+            size="large"
+            block
+            class="text-none"
+            prepend-icon="mdi-printer"
+            @click="printAll"
+          >
+            {{ t('چاپ') }}
+          </v-btn>
+        </v-col>
       </v-row>
     </v-container>
 
@@ -78,18 +116,18 @@
       class="mx-2"
     >
       <!-- resource -->
-      <template #cell-resource_id="{ row }">
+      <template #cell-resource_display="{ row }">
         <div class="d-flex align-center justify-center w-100">
           <v-icon size="16" class="me-1" color="primary">mdi-account-badge</v-icon>
-          <span class="text-caption">{{ row.resource_id || '—' }}</span>
+          <span class="text-caption">{{ row.resource_display || '—' }}</span>
         </div>
       </template>
 
       <!-- office employee -->
-      <template #cell-office_employee_id="{ row }">
+      <template #cell-office_employee_display="{ row }">
         <div class="d-flex align-center justify-center w-100">
           <v-icon size="16" class="me-1" color="primary">mdi-account</v-icon>
-          <span class="text-caption">{{ row.office_employee_id || '—' }}</span>
+          <span class="text-caption">{{ row.office_employee_display || '—' }}</span>
         </div>
       </template>
 
@@ -195,7 +233,8 @@
   import { useKhayratReportRepository } from '@/stores/KhayratReportRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
-
+  import { useTablePrintExport } from '@/composables/useTablePrintExport';
+  const selectedPrintColumns = ref([]);
   usePageRefresh('/app/khayratreports', fetchAll);
   const auth = useLoginRepository();
   const { t, locale } = useI18n();
@@ -220,16 +259,21 @@
   const search = ref('');
   const rows = ref([]);
   const headersFT = computed(() => [
-    { title: t('منبع'), key: 'resource_id', align: 'center' },
-    { title: t('کارمند'), key: 'office_employee_id', align: 'center' },
+    { title: t('منبع'), key: 'resource_display', align: 'center' },
+    { title: t('کارمند'), key: 'office_employee_display', align: 'center' },
     { title: t('زون'), key: 'zone', align: 'center' },
     { title: t('حوزه'), key: 'hawza', align: 'center' },
     { title: t('محل مشخص'), key: 'specefic_place', align: 'center' },
     { title: t('تاریخ ثبت'), key: 'saved_date', align: 'center' },
   ]);
 
-  const rowsFT = computed(() => rows.value || []);
-
+  const rowsFT = computed(() =>
+    (rows.value || []).map((row) => ({
+      ...row,
+      resource_display: row.resource?.code_number || row.resource_id || '',
+      office_employee_display: row.officeEmployee?.code_number || row.office_employee_id || '',
+    }))
+  );
   function getRow(payload) {
     return payload?.raw ?? payload;
   }
@@ -302,7 +346,55 @@
     repo.page = p;
     fetchAll();
   }
+  const printLabels = computed(() => ({
+    print: t('چاپ'),
+    record_count: t('تعداد ریکارد'),
+    index: t('شماره'),
+    no_data: t('معلومات برای چاپ موجود نیست'),
+    footer_note: '',
+  }));
 
+  const printableHeaderOptions = computed(() => {
+    return headersFT.value.filter((h) => !['actions'].includes(h.key));
+  });
+
+  function buildDefaultPrintColumns() {
+    return printableHeaderOptions.value.map((h) => h.key);
+  }
+
+  const { printAll } = useTablePrintExport({
+    repo: {
+      OpenResourcesPrintView: repo.OpenKhayratReportsPrintView,
+    },
+
+    moduleKey: 'khayrat-reports',
+
+    getFilters: () => ({
+      search: search.value || '',
+    }),
+
+    getHeaders: () => headersFT.value,
+
+    getSelectedColumnKeys: () => selectedPrintColumns.value,
+
+    getTitle: () => t('چاپ گزارش خیرات'),
+
+    getPrintLabels: () => printLabels.value,
+
+    getLocale: () => locale.value,
+
+    defaultFileName: 'khayrat-reports-print',
+  });
+
+  watch(
+    printableHeaderOptions,
+    (newColumns) => {
+      if (!selectedPrintColumns.value.length) {
+        selectedPrintColumns.value = newColumns.map((c) => c.key);
+      }
+    },
+    { immediate: true }
+  );
   function handlePerPageChange(n) {
     repo.itemsPerPage = n;
     repo.perPage = n;
@@ -315,7 +407,10 @@
     fetchAll();
   });
 
-  onMounted(fetchAll);
+  onMounted(() => {
+    selectedPrintColumns.value = buildDefaultPrintColumns();
+    fetchAll();
+  });
 </script>
 
 <style scoped>

@@ -330,4 +330,143 @@ class MahajeratController extends Controller
             return response()->noContent();
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'information_id',
+        'name',
+        'father_name',
+        'scientific_level',
+        'main_province',
+        'main_district',
+        'main_village',
+        'picture',
+        'now_province',
+        'now_zone',
+        'now_district',
+        'now_vinage',
+        'specific_place',
+        'street_number',
+        'home_number',
+        'cordinates',
+        'country',
+        'male_amount',
+        'female_amount',
+        'phone_number',
+        'Province_addr',
+        'note',
+        'resource_id',
+        'resource_code',
+        'resource_phone_number',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search           = trim((string) $request->query('search', ''));
+    $searchField      = trim((string) $request->query('search_field', ''));
+    $searchValue      = trim((string) $request->query('search_value', ''));
+    $resourceId       = $request->query('resource_id');
+    $fiftySixFormatId = $request->query('fifty_six_format_id');
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($x) use ($search) {
+            $x->where('name', 'like', "%{$search}%")
+                ->orWhere('father_name', 'like', "%{$search}%")
+                ->orWhere('scientific_level', 'like', "%{$search}%")
+                ->orWhere('main_province', 'like', "%{$search}%")
+                ->orWhere('main_district', 'like', "%{$search}%")
+                ->orWhere('main_village', 'like', "%{$search}%")
+                ->orWhere('now_province', 'like', "%{$search}%")
+                ->orWhere('now_zone', 'like', "%{$search}%")
+                ->orWhere('now_district', 'like', "%{$search}%")
+                ->orWhere('now_vinage', 'like', "%{$search}%")
+                ->orWhere('specific_place', 'like', "%{$search}%")
+                ->orWhere('street_number', 'like', "%{$search}%")
+                ->orWhere('home_number', 'like', "%{$search}%")
+                ->orWhere('cordinates', 'like', "%{$search}%")
+                ->orWhere('country', 'like', "%{$search}%")
+                ->orWhere('male_amount', 'like', "%{$search}%")
+                ->orWhere('female_amount', 'like', "%{$search}%")
+                ->orWhere('phone_number', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone_number') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if ($resourceId !== null && $resourceId !== '') {
+        $query->where('resource_id', $resourceId);
+    }
+
+    if (is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0) {
+        $query->where('id', (int) $fiftySixFormatId);
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = Mahajerat::query()
+        ->with([
+            'resource:id,name,code_number,phone_number',
+        ]);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone_number =
+                $row->resource?->phone_number
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ مهاجرت');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

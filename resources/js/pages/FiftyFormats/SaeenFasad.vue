@@ -21,7 +21,7 @@
             :column-label="t('ستون جستجو')"
             :all-columns-label="t('همه ستون‌ها')"
             :value-label="t('ارزش ستون')"
-            :exclude-keys="['picture', 'map', 'resource_code', 'resource_phone_number']"
+            :exclude-keys="['picture', 'map',  'resource_phone_number']"
             :fetch-column-values="fetchColumnValues"
             @search="handleSearch"
             @clearSearch="clearSearch"
@@ -71,6 +71,44 @@
             @click="goCreate"
           >
             {{ t('نوی') }}
+          </v-btn>
+        </v-col>
+        <v-col cols="12" sm="10">
+          <v-select
+            v-model="selectedPrintColumns"
+            :items="printableHeaderOptions"
+            item-title="title"
+            item-value="key"
+            multiple
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            class="bg-white"
+            hide-details
+            :label="t('ستون‌های چاپ')"
+            :menu-props="{ maxHeight: 400 }"
+          >
+            <template #selection="{ index }">
+              <span v-if="index === 0" class="text-body-2">
+                {{ selectedPrintColumns.length }}
+                {{ t('ستون انتخاب شده') }}
+              </span>
+            </template>
+          </v-select>
+        </v-col>
+
+        <v-col cols="12" sm="2">
+          <v-btn
+            color="error"
+            variant="flat"
+            rounded="lg"
+            size="large"
+            block
+            class="text-none"
+            prepend-icon="mdi-printer"
+            @click="printAll"
+          >
+            {{ t('چاپ') }}
           </v-btn>
         </v-col>
       </v-row>
@@ -203,19 +241,19 @@
       </template>
 
       <!-- 🔗 resource code -->
-      <template #cell-resource_code="{ row }">
+      <template #cell-resource_id="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
           <template #activator="{ props: tooltipProps }">
             <v-btn
               v-bind="tooltipProps"
-              v-if="row.resource_code"
+              v-if="row.resource_id"
               variant="tonal"
               color="primary"
               append-icon="mdi-account"
               size="default"
               @click.stop="goToResource(row)"
             >
-              {{ row.resource_code }}
+              {{ row.resource_id }}
             </v-btn>
             <span v-else>-</span>
           </template>
@@ -364,13 +402,13 @@
   import { useLoginRepository } from '../../stores/LoginRepository';
   import { useFasadRepository } from '@/stores/FasadRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
-
+  import { useTablePrintExport } from '@/composables/useTablePrintExport';
   const auth = useLoginRepository();
   const repo = useFasadRepository();
   const router = useRouter();
   const route = useRoute();
   const { relatedFilters, clearRelationQueries } = useRelatedRouteFilters();
-
+  const selectedPrintColumns = ref([]);
   const searchField = ref(null);
   const selectedColumnValue = ref(null);
 
@@ -505,11 +543,66 @@
     { title: t('تماس/اجتماعی'), keys: ['friends_number', 'phone_number'] },
     { title: t('بند'), keys: ['band_distince', 'band_place'] },
     { title: t('وظایف'), keys: ['old_job', 'now_job'] },
-    { title: t('منبع'), keys: ['resource_code', 'resource_phone_number'] },
+    { title: t('منبع'), keys: ['resource_id', 'resource_phone_number'] },
   ]);
 
   const filters = ref({});
+  const printLabels = computed(() => ({
+    print: t('چاپ'),
+    record_count: t('تعداد ریکارد'),
+    index: t('شماره'),
+    no_data: t('معلومات برای چاپ موجود نیست'),
+    footer_note: '',
+  }));
 
+  const printableHeaderOptions = computed(() => {
+    return headersFT.value.filter((h) => !['map'].includes(h.key));
+  });
+
+  function buildDefaultPrintColumns() {
+    return printableHeaderOptions.value.map((h) => h.key);
+  }
+
+  const { printAll } = useTablePrintExport({
+    repo: {
+      OpenResourcesPrintView: repo.OpenSaeenFasadPrintView,
+    },
+
+    moduleKey: 'saeen-fasadas',
+
+    getFilters: () => ({
+      search: repo.Search || '',
+      search_field: normalizedSearchField.value || route.query.search_field || null,
+      search_value: normalizedSearchValue.value || route.query.search_value || null,
+      card_filter: cardFilter.value || 'all',
+
+      fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
+      source: relatedFilters.value.source,
+      open: relatedFilters.value.open,
+    }),
+
+    getHeaders: () => headersFT.value,
+
+    getSelectedColumnKeys: () => selectedPrintColumns.value,
+
+    getTitle: () => t('د ساعین بالفساد چاپ'),
+
+    getPrintLabels: () => printLabels.value,
+
+    getLocale: () => locale.value,
+
+    defaultFileName: 'saeen-fasad-print',
+  });
+
+  watch(
+    printableHeaderOptions,
+    (newColumns) => {
+      if (!selectedPrintColumns.value.length) {
+        selectedPrintColumns.value = newColumns.map((c) => c.key);
+      }
+    },
+    { immediate: true }
+  );
   /* Peek */
   const expanded = ref(false);
   const selectedId = ref(null);
@@ -650,8 +743,8 @@
     try {
       await repo.FetchSaeenFasadsData?.({
         search: repo.Search,
-search_field: normalizedSearchField.value || route.query.search_field || null,
-search_value: normalizedSearchValue.value || route.query.search_value || null,
+        search_field: normalizedSearchField.value || route.query.search_field || null,
+        search_value: normalizedSearchValue.value || route.query.search_value || null,
         fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
         source: relatedFilters.value.source,
         open: relatedFilters.value.open,
@@ -751,6 +844,8 @@ search_value: normalizedSearchValue.value || route.query.search_value || null,
   );
 
   onMounted(async () => {
+    selectedPrintColumns.value = buildDefaultPrintColumns();
+
     if (!relatedFilters.value.fifty_six_format_id) {
       await fetchAll();
     }

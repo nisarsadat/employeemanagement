@@ -127,6 +127,35 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
     }
   }
 
+  async function OpenOutgoingIncomingPrintView(payload = {}) {
+    const params = {
+      ...(payload.filters || {}),
+
+      selected_columns: payload.selected_columns || [],
+      column_labels: payload.column_labels || {},
+      print_labels: payload.print_labels || {},
+      locale: payload.locale || 'fa',
+      title: payload.title || '',
+      file_name: payload.file_name || 'outgoing-incomings-print',
+    };
+
+    const res = await axios.get('/outgoing-incomings/print', {
+      params,
+      responseType: 'text',
+    });
+
+    const printWindow = window.open('', '_blank');
+
+    if (!printWindow) {
+      throw new Error('Print window blocked');
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(res.data);
+    printWindow.document.close();
+
+    printWindow.focus();
+  }
   // UPDATE
   async function UpdateOutgoingIncoming(id, payload) {
     if (!id) throw new Error('UpdateOutgoingIncoming: id is required');
@@ -231,5 +260,6 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
     DeleteOutgoingIncoming,
     DownloadOutgoingIncomingZip,
     getCurrentDate,
+    OpenOutgoingIncomingPrintView,
   };
 });

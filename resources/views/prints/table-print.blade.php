@@ -281,21 +281,29 @@
                             @php
                                 $value = data_get($row, $column, '-');
 
-                                $dateColumns = [
-                                    'event_date',
-                                    'resource_saved_date',
-                                    'information_saved_date',
-                                    'captive_date',
-                                    'join_date',
-                                    'left_date',
-                                    'created_at',
-                                    'updated_at',
-                                    'date',
-                                    'from_date',
-                                    'to_date',
-                                    'debut',
-                                ];
+                               $dateColumns = [
+                                        'event_date',
+                                        'resource_saved_date',
+                                        'information_saved_date',
+                                        'captive_date',
+                                        'saved_date',
+                                        'office_outgoing_date',
+                                        'office_incoming_date',
+                                        'reyasat_outgoing_date',
+                                        'reyasat_incomming_date',
+                                        'loy_reyasat_outgoing_date',
+                                        'answer_date',
+                                        'outgoing_incoming_date',
 
+                                        'join_date',
+                                        'left_date',
+                                        'created_at',
+                                        'updated_at',
+                                        'date',
+                                        'from_date',
+                                        'to_date',
+                                        'debut',
+                                    ];
                                 $isDateColumn = in_array($column, $dateColumns, true);
 
                                 if ($isDateColumn && !empty($value)) {
@@ -323,6 +331,7 @@
                                     'office_employee_akhistonky_code',
                                     'employee_code',
                                     'receiver_employee_code',
+                                    'resource_id',
                                     'office_employee_code',
                                     'office_employee_info_id',
                                     'office_employee_info_display',

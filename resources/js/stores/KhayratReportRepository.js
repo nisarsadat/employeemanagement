@@ -133,7 +133,35 @@ export const useKhayratReportRepository = defineStore('KhayratReportRepository',
         throw e;
       }
     },
+    async OpenKhayratReportsPrintView(payload = {}) {
+      const params = {
+        ...(payload.filters || {}),
 
+        selected_columns: payload.selected_columns || [],
+        column_labels: payload.column_labels || {},
+        print_labels: payload.print_labels || {},
+        locale: payload.locale || 'fa',
+        title: payload.title || '',
+        file_name: payload.file_name || 'khayrat-reports-print',
+      };
+
+      const res = await axios.get('/khayrat-reports/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+
+      printWindow.focus();
+    },
     async DeleteKhayratReport(id) {
       try {
         await axios.delete(`/khayrat-reports/${id}`);

@@ -557,4 +557,173 @@ class JawasisController extends Controller
             ]
         )->deleteFileAfterSend(true);
     }
+    private function printSearchFields(): array
+{
+    return [
+        'information_id',
+        'name',
+        'nick_name',
+        'father_name',
+        'main_province',
+        'main_district',
+        'main_village',
+        'now_province',
+        'now_zone',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+        'coordinates',
+        'country',
+        'responsiability',
+        'done_activities',
+        'activity_place',
+        'count_of_communication',
+        'phone_number',
+        'old_job',
+        'now_job',
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+        'notes',
+        'tafseel',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search           = trim((string) $request->query('search', ''));
+    $searchField      = trim((string) $request->query('search_field', ''));
+    $searchValue      = trim((string) $request->query('search_value', ''));
+    $fiftySixFormatId = $request->query('fifty_six_format_id');
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($x) use ($search) {
+            $x->where('name', 'like', "%{$search}%")
+                ->orWhere('nick_name', 'like', "%{$search}%")
+                ->orWhere('father_name', 'like', "%{$search}%")
+                ->orWhere('main_province', 'like', "%{$search}%")
+                ->orWhere('main_district', 'like', "%{$search}%")
+                ->orWhere('main_village', 'like', "%{$search}%")
+                ->orWhere('now_province', 'like', "%{$search}%")
+                ->orWhere('now_zone', 'like', "%{$search}%")
+                ->orWhere('now_district', 'like', "%{$search}%")
+                ->orWhere('now_village', 'like', "%{$search}%")
+                ->orWhere('now_specific_place', 'like', "%{$search}%")
+                ->orWhere('now_street_number', 'like', "%{$search}%")
+                ->orWhere('now_home_number', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhere('country', 'like', "%{$search}%")
+                ->orWhere('responsiability', 'like', "%{$search}%")
+                ->orWhere('done_activities', 'like', "%{$search}%")
+                ->orWhere('activity_place', 'like', "%{$search}%")
+                ->orWhere('count_of_communication', 'like', "%{$search}%")
+                ->orWhere('phone_number', 'like', "%{$search}%")
+                ->orWhere('old_job', 'like', "%{$search}%")
+                ->orWhere('now_job', 'like', "%{$search}%")
+                ->orWhere('tafseel', 'like', "%{$search}%")
+                ->orWhere('notes', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if (is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0) {
+        $query->where('id', (int) $fiftySixFormatId);
+    }
+
+    return $query;
+}
+
+private function cleanPrintDate($value): string
+{
+    if ($value === null || trim((string) $value) === '') {
+        return '';
+    }
+
+    $raw = trim((string) $value);
+
+    $raw = preg_replace('/\s+\d{2}:\d{2}:\d{2}$/', '', $raw);
+    $raw = preg_replace('/T\d{2}:\d{2}:\d{2}(\.\d+)?Z?$/', '', $raw);
+
+    if (preg_match('/(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/', $raw, $matches)) {
+        return sprintf('%04d/%02d/%02d', $matches[1], $matches[2], $matches[3]);
+    }
+
+    return trim($raw);
+}
+
+public function printView(Request $request)
+{
+    $query = Jawasis::query()
+        ->with([
+            'resource:id,name,code_number,phone_number',
+            'documents:id,jawasis_id,file_path,original_name,mime_type,size,created_at',
+        ]);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? $row->resource_phone
+                ?? '-';
+
+            if ($row->created_at !== null && trim((string) $row->created_at) !== '') {
+                $row->created_at = $this->cleanPrintDate($row->created_at);
+            }
+
+            if ($row->updated_at !== null && trim((string) $row->updated_at) !== '') {
+                $row->updated_at = $this->cleanPrintDate($row->updated_at);
+            }
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ جواسیس');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

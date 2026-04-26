@@ -585,4 +585,164 @@ class FasadController extends Controller
             ]
         )->deleteFileAfterSend(true);
     }
+    private function printSearchFields(): array
+{
+    return [
+        'information_id',
+        'name',
+        'nick_name',
+        'father_name',
+        'main_province',
+        'main_district',
+        'main_village',
+        'now_province',
+        'now_zone',
+        'Province_addr',
+        'now_district',
+        'now_village',
+        'specific_place',
+        'street_number',
+        'home_number',
+        'jabha',
+        'supplier_name',
+        'responsibility',
+        'activity_zone',
+        'friends_number',
+        'phone_number',
+        'bond_distance',
+        'last_band_reason',
+        'band_place',
+        'now_job',
+        'tafseel',
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+        'coordinates',
+        'notes',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search           = trim((string) $request->query('search', ''));
+    $searchField      = trim((string) $request->query('search_field', ''));
+    $searchValue      = trim((string) $request->query('search_value', ''));
+    $fiftySixFormatId = $request->query('fifty_six_format_id');
+    $cardFilter       = trim((string) $request->query('card_filter', 'all'));
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($x) use ($search) {
+            $x->where('name', 'like', "%{$search}%")
+                ->orWhere('father_name', 'like', "%{$search}%")
+                ->orWhere('nick_name', 'like', "%{$search}%")
+                ->orWhere('main_province', 'like', "%{$search}%")
+                ->orWhere('main_district', 'like', "%{$search}%")
+                ->orWhere('main_village', 'like', "%{$search}%")
+                ->orWhere('now_province', 'like', "%{$search}%")
+                ->orWhere('now_zone', 'like', "%{$search}%")
+                ->orWhere('now_district', 'like', "%{$search}%")
+                ->orWhere('now_village', 'like', "%{$search}%")
+                ->orWhere('specific_place', 'like', "%{$search}%")
+                ->orWhere('street_number', 'like', "%{$search}%")
+                ->orWhere('home_number', 'like', "%{$search}%")
+                ->orWhere('jabha', 'like', "%{$search}%")
+                ->orWhere('supplier_name', 'like', "%{$search}%")
+                ->orWhere('responsibility', 'like', "%{$search}%")
+                ->orWhere('activity_zone', 'like', "%{$search}%")
+                ->orWhere('friends_number', 'like', "%{$search}%")
+                ->orWhere('phone_number', 'like', "%{$search}%")
+                ->orWhere('bond_distance', 'like', "%{$search}%")
+                ->orWhere('last_band_reason', 'like', "%{$search}%")
+                ->orWhere('band_place', 'like', "%{$search}%")
+                ->orWhere('now_job', 'like', "%{$search}%")
+                ->orWhere('tafseel', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhere('notes', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if (is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0) {
+        $query->where('id', (int) $fiftySixFormatId);
+    }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'withPhone') {
+        $query->whereNotNull('phone_number')
+            ->whereRaw("TRIM(phone_number) != ''");
+    } elseif ($cardFilter === 'withResource') {
+        $query->whereNotNull('resource_id')
+            ->whereRaw("TRIM(resource_id) != ''");
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = Fasad::query()
+        ->with([
+            'resource:id,name,code_number,phone_number',
+            'documents:id,fasad_id,file_path,original_name,mime_type,size,created_at',
+        ]);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? $row->resource_phone
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ فسادها');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }
