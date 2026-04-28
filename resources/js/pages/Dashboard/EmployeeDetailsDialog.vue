@@ -225,7 +225,7 @@
               {{ t('PDF') }}
             </v-btn>
           </template>
-          <span>{{ t('دانلود فایل چاپی (HTML)') }}</span>
+          <span>{{ t('PDF') }}</span>
         </v-tooltip>
 
         <!-- ✅ Word export (still HTML, Word-friendly) -->
@@ -241,7 +241,7 @@
               {{ t('Word') }}
             </v-btn>
           </template>
-          <span>{{ t('دانلود Word (HTML)') }}</span>
+          <span>{{ t('Word') }}</span>
         </v-tooltip>
 
         <v-btn variant="text" @click="close">{{ t('بستن') }}</v-btn>
@@ -287,7 +287,6 @@
     emit('close');
   }
 
-  /* ✅ safe navigation (won’t route while loading) */
   function cleanQuery(query = {}) {
     return Object.fromEntries(
       Object.entries(query).filter(
@@ -296,54 +295,60 @@
     );
   }
 
-  function go(path, query = {}) {
+  function pushDashboard(path, query = {}) {
     if (props.loading) return;
+
     close();
-    router.push({
+
+    return router.push({
       path,
-      query: cleanQuery(query),
+      query: cleanQuery({
+        source: 'dashboard',
+        ...query,
+      }),
     });
   }
 
+  function getEmployeeId() {
+    const row = props.employee?.raw ?? props.employee;
+    return row?.id || null;
+  }
+
   function goEmployeeDetails() {
-    const id = props.employee?.id;
+    const id = getEmployeeId();
     if (!id) return;
 
-    go('/app/officeemployee', {
-      office_employee_id: id,
-      source: 'dashboard',
+    pushDashboard('/app/officeemployee', {
+      office_employee_id: String(id),
     });
   }
 
   function goResources() {
-    const id = props.employee?.id;
+    const id = getEmployeeId();
     if (!id) return;
 
-    go('/app/resources', {
-      office_employee_id: id,
-      source: 'dashboard',
+    pushDashboard('/app/resources', {
+      office_employee_id: String(id),
     });
   }
 
   function goInformations() {
-    const id = props.employee?.id;
+    const id = getEmployeeId();
     if (!id) return;
 
-    go('/app/informations', {
-      office_employee_id: id,
-      source: 'dashboard',
+    pushDashboard('/app/informations', {
+      office_employee_id: String(id),
     });
   }
 
   function goEvents() {
-    const id = props.employee?.id;
+    const id = getEmployeeId();
     if (!id) return;
 
-    go('/app/events', {
-      office_employee_id: id,
-      source: 'dashboard',
+    pushDashboard('/app/events', {
+      office_employee_id: String(id),
     });
-  }
+  } 
   /* Helpers */
   function num(v) {
     const n = Number(v);

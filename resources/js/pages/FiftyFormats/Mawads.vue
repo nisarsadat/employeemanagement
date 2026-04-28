@@ -287,7 +287,23 @@
               </v-icon>
             </template>
           </v-tooltip>
-
+          <v-tooltip :text="t('حذف عکس')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="deep-orange-darken-2"
+                :disabled="!item.picture"
+                @click.stop="
+                  $event.view.confirm(
+                    t('آیا مطمئن هستید که می‌خواهید عکس این ریکارډ را حذف کنید؟')
+                  ) && repo.DeleteMawadPicture(item.id).then(() => fetchAll())
+                "
+              >
+                mdi-image-remove
+              </v-icon>
+            </template>
+          </v-tooltip>
           <!-- ویرایش -->
           <v-tooltip :text="t('ویرایش مواد')" location="top">
             <template #activator="{ props: tooltipProps }">
@@ -680,26 +696,26 @@
     await clearRelationQueries();
     await fetchAll();
   }
-function normalizeUrl(url) {
-  if (!url) return null;
-  return String(url).replace('/storage/storage/', '/storage/');
-}
+  function normalizeUrl(url) {
+    if (!url) return null;
+    return String(url).replace('/storage/storage/', '/storage/');
+  }
 
-function getPhotoUrl(payload) {
-  const row = getRow(payload);
-  if (!row) return null;
+  function getPhotoUrl(payload) {
+    const row = getRow(payload);
+    if (!row) return null;
 
-  return normalizeUrl(row.picture_url || row.picture);
-}
+    return normalizeUrl(row.picture_url || row.picture);
+  }
 
-const detailForPeek = computed(() => {
-  if (!detail.value) return null;
+  const detailForPeek = computed(() => {
+    if (!detail.value) return null;
 
-  return {
-    ...detail.value,
-    picture: getPhotoUrl(detail.value),
-  };
-});
+    return {
+      ...detail.value,
+      picture: getPhotoUrl(detail.value),
+    };
+  });
   function handlePageChange(page) {
     repo.page = page;
     fetchAll();

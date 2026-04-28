@@ -564,4 +564,33 @@ public function printView(Request $request)
         'locale'          => $locale,
     ]);
 }
+private function removePictureFileAndClear($model)
+{
+    if (!$model->picture) {
+        return response()->json([
+            'success' => false,
+            'message' => 'عکس نشته',
+        ], 404);
+    }
+
+    if (Storage::disk('public')->exists($model->picture)) {
+        Storage::disk('public')->delete($model->picture);
+    }
+
+    $model->update([
+        'picture' => null,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'عکس حذف شو',
+        'data' => $model->fresh(),
+    ]);
+}
+public function deletePicture($id)
+{
+    $mashkokShop = MashkokShops::findOrFail($id);
+
+    return $this->removePictureFileAndClear($mashkokShop);
+}  
 }

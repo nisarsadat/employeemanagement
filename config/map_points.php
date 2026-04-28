@@ -61,6 +61,15 @@ return [
             'title_candidates' => ['name', 'title', 'code_number'],
             'code_candidates' => ['code_number'],
             'phone_candidates' => ['phone_number', 'phone'],
+
+            // ✅ ADD THIS
+            'map_sub_type_candidates' => [
+                'syasi_info_type',
+                'jenayee_info_type',
+                'information_category',
+                'information_degree',
+            ],
+
             'join_resource' => false,
         ],
         [
@@ -85,6 +94,13 @@ return [
             'title_candidates' => ['name', 'title', 'event_name', 'code_number'],
             'code_candidates' => ['code_number'],
             'phone_candidates' => ['phone_number', 'phone'],
+
+            // ✅ ADD THIS
+            'map_sub_type_candidates' => [
+                'event_type',
+                'event_specific_type',
+            ],
+
             'join_resource' => false,
         ],
 

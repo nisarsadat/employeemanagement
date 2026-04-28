@@ -2503,5 +2503,231 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
+    // for pic
+    /* ============================ Delete Pictures ============================ */
+
+    async DeleteWakilanoPicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/wakilanos/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteUniversityPicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/universities/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteMasjidPicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/masjids/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteCompanyPicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/companies/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteHighwayPicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/highways/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteDoneLostPlacePicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/done-lost-places/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteEconemyProjectPicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/econemy-projects/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteCriminalCapturePlacePicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/criminal-capture-places/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeletePumpPicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/pumps/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteShoraPicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/shoras/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteDeplomaticPlacePicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/deplomaticplaces/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteCheckpointPicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/checkpoints/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteParkPicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/parks/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteGovernmentPlacePicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/governmentplaces/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteSuperMarketPicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/supermarkets/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
+
+    async DeleteComplexPicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/complexes/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
   },
 });

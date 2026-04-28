@@ -71,6 +71,12 @@ class MapPointController extends Controller
                 $src['phone_candidates'] ?? []
             );
 
+            // ✅ ADD THIS
+            $subTypeColumns = $this->pickExistingColumns(
+                $table,
+                $src['map_sub_type_candidates'] ?? []
+            );
+
             $activeColumn = $this->pickFirstExistingColumn(
                 $table,
                 $src['active_candidates'] ?? []
@@ -98,6 +104,11 @@ class MapPointController extends Controller
 
             foreach ($phoneColumns as $idx => $col) {
                 $selects[] = "{$table}.{$col} as own_phone_" . $idx;
+            }
+
+            // ✅ ADD THIS
+            foreach ($subTypeColumns as $idx => $col) {
+                $selects[] = "{$table}.{$col} as own_sub_type_" . $idx;
             }
 
             if ($activeColumn) {
@@ -158,6 +169,10 @@ class MapPointController extends Controller
                         'coordinates' => (string) $row->coordinates,
                         'title' => $title,
                         'subtitle' => $subtitle,
+
+                        // ✅ ADD THIS
+                        'subTypeLabel' => $this->buildMapSubTypeLabel($row, $src),
+
                         'picture' => $picture ?: null,
                         'is_active' => $isActive,
                         '_showUrl' => rtrim($src['show_url'], '/') . '/' . $row->id,
@@ -180,6 +195,51 @@ class MapPointController extends Controller
         ]);
     }
 
+    private function buildMapSubTypeLabel(object $row, array $source): string
+{
+    $type = $source['type'] ?? '';
+
+    // ✅ Information: سیاسی / جنایی
+    if ($type === 'information') {
+        $syasi = $this->pickText($row->own_sub_type_0 ?? null);
+        $jenayee = $this->pickText($row->own_sub_type_1 ?? null);
+        $category = $this->pickText($row->own_sub_type_2 ?? null);
+        $degree = $this->pickText($row->own_sub_type_3 ?? null);
+
+        if ($syasi) {
+            return 'سیاسی: ' . $syasi;
+        }
+
+        if ($jenayee) {
+            return 'جنایی: ' . $jenayee;
+        }
+
+        return $this->pickText($category, $degree);
+    }
+
+    // ✅ Event: event_type / event_specific_type
+    if ($type === 'event') {
+        $eventType = $this->pickText($row->own_sub_type_0 ?? null);
+        $specificType = $this->pickText($row->own_sub_type_1 ?? null);
+
+        if ($eventType && $specificType) {
+            return $eventType . ' / ' . $specificType;
+        }
+
+        return $this->pickText($eventType, $specificType);
+    }
+
+    // ✅ fallback for future modules
+    for ($i = 0; $i < 10; $i++) {
+        $value = $this->pickText($row->{'own_sub_type_' . $i} ?? null);
+
+        if ($value) {
+            return $value;
+        }
+    }
+
+    return '';
+}
     private function parseBbox(?string $bbox): array
     {
         if (!$bbox) {

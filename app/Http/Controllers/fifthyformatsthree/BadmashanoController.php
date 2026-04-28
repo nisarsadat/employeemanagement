@@ -318,4 +318,160 @@ class BadmashanoController extends Controller
 
         return response()->noContent();
     }
+    private function removePictureFileAndClear($model)
+{
+    if (!$model->picture) {
+        return response()->json([
+            'success' => false,
+            'message' => 'عکس نشته',
+        ], 404);
+    }
+
+    if (Storage::disk('public')->exists($model->picture)) {
+        Storage::disk('public')->delete($model->picture);
+    }
+
+    $model->update([
+        'picture' => null,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'عکس حذف شو',
+        'data' => $model->fresh(),
+    ]);
+}
+  public function deletePicture($id)
+{
+    $badmashano = Badmashano::findOrFail($id);
+
+    return $this->removePictureFileAndClear($badmashano);
+}
+private function printSearchFields(): array
+{
+    return $this->allowedSearchFields();
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search           = trim((string) $request->query('search', ''));
+    $searchField      = trim((string) $request->query('search_field', ''));
+    $searchValue      = trim((string) $request->query('search_value', ''));
+    $cardFilter       = trim((string) $request->query('card_filter', 'all'));
+    $fiftySixFormatId = $request->query('fifty_six_format_id');
+    $resourceId       = $request->query('resource_id');
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($qq) use ($search) {
+            $qq->where('name', 'like', "%{$search}%")
+                ->orWhere('nickname', 'like', "%{$search}%")
+                ->orWhere('father_name', 'like', "%{$search}%")
+                ->orWhere('main_province', 'like', "%{$search}%")
+                ->orWhere('main_district', 'like', "%{$search}%")
+                ->orWhere('main_village', 'like', "%{$search}%")
+                ->orWhere('now_province', 'like', "%{$search}%")
+                ->orWhere('now_zone', 'like', "%{$search}%")
+                ->orWhere('now_district', 'like', "%{$search}%")
+                ->orWhere('now_village', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('now_specific_place', 'like', "%{$search}%")
+                ->orWhere('now_street_number', 'like', "%{$search}%")
+                ->orWhere('now_home_number', 'like', "%{$search}%")
+                ->orWhere('old_job', 'like', "%{$search}%")
+                ->orWhere('job', 'like', "%{$search}%")
+                ->orWhere('friends_quantity', 'like', "%{$search}%")
+                ->orWhere('supplier', 'like', "%{$search}%")
+                ->orWhere('phone_number', 'like', "%{$search}%")
+                ->orWhere('history_jorm', 'like', "%{$search}%")
+                ->orWhere('jorm_type', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '') {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } elseif (in_array($searchField, $allowedFields, true)) {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if (is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0) {
+        $query->where('id', (int) $fiftySixFormatId);
+    }
+
+    if (is_numeric($resourceId) && (int) $resourceId > 0) {
+        $query->where('resource_id', (int) $resourceId);
+    }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'withPhone') {
+        $query->whereNotNull('phone_number')
+            ->whereRaw("TRIM(phone_number) != ''");
+    } elseif ($cardFilter === 'withJob') {
+        $query->whereNotNull('job')
+            ->whereRaw("TRIM(job) != ''");
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = Badmashano::query()
+        ->with(['resource:id,name,code_number,phone_number']);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->latest()
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ بدماشانو');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

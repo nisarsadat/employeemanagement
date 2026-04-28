@@ -5,7 +5,6 @@
       class="mb-4 flex items-center justify-between gap-2 print:hidden p-3 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-100 shadow-sm"
       :dir="rtl ? 'ltr' : 'rtl'"
     >
-      <!-- ✅ Records Counter (START side) -->
       <div
         class="flex items-center gap-3 px-4 py-2 text-sm font-bold border rounded-full shadow-md whitespace-nowrap"
         :class="
@@ -22,9 +21,7 @@
         <span>{{ recordCounterText }}</span>
       </div>
 
-      <!-- ✅ Buttons group (END side) -->
       <div class="flex flex-wrap items-center gap-2 justify-end">
-        <!-- ✅ Alert-style helper text -->
         <div
           class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-amber-50 border border-amber-300 text-amber-900 rounded-full shadow-sm whitespace-nowrap"
         >
@@ -32,9 +29,7 @@
           {{ t('برای فیلتر هر کالم بالای آن کالم لطفا کلیک نمایید') }}
         </div>
 
-        <!-- ✅ Buttons group (END side) -->
         <div class="flex flex-wrap gap-1.5 justify-end">
-          <!-- ✅ NEW: Columns display button -->
           <div class="relative" ref="colsBtnWrap">
             <button
               type="button"
@@ -60,7 +55,6 @@
               </span>
             </button>
 
-            <!-- dropdown -->
             <div
               v-show="showColumnsPanel"
               class="fixed z-[9999] w-[320px] max-w-[92vw] bg-white border border-gray-200 shadow-2xl rounded-lg overflow-hidden"
@@ -198,7 +192,6 @@
             </span>
           </button>
 
-          <!-- Print selected ROWS -->
           <button
             type="button"
             class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-40 disabled:cursor-not-allowed"
@@ -224,7 +217,6 @@
             </span>
           </button>
 
-          <!-- ✅ NEW: Clear selected rows -->
           <button
             type="button"
             class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-rose-600 to-red-600 text-white hover:from-rose-500 hover:to-red-500 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-40 disabled:cursor-not-allowed"
@@ -234,7 +226,6 @@
             {{ t('حذف انتخاب‌ها') }}
           </button>
 
-          <!-- Clear filters button -->
           <button
             type="button"
             class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400 transition-all duration-200 shadow-sm hover:shadow"
@@ -290,7 +281,6 @@
             </span>
           </button>
 
-          <!-- ✅ Word export button -->
           <button
             type="button"
             class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gradient-to-r from-slate-700 to-slate-900 text-white hover:from-slate-600 hover:to-slate-800 transition-all duration-200 shadow-sm hover:shadow"

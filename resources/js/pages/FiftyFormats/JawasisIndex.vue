@@ -275,7 +275,23 @@
               </v-icon>
             </template>
           </v-tooltip>
-
+          <v-tooltip :text="t('حذف عکس')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="deep-orange-darken-2"
+                :disabled="!item.picture"
+                @click.stop="
+                  $event.view.confirm(
+                    t('آیا مطمئن هستید که می‌خواهید عکس این ریکارډ را حذف کنید؟')
+                  ) && repo.DeleteJawasiPicture(item.id).then(() => fetchAll())
+                "
+              >
+                mdi-image-remove
+              </v-icon>
+            </template>
+          </v-tooltip>
           <v-tooltip :text="t('دانلود اسناد')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -501,6 +517,7 @@
     { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
+    { title: t('جواسیس'), key: 'notes', sortable: false },
   ]);
 
   const topGroups = computed(() => [
@@ -729,68 +746,68 @@
     },
     { deep: true }
   );
-const printLabels = computed(() => ({
-  print: t('چاپ'),
-  record_count: t('تعداد ریکارد'),
-  index: t('شماره'),
-  no_data: t('معلومات برای چاپ موجود نیست'),
-  footer_note: '',
-}));
+  const printLabels = computed(() => ({
+    print: t('چاپ'),
+    record_count: t('تعداد ریکارد'),
+    index: t('شماره'),
+    no_data: t('معلومات برای چاپ موجود نیست'),
+    footer_note: '',
+  }));
 
-const printableHeaderOptions = computed(() => {
-  return headersFT.value.filter((h) => !['map'].includes(h.key));
-});
+  const printableHeaderOptions = computed(() => {
+    return headersFT.value.filter((h) => !['map'].includes(h.key));
+  });
 
-function buildDefaultPrintColumns() {
-  return printableHeaderOptions.value.map((h) => h.key);
-}
-
-const { printAll } = useTablePrintExport({
-  repo: {
-    OpenResourcesPrintView: repo.OpenJawasisPrintView,
-  },
-
-  moduleKey: 'jawasis',
-
-  getFilters: () => ({
-    search: repo.Search || '',
-    search_field: normalizedSearchField.value || route.query.search_field || null,
-    search_value: normalizedSearchValue.value || route.query.search_value || null,
-
-    fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
-    source: relatedFilters.value.source,
-    open: relatedFilters.value.open,
-  }),
-
-  getHeaders: () => headersFT.value,
-
-  getSelectedColumnKeys: () => selectedPrintColumns.value,
-
-  getTitle: () => t('چاپ جواسیس'),
-
-  getPrintLabels: () => printLabels.value,
-
-  getLocale: () => locale.value,
-
-  defaultFileName: 'jawasis-print',
-});
-
-watch(
-  printableHeaderOptions,
-  (newColumns) => {
-    if (!selectedPrintColumns.value.length) {
-      selectedPrintColumns.value = newColumns.map((c) => c.key);
-    }
-  },
-  { immediate: true }
-);
-onMounted(async () => {
-  selectedPrintColumns.value = buildDefaultPrintColumns();
-
-  if (!relatedFilters.value.fifty_six_format_id) {
-    await fetchAll();
+  function buildDefaultPrintColumns() {
+    return printableHeaderOptions.value.map((h) => h.key);
   }
-});
+
+  const { printAll } = useTablePrintExport({
+    repo: {
+      OpenResourcesPrintView: repo.OpenJawasisPrintView,
+    },
+
+    moduleKey: 'jawasis',
+
+    getFilters: () => ({
+      search: repo.Search || '',
+      search_field: normalizedSearchField.value || route.query.search_field || null,
+      search_value: normalizedSearchValue.value || route.query.search_value || null,
+
+      fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
+      source: relatedFilters.value.source,
+      open: relatedFilters.value.open,
+    }),
+
+    getHeaders: () => headersFT.value,
+
+    getSelectedColumnKeys: () => selectedPrintColumns.value,
+
+    getTitle: () => t('چاپ جواسیس'),
+
+    getPrintLabels: () => printLabels.value,
+
+    getLocale: () => locale.value,
+
+    defaultFileName: 'jawasis-print',
+  });
+
+  watch(
+    printableHeaderOptions,
+    (newColumns) => {
+      if (!selectedPrintColumns.value.length) {
+        selectedPrintColumns.value = newColumns.map((c) => c.key);
+      }
+    },
+    { immediate: true }
+  );
+  onMounted(async () => {
+    selectedPrintColumns.value = buildDefaultPrintColumns();
+
+    if (!relatedFilters.value.fifty_six_format_id) {
+      await fetchAll();
+    }
+  });
 </script>
 
 <style scoped>

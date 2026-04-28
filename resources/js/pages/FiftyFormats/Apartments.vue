@@ -281,7 +281,23 @@
               </v-icon>
             </template>
           </v-tooltip>
-
+          <v-tooltip :text="t('حذف عکس')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="deep-orange-darken-2"
+                :disabled="!item.picture"
+                @click.stop="
+                  $event.view.confirm(
+                    t('آیا مطمئن هستید که می‌خواهید عکس این ریکارډ را حذف کنید؟')
+                  ) && repo.DeleteApartmentPicture(item.id).then(() => fetchAll())
+                "
+              >
+                mdi-image-remove
+              </v-icon>
+            </template>
+          </v-tooltip>
           <!-- Edit -->
           <v-tooltip :text="t('ویرایش بلاک')" location="top">
             <template #activator="{ props: tooltipProps }">
@@ -742,12 +758,12 @@
     { immediate: true }
   );
   /* init */
-onMounted(async () => {
-  selectedPrintColumns.value = buildDefaultPrintColumns();
+  onMounted(async () => {
+    selectedPrintColumns.value = buildDefaultPrintColumns();
 
-  await repo.GetResourceCode?.();
-  await fetchAll();
-});
+    await repo.GetResourceCode?.();
+    await fetchAll();
+  });
 </script>
 
 <style scoped>

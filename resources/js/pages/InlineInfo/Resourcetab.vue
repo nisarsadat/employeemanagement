@@ -647,14 +647,14 @@
                 </v-card-text>
               </v-col>
 
-              <v-col cols="12" md="4">
+              <!-- <v-col cols="12" md="4">
                 <v-card-item>
                   <v-card-subtitle class="field-label">{{ t('۵۶ فارمټ') }}</v-card-subtitle>
                 </v-card-item>
                 <v-card-text>
                   <LetryFormatSelect v-model="draft.letry_format_name" :label="t('۵۶ فارمټ')" />
                 </v-card-text>
-              </v-col>
+              </v-col> -->
 
               <!-- information_saved_date -->
               <v-col cols="12" md="4">

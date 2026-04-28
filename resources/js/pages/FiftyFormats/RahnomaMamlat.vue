@@ -282,7 +282,23 @@
               </v-icon>
             </template>
           </v-tooltip>
-
+          <v-tooltip :text="t('حذف عکس')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="deep-orange-darken-2"
+                :disabled="!item.picture"
+                @click.stop="
+                  $event.view.confirm(
+                    t('آیا مطمئن هستید که می‌خواهید عکس این ریکارډ را حذف کنید؟')
+                  ) && repo.DeleteRahnomaMamlatPicture(item.id).then(() => fetchAll())
+                "
+              >
+                mdi-image-remove
+              </v-icon>
+            </template>
+          </v-tooltip>
           <!-- ویرایش -->
           <v-tooltip :text="t('ویرایش رهنما مملات')" location="top">
             <template #activator="{ props: tooltipProps }">
@@ -663,70 +679,70 @@
     },
     { deep: true }
   );
-const printLabels = computed(() => ({
-  print: t('چاپ'),
-  record_count: t('تعداد ریکارد'),
-  index: t('شماره'),
-  no_data: t('معلومات برای چاپ موجود نیست'),
-  footer_note: '',
-}));
+  const printLabels = computed(() => ({
+    print: t('چاپ'),
+    record_count: t('تعداد ریکارد'),
+    index: t('شماره'),
+    no_data: t('معلومات برای چاپ موجود نیست'),
+    footer_note: '',
+  }));
 
-const printableHeaderOptions = computed(() => {
-  return headersFT.value.filter((h) => !['map'].includes(h.key));
-});
+  const printableHeaderOptions = computed(() => {
+    return headersFT.value.filter((h) => !['map'].includes(h.key));
+  });
 
-function buildDefaultPrintColumns() {
-  return printableHeaderOptions.value.map((h) => h.key);
-}
+  function buildDefaultPrintColumns() {
+    return printableHeaderOptions.value.map((h) => h.key);
+  }
 
-const { printAll } = useTablePrintExport({
-  repo: {
-    OpenResourcesPrintView: repo.OpenRahnomaMamlatsPrintView,
-  },
+  const { printAll } = useTablePrintExport({
+    repo: {
+      OpenResourcesPrintView: repo.OpenRahnomaMamlatsPrintView,
+    },
 
-  moduleKey: 'rahnoma-mamlats',
+    moduleKey: 'rahnoma-mamlats',
 
-  getFilters: () => ({
-    ...route.query,
+    getFilters: () => ({
+      ...route.query,
 
-    search: repo.Search || '',
-    search_field: normalizedSearchField.value || route.query.search_field || null,
-    search_value: normalizedSearchValue.value || route.query.search_value || null,
+      search: repo.Search || '',
+      search_field: normalizedSearchField.value || route.query.search_field || null,
+      search_value: normalizedSearchValue.value || route.query.search_value || null,
 
-    resource_id: route.query.resource_id || null,
-    source: route.query.source || null,
-    open: route.query.open || null,
+      resource_id: route.query.resource_id || null,
+      source: route.query.source || null,
+      open: route.query.open || null,
 
-    card_filter: cardFilter.value || 'all',
-  }),
+      card_filter: cardFilter.value || 'all',
+    }),
 
-  getHeaders: () => headersFT.value,
+    getHeaders: () => headersFT.value,
 
-  getSelectedColumnKeys: () => selectedPrintColumns.value,
+    getSelectedColumnKeys: () => selectedPrintColumns.value,
 
-  getTitle: () => t('چاپ رهنما مملات'),
+    getTitle: () => t('چاپ رهنما مملات'),
 
-  getPrintLabels: () => printLabels.value,
+    getPrintLabels: () => printLabels.value,
 
-  getLocale: () => locale.value,
+    getLocale: () => locale.value,
 
-  defaultFileName: 'rahnoma-mamlats-print',
-});
+    defaultFileName: 'rahnoma-mamlats-print',
+  });
 
-watch(
-  printableHeaderOptions,
-  (newColumns) => {
-    if (!selectedPrintColumns.value.length) {
-      selectedPrintColumns.value = newColumns.map((c) => c.key);
-    }
-  },
-  { immediate: true }
-);
+  watch(
+    printableHeaderOptions,
+    (newColumns) => {
+      if (!selectedPrintColumns.value.length) {
+        selectedPrintColumns.value = newColumns.map((c) => c.key);
+      }
+    },
+    { immediate: true }
+  );
   /* init */
-onMounted(async () => {
-  selectedPrintColumns.value = buildDefaultPrintColumns();
-  await fetchAll();
-});
+  onMounted(async () => {
+    selectedPrintColumns.value = buildDefaultPrintColumns();
+    await fetchAll();
+  });
 </script>
 
 <style scoped>

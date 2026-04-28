@@ -280,7 +280,23 @@
               </v-icon>
             </template>
           </v-tooltip>
-
+          <v-tooltip :text="t('حذف عکس')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="deep-orange-darken-2"
+                :disabled="!item.picture"
+                @click.stop="
+                  $event.view.confirm(
+                    t('آیا مطمئن هستید که می‌خواهید عکس این ریکارډ را حذف کنید؟')
+                  ) && repo.DeleteHighwayPicture(item.id).then(() => fetchAll())
+                "
+              >
+                mdi-image-remove
+              </v-icon>
+            </template>
+          </v-tooltip>
           <!-- ویرایش -->
           <v-tooltip :text="t('ویرایش شاهراه')" location="top">
             <template #activator="{ props: tooltipProps }">
@@ -659,71 +675,71 @@
     },
     { deep: true }
   );
-const printLabels = computed(() => ({
-  print: t('چاپ'),
-  record_count: t('تعداد ریکارد'),
-  index: t('شماره'),
-  no_data: t('معلومات برای چاپ موجود نیست'),
-  footer_note: '',
-}));
+  const printLabels = computed(() => ({
+    print: t('چاپ'),
+    record_count: t('تعداد ریکارد'),
+    index: t('شماره'),
+    no_data: t('معلومات برای چاپ موجود نیست'),
+    footer_note: '',
+  }));
 
-const printableHeaderOptions = computed(() => {
-  return headersFT.value.filter((h) => !['map'].includes(h.key));
-});
+  const printableHeaderOptions = computed(() => {
+    return headersFT.value.filter((h) => !['map'].includes(h.key));
+  });
 
-function buildDefaultPrintColumns() {
-  return printableHeaderOptions.value.map((h) => h.key);
-}
-
-const { printAll } = useTablePrintExport({
-  repo: {
-    OpenResourcesPrintView: repo.OpenHighwaysPrintView,
-  },
-
-  moduleKey: 'highways',
-
-  getFilters: () => ({
-    search: repo.Search || '',
-    search_field: normalizedSearchField.value || route.query.search_field || null,
-    search_value: normalizedSearchValue.value || route.query.search_value || null,
-
-    card_filter: cardFilter.value || 'all',
-
-    resource_id: relatedFilters.value.resource_id,
-    source: relatedFilters.value.source,
-    open: relatedFilters.value.open,
-  }),
-
-  getHeaders: () => headersFT.value,
-
-  getSelectedColumnKeys: () => selectedPrintColumns.value,
-
-  getTitle: () => t('چاپ شاهراه ها'),
-
-  getPrintLabels: () => printLabels.value,
-
-  getLocale: () => locale.value,
-
-  defaultFileName: 'highways-print',
-});
-
-watch(
-  printableHeaderOptions,
-  (newColumns) => {
-    if (!selectedPrintColumns.value.length) {
-      selectedPrintColumns.value = newColumns.map((c) => c.key);
-    }
-  },
-  { immediate: true }
-);
-  /* init */
-onMounted(async () => {
-  selectedPrintColumns.value = buildDefaultPrintColumns();
-
-  if (!relatedFilters.value.resource_id) {
-    await fetchAll();
+  function buildDefaultPrintColumns() {
+    return printableHeaderOptions.value.map((h) => h.key);
   }
-});
+
+  const { printAll } = useTablePrintExport({
+    repo: {
+      OpenResourcesPrintView: repo.OpenHighwaysPrintView,
+    },
+
+    moduleKey: 'highways',
+
+    getFilters: () => ({
+      search: repo.Search || '',
+      search_field: normalizedSearchField.value || route.query.search_field || null,
+      search_value: normalizedSearchValue.value || route.query.search_value || null,
+
+      card_filter: cardFilter.value || 'all',
+
+      resource_id: relatedFilters.value.resource_id,
+      source: relatedFilters.value.source,
+      open: relatedFilters.value.open,
+    }),
+
+    getHeaders: () => headersFT.value,
+
+    getSelectedColumnKeys: () => selectedPrintColumns.value,
+
+    getTitle: () => t('چاپ شاهراه ها'),
+
+    getPrintLabels: () => printLabels.value,
+
+    getLocale: () => locale.value,
+
+    defaultFileName: 'highways-print',
+  });
+
+  watch(
+    printableHeaderOptions,
+    (newColumns) => {
+      if (!selectedPrintColumns.value.length) {
+        selectedPrintColumns.value = newColumns.map((c) => c.key);
+      }
+    },
+    { immediate: true }
+  );
+  /* init */
+  onMounted(async () => {
+    selectedPrintColumns.value = buildDefaultPrintColumns();
+
+    if (!relatedFilters.value.resource_id) {
+      await fetchAll();
+    }
+  });
 </script>
 
 <style scoped>

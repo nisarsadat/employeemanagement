@@ -342,7 +342,7 @@ private function applyPrintFilters($query, Request $request)
     $searchValue      = trim((string) $request->query('search_value', ''));
     $fiftySixFormatId = $request->query('fifty_six_format_id');
     $resourceId       = $request->query('resource_id');
-    $cardFilter       = trim((string) $request->query('card_filter', 'enterMale'));
+    $cardFilter = trim((string) $request->query('card_filter', ''));
 
     $allowedFields = $this->printSearchFields();
 
@@ -465,5 +465,34 @@ public function printView(Request $request)
         'printLabels'     => $printLabels,
         'locale'          => $locale,
     ]);
+}
+private function removePictureFileAndClear($model)
+{
+    if (!$model->picture) {
+        return response()->json([
+            'success' => false,
+            'message' => 'عکس نشته',
+        ], 404);
+    }
+
+    if (Storage::disk('public')->exists($model->picture)) {
+        Storage::disk('public')->delete($model->picture);
+    }
+
+    $model->update([
+        'picture' => null,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'عکس حذف شو',
+        'data' => $model->fresh(),
+    ]);
+}
+  public function deletePicture($id)
+{
+    $complex = Complex::findOrFail($id);
+
+    return $this->removePictureFileAndClear($complex);
 }
 }

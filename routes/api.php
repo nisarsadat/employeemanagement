@@ -331,6 +331,117 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/deplomaticplaces/print', [DeplomaticPlaceController::class, 'printView']);
     Route::get('/universities/print', [UniversityController::class, 'printView']);
     Route::get('/wakilanos/print', [WakilanoController::class, 'printView']);
+    Route::get('/badmashanos/print', [BadmashanoController::class, 'printView']);
+
+    // for pic
+    Route::delete('/jawasis/{id}/picture', [JawasisController::class, 'deletePicture']);
+    Route::delete('/wakilanos/{id}/picture', [WakilanoController::class, 'deletePicture']);
+
+    Route::delete('/universities/{id}/picture', [UniversityController::class, 'deletePicture']);
+
+    Route::delete('/masjids/{id}/picture', [MasjidController::class, 'deletePicture']);
+
+    Route::delete('/companies/{id}/picture', [CompanyController::class, 'deletePicture']);
+
+    Route::delete('/highways/{id}/picture', [HighwayController::class, 'deletePicture']);
+
+    Route::delete('/done-lost-places/{id}/picture', [DoneLostPlaceController::class, 'deletePicture']);
+
+    Route::delete('/econemy-projects/{id}/picture', [EconemyProjectController::class, 'deletePicture']);
+
+    Route::delete('/criminal-capture-places/{id}/picture', [CriminalCapturePlaceController::class, 'deletePicture']);
+
+    Route::delete('/pumps/{id}/picture', [PumpController::class, 'deletePicture']);
+
+    Route::delete('/shoras/{id}/picture', [ShoraController::class, 'deletePicture']);
+
+    Route::delete('/deplomaticplaces/{id}/picture', [DeplomaticPlaceController::class, 'deletePicture']);
+
+    Route::delete('/checkpoints/{id}/picture', [CheckpointController::class, 'deletePicture']);
+
+    Route::delete('/parks/{id}/picture', [ParkController::class, 'deletePicture']);
+
+    Route::delete('/governmentplaces/{id}/picture', [GovernmentPlaceController::class, 'deletePicture']);
+
+    Route::delete('/supermarkets/{id}/picture', [SuperMarketController::class, 'deletePicture']);
+
+    Route::delete('/complexes/{id}/picture', [ComplexController::class, 'deletePicture']);
+    Route::delete('/schools/{id}/picture', [SchoolController::class, 'deletePicture']);
+
+    Route::delete('/hado-bus-stops/{id}/picture', [HadoBusStopController::class, 'deletePicture']);
+
+    Route::delete('/transport-companies/{id}/picture', [TransportCompanyController::class, 'deletePicture']);
+
+    Route::delete('/car-sales-companies/{id}/picture', [CarSalesCompanyController::class, 'deletePicture']);
+
+    Route::delete('/parkings/{id}/picture', [ParkingController::class, 'deletePicture']);
+
+    Route::delete('/banks/{id}/picture', [BankController::class, 'deletePicture']);
+
+    Route::delete('/apartments/{id}/picture', [ApartmentController::class, 'deletePicture']);
+
+    Route::delete('/rahnoma-mamlats/{id}/picture', [RahnomaMamlatController::class, 'deletePicture']);
+
+    Route::delete('/hosppitals/{id}/picture', [HosppitalController::class, 'deletePicture']);
+
+    Route::delete('/work-shops/{id}/picture', [WorkShopController::class, 'deletePicture']);
+    Route::delete('/mawads/{id}/picture', [MawadController::class, 'deletePicture']);
+
+    Route::delete('/lost-mujremeens/{id}/picture', [LostMujremeenController::class, 'deletePicture']);
+
+    Route::delete('/old-soldiers-homes/{id}/picture', [OldSoldiersHomesController::class, 'deletePicture']);
+
+    Route::delete('/robbers/{id}/picture', [RobbersController::class, 'deletePicture']);
+
+    Route::delete('/non-responsable-people/{id}/picture', [NonResponsablePeopleController::class, 'deletePicture']);
+
+    Route::delete('/mashkok-homes/{id}/picture', [MashkokHomesController::class, 'deletePicture']);
+
+    Route::delete('/damage-places/{id}/picture', [DamagePlacesController::class, 'deletePicture']);
+
+    Route::delete('/damage-rasan-places/{id}/picture', [DamageRasanPlacesController::class, 'deletePicture']);
+
+    Route::delete('/mashkok-shops/{id}/picture', [MashkokShopsController::class, 'deletePicture']);
+
+    Route::delete('/luchakanos/{id}/picture', [LuchakanoController::class, 'deletePicture']);
+    Route::delete('/badmashanos/{id}/picture', [BadmashanoController::class, 'deletePicture']);
+
+    Route::delete('/sarayanos/{id}/picture', [SarayanoController::class, 'deletePicture']);
+
+    Route::delete('/hotels/{id}/picture', [HotelController::class, 'deletePicture']);
+
+    Route::delete('/hostels/{id}/picture', [HostelController::class, 'deletePicture']);
+
+    Route::delete('/tujarans/{id}/picture', [TujaranController::class, 'deletePicture']);
+
+    Route::delete('/mujahedinos/{id}/picture', [MujahedinoController::class, 'deletePicture']);
+
+    Route::delete('/emarat-offices/{id}/picture', [EmaratOfficeController::class, 'deletePicture']);
+
+    Route::delete('/old-jahadis/{id}/picture', [OldJahadiController::class, 'deletePicture']);
+
+    Route::delete('/mashkok-people/{id}/picture', [MashkokPeopleController::class, 'deletePicture']);
+
+    Route::delete('/madrasas/{id}/picture', [MadrasaController::class, 'deletePicture']);
+    Route::delete('/fasads/{id}/picture', [FasadController::class, 'deletePicture']);
+
+    Route::delete('/saeen-fasads/{id}/picture', [SaeenFasadController::class, 'deletePicture']);
+
+    Route::delete('/heists/{id}/picture', [HeistController::class, 'deletePicture']);
+
+    Route::delete('/captives/{id}/picture', [CaptiveController::class, 'deletePicture']);
+
+    Route::delete('/mulkanos/{id}/picture', [MulkanoController::class, 'deletePicture']);
+
+    Route::delete('/entry-exits/{id}/picture', [EntryExitController::class, 'deletePicture']);
+
+    Route::delete('/sarafyanos/{id}/picture', [SarafyanoController::class, 'deletePicture']);
+
+    Route::delete('/clubs/{id}/picture', [ClubsController::class, 'deletePicture']);
+
+    Route::delete('/soldiers/{id}/picture', [SoldierController::class, 'deletePicture']);
+
+    Route::delete('/mahajerats/{id}/picture', [MahajeratController::class, 'deletePicture']);
     // resources (API) => module: resources_api
     Route::get('/outgoing-incomings/print', [OutgoingIncomingController::class, 'printView']);
     protectResource('resources', 'resources_api', ResourceController::class);

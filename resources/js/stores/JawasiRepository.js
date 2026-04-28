@@ -265,5 +265,18 @@ export const useJawasiRepository = defineStore('JawasiRepository', {
         throw e;
       }
     },
+    async DeleteJawasiPicture(id) {
+      try {
+        setContentType('application/json');
+        const { data } = await axios.delete(`/jawasis/${id}/picture`);
+        toast.success('عکس په بریالیتوب سره حذف شو', { autoClose: 1200 });
+        return data?.data ?? data;
+      } catch (e) {
+        console.error(e);
+        this.error = e;
+        toast.error(errText(e, 'عکس حذف نه شو'));
+        throw e;
+      }
+    },
   },
 });

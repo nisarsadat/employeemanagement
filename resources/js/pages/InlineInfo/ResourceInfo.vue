@@ -335,7 +335,7 @@
   import { useRouter } from 'vue-router';
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLookupRepository } from '@/stores/LookupRepository';
-import { usePageRefresh } from '@/composables/usePageRefresh';
+  import { usePageRefresh } from '@/composables/usePageRefresh';
   const repo = useDatabaseRepository();
   const lookupRepo = useLookupRepository();
   const router = useRouter();
@@ -398,21 +398,26 @@ import { usePageRefresh } from '@/composables/usePageRefresh';
   });
 
   const statusState = computed(() => {
-    const s = (model.value?.activity || '').toString().toLowerCase();
+    const s = (model.value?.activity || '').toString().trim().toLowerCase();
+
+    // Check inactive first, because "غیر فعال" includes "فعال"
+    if (
+      ['غیر فعال', 'غیرفعال', 'غير فعال', 'غيرفعال', 'inactive', 'off', 'blocked', 'invalid'].some(
+        (k) => s.includes(k)
+      )
+    ) {
+      return 'inactive';
+    }
 
     if (['فعال', 'active', 'on', 'working', 'valid'].some((k) => s.includes(k))) {
       return 'active';
-    }
-
-    if (['غیر فعال', 'inactive', 'off', 'blocked', 'invalid'].some((k) => s.includes(k))) {
-      return 'inactive';
     }
 
     return 'unknown';
   });
 
   const statusChipColor = computed(() => {
-    if (statusState.value === 'active') return 'white';
+    if (statusState.value === 'active') return 'green';
     if (statusState.value === 'inactive') return 'error';
     return 'warning';
   });
@@ -478,17 +483,17 @@ import { usePageRefresh } from '@/composables/usePageRefresh';
     }
   });
   usePageRefresh('/app/inlineinfo', async () => {
-  selectedId.value = null;
-  selectedItemRaw.value = null;
-  searchText.value = '';
+    selectedId.value = null;
+    selectedItemRaw.value = null;
+    searchText.value = '';
 
-  loading.value = true;
-  try {
-    await lookupRepo.FetchResourcesLookup({ search: '', perPage: 20 });
-  } finally {
-    loading.value = false;
-  }
-});
+    loading.value = true;
+    try {
+      await lookupRepo.FetchResourcesLookup({ search: '', perPage: 20 });
+    } finally {
+      loading.value = false;
+    }
+  });
 </script>
 
 <style scoped>

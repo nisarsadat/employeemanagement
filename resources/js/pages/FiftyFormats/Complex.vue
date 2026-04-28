@@ -121,7 +121,7 @@
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'enterMale' }"
-            @click="cardFilter = 'enterMale'"
+            @click="cardFilter = cardFilter === 'enterMale' ? null : 'enterMale'"
           >
             <div class="stat-card-body">
               <div class="stat-card-icon">
@@ -140,8 +140,7 @@
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'enterFemale' }"
-            @click="cardFilter = 'enterFemale'"
-          >
+@click="cardFilter = cardFilter === 'enterFemale' ? null : 'enterFemale'"          >
             <div class="stat-card-body">
               <div class="stat-card-icon">
                 <v-icon>mdi-account-group-outline</v-icon>
@@ -159,8 +158,7 @@
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'outerMale' }"
-            @click="cardFilter = 'outerMale'"
-          >
+@click="cardFilter = cardFilter === 'outerMale' ? null : 'outerMale'"          >
             <div class="stat-card-body">
               <div class="stat-card-icon">
                 <v-icon>mdi-account-arrow-right</v-icon>
@@ -178,8 +176,7 @@
           <v-card
             class="stat-card"
             :class="{ 'stat-card--active': cardFilter === 'outerFemale' }"
-            @click="cardFilter = 'outerFemale'"
-          >
+@click="cardFilter = cardFilter === 'outerFemale' ? null : 'outerFemale'"          >
             <div class="stat-card-body">
               <div class="stat-card-icon">
                 <v-icon>mdi-account-arrow-right-outline</v-icon>
@@ -279,7 +276,23 @@
               </v-icon>
             </template>
           </v-tooltip>
-
+          <v-tooltip :text="t('حذف عکس')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                v-bind="tooltipProps"
+                size="small"
+                color="deep-orange-darken-2"
+                :disabled="!item.picture"
+                @click.stop="
+                  $event.view.confirm(
+                    t('آیا مطمئن هستید که می‌خواهید عکس این ریکارډ را حذف کنید؟')
+                  ) && repo.DeleteComplexPicture(item.id).then(() => fetchAll())
+                "
+              >
+                mdi-image-remove
+              </v-icon>
+            </template>
+          </v-tooltip>
           <!-- ویرایش -->
           <v-tooltip :text="t('ویرایش کمپلکس')" location="top">
             <template #activator="{ props: tooltipProps }">
@@ -417,8 +430,7 @@
   });
 
   /* 🔢 Filter cards state */
-  const cardFilter = ref('enterMale');
-
+  const cardFilter = ref(null);
   const stats = computed(() => {
     const rows = rowsFT.value || [];
     const enterMale = rows
@@ -690,7 +702,7 @@
     repo.Search = '';
     searchField.value = null;
     selectedColumnValue.value = null;
-    cardFilter.value = 'enterMale';
+    cardFilter.value = null;
     filters.value = {};
     repo.page = 1;
 
@@ -765,7 +777,7 @@
       search_field: normalizedSearchField.value || route.query.search_field || null,
       search_value: normalizedSearchValue.value || route.query.search_value || null,
 
-      card_filter: cardFilter.value || 'enterMale',
+      card_filter: cardFilter.value,
 
       fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
       resource_id: relatedFilters.value.resource_id,
