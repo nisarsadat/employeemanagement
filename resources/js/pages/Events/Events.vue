@@ -298,7 +298,6 @@
         :loading="loadingOne"
         :fields="headersFT"
         :cols="3"
-        :dir="isRtl ? 'rtl' : 'ltr'"
         @fetch="fetchOne"
       />
     </v-container>

@@ -315,7 +315,11 @@
     mahajerat: { label: 'نوې راغلي کورونه', path: mdiHomeGroup },
     soldier: { label: 'پخواني چارواکي', path: mdiPoliceBadge },
     complexes: { label: 'داخلي موسسې او بنسټونه', path: mdiOfficeBuildingPlus },
+
+    // backend type is captive, old/frontend type may be captives
+    captive: { label: 'راخوشي شوي بندیان', path: mdiAccountLock },
     captives: { label: 'راخوشي شوي بندیان', path: mdiAccountLock },
+
     econemy_projects: { label: 'مهم تاسیسات', path: mdiGreenhouse },
     criminal_capture_places: { label: 'هغه ساحی چې مجرمین پکې نیول شوی', path: mdiAccountAlert },
     pumps: { label: 'پمپونه', path: mdiGasStation },
@@ -336,6 +340,15 @@
 
     resource: { label: 'منابع', path: mdiCircle },
     captive_delivery: { label: 'راخوشي شوي بندیان', path: mdiClosedCaption },
+
+    // ✅ missing backend types added
+    event: { label: 'پیښه', path: mdiInformationOutline },
+    entry_exit: { label: 'د ښار دخولي/خروجي دروازه', path: mdiHighway },
+    mawad: { label: 'د نشه یی توکو پلورونکی', path: mdiAccountAlert },
+    lost_mujremeens: { label: 'نادرکه شوي مجرم', path: mdiAccountQuestion },
+    mashkok_shops: { label: 'مشکوک دوکان', path: mdiStoreSearchOutline },
+    luchakanos: { label: 'لوچک او بی بند و باره فرد', path: mdiAccountRemove },
+    jawasis: { label: 'جاسوس', path: mdiAccountLock },
   };
 
   const ICON_ALIASES = {
@@ -345,7 +358,6 @@
     mahajerat: 'mahajerat',
     soldier: 'soldier',
     mawad: 'mawads',
-    lost_mujremeen: 'lost_mujremeens',
     mulkano: 'mulkano',
   };
 

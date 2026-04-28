@@ -379,4 +379,139 @@ class CarSalesCompanyController extends Controller
             return response()->noContent();
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'car_sales_company_name',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+        'Province_addr',
+
+        'province',
+        'zone',
+        'picture',
+        'district',
+        'village',
+        'specific_place',
+        'coordinates',
+
+        'note',
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search      = trim((string) $request->query('search', ''));
+    $searchField = trim((string) $request->query('search_field', ''));
+    $searchValue = trim((string) $request->query('search_value', ''));
+    $resourceId  = $request->query('resource_id');
+    $cardFilter  = trim((string) $request->query('card_filter', 'all'));
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($q) use ($search) {
+            $q->where('car_sales_company_name', 'like', "%{$search}%")
+                ->orWhere('responsible_name', 'like', "%{$search}%")
+                ->orWhere('responsible_f_name', 'like', "%{$search}%")
+                ->orWhere('responsible_position', 'like', "%{$search}%")
+                ->orWhere('responsible_phone', 'like', "%{$search}%")
+                ->orWhere('province', 'like', "%{$search}%")
+                ->orWhere('zone', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('village', 'like', "%{$search}%")
+                ->orWhere('specific_place', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_id') {
+                $query->where('resource_id', $value);
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if ($resourceId) {
+        $query->where('resource_id', $resourceId);
+    }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'withPhone') {
+        $query->whereNotNull('responsible_phone')
+            ->whereRaw("TRIM(responsible_phone) != ''");
+    } elseif ($cardFilter === 'withResource') {
+        $query->whereNotNull('resource_id')
+            ->whereRaw("TRIM(resource_id) != ''");
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = CarSalesCompany::query()
+        ->with([
+            'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+        ]);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            $resourceCode = $row->resource?->code_number;
+            $resourcePhone = $row->resource?->phone_number;
+
+            $row->resource_code = $resourceCode ?? '-';
+            $row->resource_phone = $resourcePhone ?? '-';
+
+            // Because your header key is resource_id but title says "کود منبع"
+            $row->resource_id = $resourceCode ?? $row->resource_id ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ شرکت‌های فروش موتر');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

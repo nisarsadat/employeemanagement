@@ -363,4 +363,187 @@ class MawadController extends Controller
             return response()->noContent();
         });
     }
+    private function printSearchFields(): array
+{
+    return $this->allowedSearchFields();
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search      = trim((string) $request->query('search', ''));
+    $searchField = trim((string) $request->query('search_field', ''));
+    $searchValue = trim((string) $request->query('search_value', ''));
+
+    $resourceId = $request->query('resource_id');
+    $cardFilter = trim((string) $request->query('card_filter', 'all'));
+
+    $allowedFields = $this->printSearchFields();
+
+    // Same broad search as index
+    if ($search !== '' && $searchField === '') {
+        $query->where('name', 'like', "%{$search}%");
+    }
+
+    // Selected-column search
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            $query->where($searchField, 'like', "%{$value}%");
+        }
+    }
+
+    // Related resource filter from map/resource page
+    if ($resourceId) {
+        $query->where('resource_id', $resourceId);
+    }
+
+    // Card filters
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'withSalePhone') {
+        $query->whereNotNull('mawad_sales_phone')
+            ->whereRaw("TRIM(mawad_sales_phone) != ''");
+    } elseif ($cardFilter === 'withResource') {
+        $query->whereNotNull('resource_id');
+    }
+
+    return $query;
+}
+
+private function cleanPrintDate($value): ?string
+{
+    if (!$value) {
+        return null;
+    }
+
+    $value = trim((string) $value);
+
+    if ($value === '') {
+        return null;
+    }
+
+    // Remove time if value already comes as string date-time
+    $value = preg_replace('/\s+00:00:00$/', '', $value);
+    $value = preg_replace('/T00:00:00(\.000000Z)?$/', '', $value);
+
+    return $value;
+}
+
+private function gregorianToJalali($gy, $gm, $gd): array
+{
+    $g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+
+    if ($gy > 1600) {
+        $jy = 979;
+        $gy -= 1600;
+    } else {
+        $jy = 0;
+        $gy -= 621;
+    }
+
+    $gy2 = ($gm > 2) ? ($gy + 1) : $gy;
+
+    $days = (365 * $gy)
+        + intdiv($gy2 + 3, 4)
+        - intdiv($gy2 + 99, 100)
+        + intdiv($gy2 + 399, 400)
+        - 80
+        + $gd
+        + $g_d_m[$gm - 1];
+
+    $jy += 33 * intdiv($days, 12053);
+    $days %= 12053;
+
+    $jy += 4 * intdiv($days, 1461);
+    $days %= 1461;
+
+    if ($days > 365) {
+        $jy += intdiv($days - 1, 365);
+        $days = ($days - 1) % 365;
+    }
+
+    if ($days < 186) {
+        $jm = 1 + intdiv($days, 31);
+        $jd = 1 + ($days % 31);
+    } else {
+        $jm = 7 + intdiv($days - 186, 30);
+        $jd = 1 + (($days - 186) % 30);
+    }
+
+    return [$jy, $jm, $jd];
+}
+
+private function toShamsiDate($value): ?string
+{
+    if (!$value) {
+        return null;
+    }
+
+    try {
+        $date = \Carbon\Carbon::parse($value);
+        [$jy, $jm, $jd] = $this->gregorianToJalali(
+            (int) $date->format('Y'),
+            (int) $date->format('m'),
+            (int) $date->format('d')
+        );
+
+        return sprintf('%04d/%02d/%02d', $jy, $jm, $jd);
+    } catch (\Throwable $e) {
+        return $this->cleanPrintDate($value);
+    }
+}
+
+public function printView(Request $request)
+{
+    $query = Mawad::query()
+        ->with([
+            'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+        ]);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            // Relation display fields for print
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? '-';
+
+            // If later you add these date columns to print headers,
+            // they will print as Hijri Shamsi and without 00:00:00.
+            if (isset($row->created_at)) {
+                $row->created_at = $this->toShamsiDate($row->created_at);
+            }
+
+            if (isset($row->updated_at)) {
+                $row->updated_at = $this->toShamsiDate($row->updated_at);
+            }
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ مواد');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

@@ -274,7 +274,47 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.loading = false;
       }
     },
+    async OpenSarayanosPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'sarayanos-print',
+      };
+
+      const res = await axios.get('/sarayanos/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async FetchSarayanoFilterOptions(params = {}) {
       try {
         setContentType('application/json');
@@ -433,7 +473,88 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         throw e;
       }
     },
+    async OpenHotelsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'hotels-print',
+      };
+
+      const res = await axios.get('/hotels/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
+    async OpenHostelsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'hostels-print',
+      };
+
+      const res = await axios.get('/hostels/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateHotel(id, data) {
       try {
         let res;
@@ -663,7 +784,47 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         throw e;
       }
     },
+    async OpenTujaransPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'tujarans-print',
+      };
+
+      const res = await axios.get('/tujarans/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateTujaran(id, data) {
       try {
         let res;
@@ -778,7 +939,47 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         throw e;
       }
     },
+    async OpenMujahedinosPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'mujahedinos-print',
+      };
+
+      const res = await axios.get('/mujahedinos/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateMujahedino(id, data) {
       try {
         let res;
@@ -893,7 +1094,47 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         throw e;
       }
     },
+    async OpenEmaratOfficesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'emarat-offices-print',
+      };
+
+      const res = await axios.get('/emarat-offices/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateEmaratOffice(id, data) {
       try {
         let res;
@@ -1008,7 +1249,47 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         throw e;
       }
     },
+    async OpenOldJahadisPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'old-jahadis-print',
+      };
+
+      const res = await axios.get('/old-jahadis/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateOldJahadi(id, data) {
       try {
         let res;
@@ -1123,7 +1404,47 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         throw e;
       }
     },
+    async OpenMashkokPeoplesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'mashkok-peoples-print',
+      };
+
+      const res = await axios.get('/mashkok-people/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateMashkokPeople(id, data) {
       try {
         let res;
@@ -1238,7 +1559,47 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         throw e;
       }
     },
+    async OpenMadrasasPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'madrasas-print',
+      };
+
+      const res = await axios.get('/madrasas/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateMadrasa(id, data) {
       try {
         let res;

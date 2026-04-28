@@ -363,4 +363,161 @@ class MujahedinoController extends Controller
             return response()->noContent();
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'picture',
+        'nickname',
+        'name',
+        'father_name',
+
+        'main_province',
+        'main_district',
+        'main_village',
+
+        'now_province',
+        'now_zone',
+        'Province_addr',
+        'now_district',
+        'now_village',
+        'now_specific_place',
+        'now_street_number',
+        'now_home_number',
+
+        'duty_type',
+        'now_job',
+        'organ',
+        'friends_quantity',
+        'phone_number',
+        'note',
+        'coordinates',
+
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search           = trim((string) $request->query('search', ''));
+    $searchField      = trim((string) $request->query('search_field', ''));
+    $searchValue      = trim((string) $request->query('search_value', ''));
+    $cardFilter       = trim((string) $request->query('card_filter', 'all'));
+    $fiftySixFormatId = $request->query('fifty_six_format_id');
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($qq) use ($search) {
+            $qq->where('name', 'like', "%{$search}%")
+                ->orWhere('nickname', 'like', "%{$search}%")
+                ->orWhere('father_name', 'like', "%{$search}%")
+                ->orWhere('main_province', 'like', "%{$search}%")
+                ->orWhere('main_district', 'like', "%{$search}%")
+                ->orWhere('main_village', 'like', "%{$search}%")
+                ->orWhere('now_province', 'like', "%{$search}%")
+                ->orWhere('now_zone', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('now_district', 'like', "%{$search}%")
+                ->orWhere('now_village', 'like', "%{$search}%")
+                ->orWhere('now_specific_place', 'like', "%{$search}%")
+                ->orWhere('now_street_number', 'like', "%{$search}%")
+                ->orWhere('now_home_number', 'like', "%{$search}%")
+                ->orWhere('duty_type', 'like', "%{$search}%")
+                ->orWhere('now_job', 'like', "%{$search}%")
+                ->orWhere('organ', 'like', "%{$search}%")
+                ->orWhere('friends_quantity', 'like', "%{$search}%")
+                ->orWhere('phone_number', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    /**
+     * Important:
+     * Your current index passes fifty_six_format_id from related route filters.
+     * In your current index logic, this is usually for opening/peeking a related row.
+     * If your mujahedinos table has a real fifty_six_format_id column, uncomment this:
+     */
+    // if (is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0) {
+    //     $query->where('fifty_six_format_id', (int) $fiftySixFormatId);
+    // }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'withPhone') {
+        $query->whereNotNull('phone_number')
+            ->whereRaw("TRIM(phone_number) != ''");
+    } elseif ($cardFilter === 'withJob') {
+        $query->whereNotNull('now_job')
+            ->whereRaw("TRIM(now_job) != ''");
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = Mujahedino::query()
+        ->with([
+            'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+        ]);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('created_at')
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ مجاهدینو');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

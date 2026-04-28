@@ -376,4 +376,153 @@ class DamagePlacesController extends Controller
             return response()->noContent();
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'province',
+        'zone',
+        'picture',
+        'district',
+        'village',
+        'specific_place',
+        'specific_dot',
+        'coordinates',
+        'tahdid_type',
+        'percentage',
+        'tahdid_place',
+        'Province_addr',
+        'amnyat_khala',
+        'cameesa_tafseel',
+        'guard_quantity',
+        'masool_name',
+        'masool_f_name',
+        'masool_position',
+        'masool_phone',
+        'note',
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search           = trim((string) $request->query('search', ''));
+    $searchField      = trim((string) $request->query('search_field', ''));
+    $searchValue      = trim((string) $request->query('search_value', ''));
+    $resourceId       = $request->query('resource_id');
+    $cardFilter       = trim((string) $request->query('card_filter', 'all'));
+    $sortBy           = trim((string) $request->query('sort_by', 'created_at'));
+    $sortDir          = in_array($request->query('sort_dir'), ['asc', 'desc'], true)
+        ? $request->query('sort_dir')
+        : 'desc';
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($w) use ($search) {
+            $w->where('province', 'like', "%{$search}%")
+                ->orWhere('zone', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('village', 'like', "%{$search}%")
+                ->orWhere('specific_place', 'like', "%{$search}%")
+                ->orWhere('specific_dot', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhere('tahdid_type', 'like', "%{$search}%")
+                ->orWhere('percentage', 'like', "%{$search}%")
+                ->orWhere('tahdid_place', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('amnyat_khala', 'like', "%{$search}%")
+                ->orWhere('cameesa_tafseel', 'like', "%{$search}%")
+                ->orWhere('guard_quantity', 'like', "%{$search}%")
+                ->orWhere('masool_name', 'like', "%{$search}%")
+                ->orWhere('masool_f_name', 'like', "%{$search}%")
+                ->orWhere('masool_position', 'like', "%{$search}%")
+                ->orWhere('masool_phone', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if ($resourceId) {
+        $query->where('resource_id', $resourceId);
+    }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'highThreat') {
+        $query->where('percentage', '>=', 50);
+    } elseif ($cardFilter === 'withGuards') {
+        $query->where('guard_quantity', '>', 0);
+    }
+
+    return [
+        'query' => $query,
+        'sort_by' => $sortBy,
+        'sort_dir' => $sortDir,
+    ];
+}
+
+public function printView(Request $request)
+{
+    $query = DamagePlaces::query()->with([
+        'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+    ]);
+
+    $filterResult = $this->applyPrintFilters($query, $request);
+
+    $rows = $filterResult['query']
+        ->orderBy($filterResult['sort_by'], $filterResult['sort_dir'])
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? $row->resource_phone
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ نقاط آسیب');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

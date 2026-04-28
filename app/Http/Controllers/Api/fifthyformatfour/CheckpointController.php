@@ -286,4 +286,151 @@ class CheckpointController extends Controller
             return response()->json(['message' => 'Deleted']);
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'picture',
+
+        'check_point_place',
+        'checkpoint_name',
+        'employee_quantity',
+        'organ',
+        'create_reason',
+
+        'officer_name',
+        'officer_f_name',
+        'officer_phone',
+
+        'gun_type',
+
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specefic_place',
+        'Province_addr',
+
+        'coordinates',
+
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+
+        'note',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search           = trim((string) $request->query('search', ''));
+    $searchField      = trim((string) $request->query('search_field', ''));
+    $searchValue      = trim((string) $request->query('search_value', ''));
+    $cardFilter       = trim((string) $request->query('card_filter', 'all'));
+    $fiftySixFormatId = $request->query('fifty_six_format_id');
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function (Builder $q) use ($search) {
+            $q->where('checkpoint_name', 'like', "%{$search}%")
+                ->orWhere('check_point_place', 'like', "%{$search}%")
+                ->orWhere('employee_quantity', 'like', "%{$search}%")
+                ->orWhere('organ', 'like', "%{$search}%")
+                ->orWhere('create_reason', 'like', "%{$search}%")
+                ->orWhere('officer_name', 'like', "%{$search}%")
+                ->orWhere('officer_f_name', 'like', "%{$search}%")
+                ->orWhere('officer_phone', 'like', "%{$search}%")
+                ->orWhere('gun_type', 'like', "%{$search}%")
+                ->orWhere('province', 'like', "%{$search}%")
+                ->orWhere('zone', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('village', 'like', "%{$search}%")
+                ->orWhere('specefic_place', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    /**
+     * If your checkpoints table has a real fifty_six_format_id column,
+     * uncomment this block.
+     */
+    // if (is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0) {
+    //     $query->where('fifty_six_format_id', (int) $fiftySixFormatId);
+    // }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'withOfficerPhone') {
+        $query->whereNotNull('officer_phone')
+            ->whereRaw("TRIM(officer_phone) != ''");
+    } elseif ($cardFilter === 'withResource') {
+        $query->whereNotNull('resource_id');
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = Checkpoint::query()
+        ->with(['resource:id,name,code_number,phone_number']);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ چک‌پوینت ها');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

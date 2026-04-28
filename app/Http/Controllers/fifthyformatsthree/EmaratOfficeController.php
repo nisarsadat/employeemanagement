@@ -326,4 +326,136 @@ class EmaratOfficeController extends Controller
 
         return response()->noContent();
     }
+    private function printSearchFields(): array
+{
+    return [
+        'type',
+        're_name',
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'street_number',
+        'home_number',
+        'coordenates',
+        'home_type',
+        'Province_addr',
+        'responsible_office',
+        'job',
+        'tahdid_mutawajeh',
+        'guard_quantity',
+        'note',
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search      = trim((string) $request->query('search', ''));
+    $searchField = trim((string) $request->query('search_field', ''));
+    $searchValue = trim((string) $request->query('search_value', ''));
+    $cardFilter  = trim((string) $request->query('card_filter', 'all'));
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($qq) use ($search) {
+            $qq->where('type', 'like', "%{$search}%")
+                ->orWhere('re_name', 'like', "%{$search}%")
+                ->orWhere('province', 'like', "%{$search}%")
+                ->orWhere('zone', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('village', 'like', "%{$search}%")
+                ->orWhere('specific_place', 'like', "%{$search}%")
+                ->orWhere('street_number', 'like', "%{$search}%")
+                ->orWhere('home_number', 'like', "%{$search}%")
+                ->orWhere('coordenates', 'like', "%{$search}%")
+                ->orWhere('home_type', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('responsible_office', 'like', "%{$search}%")
+                ->orWhere('job', 'like', "%{$search}%")
+                ->orWhere('tahdid_mutawajeh', 'like', "%{$search}%")
+                ->orWhere('guard_quantity', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordenates')
+            ->whereRaw("TRIM(coordenates) != ''");
+    } elseif ($cardFilter === 'withResponsibleOffice') {
+        $query->whereNotNull('responsible_office')
+            ->whereRaw("TRIM(responsible_office) != ''");
+    } elseif ($cardFilter === 'withGuards') {
+        $query->whereNotNull('guard_quantity')
+            ->whereRaw("TRIM(guard_quantity) != ''");
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = EmaratOffice::query()
+        ->with(['resource:id,name,code_number,phone_number']);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->latest()
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? $row->resource_phone
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ امارت دفاتر');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

@@ -374,4 +374,156 @@ class SchoolController extends Controller
             return response()->noContent();
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'school_name',
+        'school_type',
+
+        'principle_name',
+        'principle_f_name',
+        'principle_phone',
+
+        'male_teachers_quantity',
+        'female_teachers_quantity',
+        'male_students_quantity',
+        'female_students_quantity',
+        'picture',
+
+        'province',
+        'Province_addr',
+        'zone',
+        'district',
+        'specific_place',
+        'village',
+        'street_number',
+        'coordinates',
+
+        'note',
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search      = trim((string) $request->query('search', ''));
+    $searchField = trim((string) $request->query('search_field', ''));
+    $searchValue = trim((string) $request->query('search_value', ''));
+    $resourceId  = $request->query('resource_id');
+    $cardFilter  = trim((string) $request->query('card_filter', 'all'));
+
+    $sortBy = trim((string) $request->query('sort_by', 'created_at'));
+    $sortDir = in_array($request->query('sort_dir'), ['asc', 'desc'], true)
+        ? $request->query('sort_dir')
+        : 'desc';
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($qq) use ($search) {
+            $qq->where('school_name', 'like', "%{$search}%")
+                ->orWhere('school_type', 'like', "%{$search}%")
+                ->orWhere('principle_name', 'like', "%{$search}%")
+                ->orWhere('principle_f_name', 'like', "%{$search}%")
+                ->orWhere('principle_phone', 'like', "%{$search}%")
+                ->orWhere('male_teachers_quantity', 'like', "%{$search}%")
+                ->orWhere('female_teachers_quantity', 'like', "%{$search}%")
+                ->orWhere('male_students_quantity', 'like', "%{$search}%")
+                ->orWhere('female_students_quantity', 'like', "%{$search}%")
+                ->orWhere('province', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('zone', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('specific_place', 'like', "%{$search}%")
+                ->orWhere('village', 'like', "%{$search}%")
+                ->orWhere('street_number', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if ($resourceId) {
+        $query->where('resource_id', $resourceId);
+    }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'withFemaleStudents') {
+        $query->where('female_students_quantity', '>', 0);
+    } elseif ($cardFilter === 'withFemaleTeachers') {
+        $query->where('female_teachers_quantity', '>', 0);
+    }
+
+    return [
+        'query' => $query,
+        'sort_by' => $sortBy,
+        'sort_dir' => $sortDir,
+    ];
+}
+
+public function printView(Request $request)
+{
+    $query = School::query()->with([
+        'resource' => fn ($qr) => $qr->select('id', 'name', 'code_number', 'phone_number'),
+    ]);
+
+    $filterResult = $this->applyPrintFilters($query, $request);
+
+    $rows = $filterResult['query']
+        ->orderBy($filterResult['sort_by'], $filterResult['sort_dir'])
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? $row->resource_phone
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ مکتب ها');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

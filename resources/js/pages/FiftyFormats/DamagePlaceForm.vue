@@ -835,7 +835,6 @@ function onResourceCleared() {
   function goBack() {
     router.push('/app/damageplaces');
   }
-  usePageRefresh('/app/criminalcaptureplaces', fetchAll);
 
   /* INIT */
   onMounted(async () => {

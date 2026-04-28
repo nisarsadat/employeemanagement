@@ -317,4 +317,158 @@ class DoneLostPlaceController extends Controller
             return response()->json(['message' => 'Deleted']);
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'picture',
+
+        'place_name',
+
+        'lost_person_name',
+        'lost_person_f_name',
+        'lost_person_phone',
+        'lost_person_job',
+
+        'main_province',
+        'main_district',
+        'main_village',
+
+        'now_province',
+        'now_district',
+        'now_village',
+
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'coordinates',
+
+        'lost_quantity',
+        'Province_addr',
+
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+
+        'note',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search           = trim((string) $request->query('search', ''));
+    $searchField      = trim((string) $request->query('search_field', ''));
+    $searchValue      = trim((string) $request->query('search_value', ''));
+    $cardFilter       = trim((string) $request->query('card_filter', 'all'));
+    $fiftySixFormatId = $request->query('fifty_six_format_id');
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function (Builder $q) use ($search) {
+            $q->where('place_name', 'like', "%{$search}%")
+                ->orWhere('lost_person_name', 'like', "%{$search}%")
+                ->orWhere('lost_person_f_name', 'like', "%{$search}%")
+                ->orWhere('lost_person_phone', 'like', "%{$search}%")
+                ->orWhere('lost_person_job', 'like', "%{$search}%")
+                ->orWhere('main_province', 'like', "%{$search}%")
+                ->orWhere('main_district', 'like', "%{$search}%")
+                ->orWhere('main_village', 'like', "%{$search}%")
+                ->orWhere('now_province', 'like', "%{$search}%")
+                ->orWhere('now_district', 'like', "%{$search}%")
+                ->orWhere('now_village', 'like', "%{$search}%")
+                ->orWhere('province', 'like', "%{$search}%")
+                ->orWhere('zone', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('village', 'like', "%{$search}%")
+                ->orWhere('specific_place', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhere('lost_quantity', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    /**
+     * If your done_lost_places table has a real fifty_six_format_id column,
+     * uncomment this block.
+     */
+    // if (is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0) {
+    //     $query->where('fifty_six_format_id', (int) $fiftySixFormatId);
+    // }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'withPerson') {
+        $query->whereNotNull('lost_person_name')
+            ->whereRaw("TRIM(lost_person_name) != ''");
+    } elseif ($cardFilter === 'withResource') {
+        $query->whereNotNull('resource_id');
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = Donelostplace::query()
+        ->with(['resource:id,name,code_number,phone_number']);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ محلات گمشده/یافته شده');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

@@ -225,6 +225,48 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         throw e;
       }
     },
+    async OpenWakilanosPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'wakilanos-print',
+      };
+
+      const res = await axios.get('/wakilanos/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
+
     async UpdateWakilano(id, data) {
       try {
         let res;
@@ -330,6 +372,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
+    },
+    async OpenUniversitiesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'universities-print',
+      };
+
+      const res = await axios.get('/universities/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
     },
     async UpdateUniversity(id, data) {
       try {
@@ -437,6 +520,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         throw e;
       }
     },
+    async OpenMasjidsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'masjids-print',
+      };
+
+      const res = await axios.get('/masjids/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateMasjid(id, data) {
       try {
         let res;
@@ -542,6 +666,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
+    },
+    async OpenCompaniesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'companies-print',
+      };
+
+      const res = await axios.get('/companies/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
     },
     async UpdateCompany(id, data) {
       try {
@@ -649,6 +814,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         throw e;
       }
     },
+    async OpenHighwaysPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'highways-print',
+      };
+
+      const res = await axios.get('/highways/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateHighway(id, data) {
       try {
         let res;
@@ -754,6 +960,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
+    },
+    async OpenDoneLostPlacesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'done-lost-places-print',
+      };
+
+      const res = await axios.get('/done-lost-places/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
     },
     async UpdateDoneLostPlace(id, data) {
       try {
@@ -861,6 +1108,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         throw e;
       }
     },
+    async OpenEconemyProjectsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'econemy-projects-print',
+      };
+
+      const res = await axios.get('/econemy-projects/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateEconemyProject(id, data) {
       try {
         let res;
@@ -966,6 +1254,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
+    },
+    async OpenCriminalCapturePlacesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'criminal-capture-places-print',
+      };
+
+      const res = await axios.get('/criminal-capture-places/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
     },
     async UpdateCriminalCapturePlace(id, data) {
       try {
@@ -1073,6 +1402,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         throw e;
       }
     },
+    async OpenPumpsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'pumps-print',
+      };
+
+      const res = await axios.get('/pumps/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdatePump(id, data) {
       try {
         let res;
@@ -1178,6 +1548,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
+    },
+    async OpenShorasPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'shoras-print',
+      };
+
+      const res = await axios.get('/shoras/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
     },
     async UpdateShora(id, data) {
       try {
@@ -1285,6 +1696,48 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         throw e;
       }
     },
+    async OpenDeplomaticPlacesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'deplomaticplaces-print',
+      };
+
+      const res = await axios.get('/deplomaticplaces/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
+
     async UpdateDeplomaticPlace(id, data) {
       try {
         let res;
@@ -1390,6 +1843,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
+    },
+    async OpenCheckpointsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'checkpoints-print',
+      };
+
+      const res = await axios.get('/checkpoints/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
     },
     async UpdateCheckpoint(id, data) {
       try {
@@ -1497,6 +1991,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         throw e;
       }
     },
+    async OpenParksPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'parks-print',
+      };
+
+      const res = await axios.get('/parks/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdatePark(id, data) {
       try {
         let res;
@@ -1602,6 +2137,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
+    },
+    async OpenGovernmentPlacesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'government-places-print',
+      };
+
+      const res = await axios.get('/government-places/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
     },
     async UpdateGovernmentPlace(id, data) {
       try {
@@ -1709,6 +2285,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         throw e;
       }
     },
+    async OpenSuperMarketsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'super-markets-print',
+      };
+
+      const res = await axios.get('/super-markets/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateSuperMarket(id, data) {
       try {
         let res;
@@ -1814,6 +2431,47 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         toast.error(errText(e, 'ریکارډ اضافه نه شو'));
         throw e;
       }
+    },
+    async OpenComplexesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
+
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'complexes-print',
+      };
+
+      const res = await axios.get('/complexes/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
     },
     async UpdateComplex(id, data) {
       try {

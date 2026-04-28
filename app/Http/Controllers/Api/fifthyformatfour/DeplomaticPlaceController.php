@@ -295,4 +295,169 @@ class DeplomaticPlaceController extends Controller
             return response()->json(['message' => 'Deleted']);
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'picture',
+
+        'deplomatic_place_name',
+        'activity_type',
+        'activity_place',
+        'supplier_country',
+
+        'enter_male_quantity',
+        'outer_male_quantity',
+        'enter_female_quantity',
+        'outer_female_quantity',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_possition',
+        'responsible_country',
+        'responsible_phone',
+
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specefic_place',
+        'street_number',
+        'home_number',
+        'Province_addr',
+
+        'coordinates',
+        'guard_quantity',
+
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+
+        'note',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search           = trim((string) $request->query('search', ''));
+    $searchField      = trim((string) $request->query('search_field', ''));
+    $searchValue      = trim((string) $request->query('search_value', ''));
+    $cardFilter       = trim((string) $request->query('card_filter', 'all'));
+    $fiftySixFormatId = $request->query('fifty_six_format_id');
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function (Builder $q) use ($search) {
+            $q->where('deplomatic_place_name', 'like', "%{$search}%")
+                ->orWhere('activity_type', 'like', "%{$search}%")
+                ->orWhere('activity_place', 'like', "%{$search}%")
+                ->orWhere('supplier_country', 'like', "%{$search}%")
+                ->orWhere('enter_male_quantity', 'like', "%{$search}%")
+                ->orWhere('outer_male_quantity', 'like', "%{$search}%")
+                ->orWhere('enter_female_quantity', 'like', "%{$search}%")
+                ->orWhere('outer_female_quantity', 'like', "%{$search}%")
+                ->orWhere('responsible_name', 'like', "%{$search}%")
+                ->orWhere('responsible_f_name', 'like', "%{$search}%")
+                ->orWhere('responsible_possition', 'like', "%{$search}%")
+                ->orWhere('responsible_country', 'like', "%{$search}%")
+                ->orWhere('responsible_phone', 'like', "%{$search}%")
+                ->orWhere('province', 'like', "%{$search}%")
+                ->orWhere('zone', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('village', 'like', "%{$search}%")
+                ->orWhere('specefic_place', 'like', "%{$search}%")
+                ->orWhere('street_number', 'like', "%{$search}%")
+                ->orWhere('home_number', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhere('guard_quantity', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    /**
+     * If your deplomatic_places table has a real fifty_six_format_id column,
+     * uncomment this block.
+     */
+    // if (is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0) {
+    //     $query->where('fifty_six_format_id', (int) $fiftySixFormatId);
+    // }
+
+    if ($cardFilter === 'enterMale') {
+        $query->whereNotNull('enter_male_quantity')
+            ->where('enter_male_quantity', '>', 0);
+    } elseif ($cardFilter === 'enterFemale') {
+        $query->whereNotNull('enter_female_quantity')
+            ->where('enter_female_quantity', '>', 0);
+    } elseif ($cardFilter === 'outerMale') {
+        $query->whereNotNull('outer_male_quantity')
+            ->where('outer_male_quantity', '>', 0);
+    } elseif ($cardFilter === 'outerFemale') {
+        $query->whereNotNull('outer_female_quantity')
+            ->where('outer_female_quantity', '>', 0);
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = DeplomaticPlace::query()
+        ->with(['resource:id,name,code_number,phone_number']);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ محلات دیپلوماتیک');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

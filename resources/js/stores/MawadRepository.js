@@ -209,7 +209,47 @@ export const useMawadRepository = defineStore('MawadRepository', {
         throw e;
       }
     },
+    async OpenMawadsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'mawads-print',
+      };
+
+      const res = await axios.get('/mawads/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateMawad(id, data) {
       try {
         let res;
@@ -301,7 +341,47 @@ export const useMawadRepository = defineStore('MawadRepository', {
         return { data: { options: [] } };
       }
     },
+    async OpenLostMujremeensPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'lost-mujremeens-print',
+      };
+
+      const res = await axios.get('/lost-mujremeens/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async FetchLostMujremeenData(id) {
       try {
         setContentType('application/json');
@@ -453,7 +533,47 @@ export const useMawadRepository = defineStore('MawadRepository', {
         throw e;
       }
     },
+    async OpenOldSoldiersHomesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'old-soldiers-homes-print',
+      };
+
+      const res = await axios.get('/old-soldiers-homes/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateOldSoldiersHome(id, data) {
       try {
         let res;
@@ -617,7 +737,47 @@ export const useMawadRepository = defineStore('MawadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+    async OpenRobbersPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'robbers-print',
+      };
+
+      const res = await axios.get('/robbers/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     /* ============================ NonResponsablePeoples ============================ */
     async FetchNonResponsablePeoplesData(params = {}) {
       this.loading = true;
@@ -701,7 +861,47 @@ export const useMawadRepository = defineStore('MawadRepository', {
         throw e;
       }
     },
+    async OpenNonResponsablePeoplePrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'non-responsable-people-print',
+      };
+
+      const res = await axios.get('/non-responsable-people/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateNonResponsablePeoples(id, data) {
       try {
         let res;
@@ -793,7 +993,47 @@ export const useMawadRepository = defineStore('MawadRepository', {
         return { data: { options: [] } };
       }
     },
+    async OpenMashkokHomesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'mashkok-homes-print',
+      };
+
+      const res = await axios.get('/mashkok-homes/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async FetchMashkokHomeData(id) {
       try {
         setContentType('application/json');
@@ -949,7 +1189,47 @@ export const useMawadRepository = defineStore('MawadRepository', {
         throw e;
       }
     },
+    async OpenDamagePlacesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'damage-places-print',
+      };
+
+      const res = await axios.get('/damage-places/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateDamagePlace(id, data) {
       try {
         let res;
@@ -1073,7 +1353,47 @@ export const useMawadRepository = defineStore('MawadRepository', {
         throw e;
       }
     },
+    async OpenDamageRasanPlacesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'damage-rasan-places-print',
+      };
+
+      const res = await axios.get('/damage-rasan-places/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateDamageRasanPlaces(id, data) {
       try {
         let res;
@@ -1193,7 +1513,47 @@ export const useMawadRepository = defineStore('MawadRepository', {
         throw e;
       }
     },
+    async OpenMashkokShopsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'mashkok-shops-print',
+      };
+
+      const res = await axios.get('/mashkok-shops/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateMashkokShop(id, data) {
       try {
         let res;
@@ -1313,7 +1673,47 @@ export const useMawadRepository = defineStore('MawadRepository', {
         throw e;
       }
     },
+    async OpenLuchakanosPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'luchakanos-print',
+      };
+
+      const res = await axios.get('/luchakano/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateLuchakano(id, data) {
       try {
         let res;

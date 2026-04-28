@@ -311,4 +311,130 @@ class HighwayController extends Controller
             return response()->json(['message' => 'Deleted']);
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'high_way_name',
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'picture',
+        'coordinates',
+        'Province_addr',
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+        'note',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search      = trim((string) $request->query('search', ''));
+    $searchField = trim((string) $request->query('search_field', ''));
+    $searchValue = trim((string) $request->query('search_value', ''));
+    $resourceId  = $request->query('resource_id');
+    $cardFilter  = trim((string) $request->query('card_filter', 'all'));
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function (Builder $q) use ($search) {
+            $q->where('high_way_name', 'like', "%{$search}%")
+                ->orWhere('province', 'like', "%{$search}%")
+                ->orWhere('zone', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('village', 'like', "%{$search}%")
+                ->orWhere('specific_place', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if (is_numeric($resourceId) && (int) $resourceId > 0) {
+        $query->where('resource_id', (int) $resourceId);
+    }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'withProvince') {
+        $query->whereNotNull('province')
+            ->whereRaw("TRIM(province) != ''");
+    } elseif ($cardFilter === 'withResource') {
+        $query->whereNotNull('resource_id');
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = Highway::query()
+        ->with(['resource:id,name,code_number,phone_number']);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? '-';
+
+            // Your table header uses resource_id, so print shows resource code there
+            $row->resource_id =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ شاهراه ها');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

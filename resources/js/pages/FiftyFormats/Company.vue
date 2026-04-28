@@ -77,6 +77,44 @@
             {{ t('جدید') }}
           </v-btn>
         </v-col>
+        <v-col cols="12" sm="10">
+          <v-select
+            v-model="selectedPrintColumns"
+            :items="printableHeaderOptions"
+            item-title="title"
+            item-value="key"
+            multiple
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            class="bg-white"
+            hide-details
+            :label="t('ستون‌های چاپ')"
+            :menu-props="{ maxHeight: 400 }"
+          >
+            <template #selection="{ index }">
+              <span v-if="index === 0" class="text-body-2">
+                {{ selectedPrintColumns.length }}
+                {{ t('ستون انتخاب شده') }}
+              </span>
+            </template>
+          </v-select>
+        </v-col>
+
+        <v-col cols="12" sm="2">
+          <v-btn
+            color="error"
+            variant="flat"
+            rounded="lg"
+            size="large"
+            block
+            class="text-none"
+            prepend-icon="mdi-printer"
+            @click="printAll"
+          >
+            {{ t('چاپ') }}
+          </v-btn>
+        </v-col>
       </v-row>
 
       <!-- 📊 Filter Cards -->
@@ -188,7 +226,7 @@
       :enableEdit="true"
       :enablePeek="true"
       :autoDetectDates="false"
-      class=" mx-2"
+      class="mx-2"
       @edit="goEdit"
       @peek="openPeek"
     >
@@ -207,12 +245,12 @@
       </template>
 
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
-      <template #cell-resource_code="{ row }">
+      <template #cell-resource_id="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
           <template #activator="{ props: tooltipProps }">
             <v-btn
               v-bind="tooltipProps"
-              v-if="row.resource_code"
+              v-if="row.resource_id"
               variant="tonal"
               color="primary"
               append-icon="mdi-account"
@@ -220,7 +258,7 @@
               class="text-none"
               @click.stop="goToResource(row)"
             >
-              {{ row.resource_code }}
+              {{ row.resource_id }}
             </v-btn>
             <span v-else>-</span>
           </template>
@@ -347,7 +385,7 @@
   import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.vue';
   import GlobalPagination from '@/components/GlobalPagination.vue';
   import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
-
+  import { useTablePrintExport } from '@/composables/useTablePrintExport';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
   import { useRelatedRouteFilters } from '@/composables/useRelatedRouteFilters';
@@ -362,7 +400,7 @@
   const drawer = ref(false);
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (l) => (isRtl.value = l === 'fa'));
-
+  const selectedPrintColumns = ref([]);
   const searchField = ref(null);
   const selectedColumnValue = ref(null);
 
@@ -604,8 +642,8 @@
     try {
       await repo.FetchCompaniesData?.({
         search: repo.Search,
-      search_field: normalizedSearchField.value || route.query.search_field || null,
-search_value: normalizedSearchValue.value || route.query.search_value || null,
+        search_field: normalizedSearchField.value || route.query.search_field || null,
+        search_value: normalizedSearchValue.value || route.query.search_value || null,
         fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
         source: relatedFilters.value.source,
         open: relatedFilters.value.open,
@@ -728,9 +766,68 @@ search_value: normalizedSearchValue.value || route.query.search_value || null,
     },
     { deep: true }
   );
+  const printLabels = computed(() => ({
+    print: t('چاپ'),
+    record_count: t('تعداد ریکارد'),
+    index: t('شماره'),
+    no_data: t('معلومات برای چاپ موجود نیست'),
+    footer_note: '',
+  }));
 
+  const printableHeaderOptions = computed(() => {
+    return headersFT.value.filter((h) => !['map'].includes(h.key));
+  });
+
+  function buildDefaultPrintColumns() {
+    return printableHeaderOptions.value.map((h) => h.key);
+  }
+
+  const { printAll } = useTablePrintExport({
+    repo: {
+      OpenResourcesPrintView: repo.OpenCompaniesPrintView,
+    },
+
+    moduleKey: 'companies',
+
+    getFilters: () => ({
+      search: repo.Search || '',
+      search_field: normalizedSearchField.value || route.query.search_field || null,
+      search_value: normalizedSearchValue.value || route.query.search_value || null,
+
+      card_filter: cardFilter.value || 'all',
+
+      fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
+      resource_id: relatedFilters.value.resource_id,
+      source: relatedFilters.value.source,
+      open: relatedFilters.value.open,
+    }),
+
+    getHeaders: () => headersFT.value,
+
+    getSelectedColumnKeys: () => selectedPrintColumns.value,
+
+    getTitle: () => t('چاپ شرکت‌ها'),
+
+    getPrintLabels: () => printLabels.value,
+
+    getLocale: () => locale.value,
+
+    defaultFileName: 'companies-print',
+  });
+
+  watch(
+    printableHeaderOptions,
+    (newColumns) => {
+      if (!selectedPrintColumns.value.length) {
+        selectedPrintColumns.value = newColumns.map((c) => c.key);
+      }
+    },
+    { immediate: true }
+  );
   /* init */
   onMounted(async () => {
+    selectedPrintColumns.value = buildDefaultPrintColumns();
+
     if (!relatedFilters.value.fifty_six_format_id) {
       await fetchAll();
     }

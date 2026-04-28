@@ -315,4 +315,136 @@ class HostelController extends Controller
 
         return response()->noContent();
     }
+    private function printSearchFields(): array
+{
+    return [
+        'hostel_name',
+        'hostel_type',
+        'people_quantity',
+        'people_type',
+
+        'responsible_name',
+        'Province_addr',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'coordenates',
+
+        'note',
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search           = trim((string) $request->query('search', ''));
+    $searchField      = trim((string) $request->query('search_field', ''));
+    $searchValue      = trim((string) $request->query('search_value', ''));
+    $fiftySixFormatId = $request->query('fifty_six_format_id');
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($qq) use ($search) {
+            $qq->where('hostel_name', 'like', "%{$search}%")
+                ->orWhere('hostel_type', 'like', "%{$search}%")
+                ->orWhere('people_quantity', 'like', "%{$search}%")
+                ->orWhere('people_type', 'like', "%{$search}%")
+                ->orWhere('responsible_name', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('responsible_f_name', 'like', "%{$search}%")
+                ->orWhere('responsible_position', 'like', "%{$search}%")
+                ->orWhere('responsible_phone', 'like', "%{$search}%")
+                ->orWhere('province', 'like', "%{$search}%")
+                ->orWhere('zone', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('village', 'like', "%{$search}%")
+                ->orWhere('specific_place', 'like', "%{$search}%")
+                ->orWhere('coordenates', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if (is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0) {
+        $query->where('id', (int) $fiftySixFormatId);
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = Hostel::query()
+        ->with(['resource:id,name,code_number,phone_number']);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->latest()
+        ->get()
+        ->map(function ($row) {
+            // For print display
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? '-';
+
+            // Because your header key is resource_id, this makes print show code instead of raw ID
+            $row->resource_id =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ خواب گاه');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

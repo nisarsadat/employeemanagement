@@ -302,4 +302,158 @@ class ShoraController extends Controller
             return response()->json(['message' => 'Deleted']);
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'shora_village',
+        'note',
+
+        'shora_name',
+        'shora_goal',
+        'people_quantity',
+        'week_meeting_quantity',
+        'regester',
+        'shora_meeting_place',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_job',
+        'responsible_phone',
+
+        'picture',
+
+        'supplier_name',
+        'supplier_job',
+        'supplier_phone',
+
+        'emarat_tarfdary',
+
+        'shora_province',
+        'shora_zone',
+        'shora_district',
+
+        'Province_addr',
+        'coordinates',
+
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search      = trim((string) $request->query('search', ''));
+    $searchField = trim((string) $request->query('search_field', ''));
+    $searchValue = trim((string) $request->query('search_value', ''));
+    $resourceId  = $request->query('resource_id');
+    $cardFilter  = trim((string) $request->query('card_filter', 'all'));
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function (Builder $q) use ($search) {
+            $q->where('shora_name', 'like', "%{$search}%")
+                ->orWhere('shora_goal', 'like', "%{$search}%")
+                ->orWhere('shora_village', 'like', "%{$search}%")
+                ->orWhere('people_quantity', 'like', "%{$search}%")
+                ->orWhere('week_meeting_quantity', 'like', "%{$search}%")
+                ->orWhere('regester', 'like', "%{$search}%")
+                ->orWhere('shora_meeting_place', 'like', "%{$search}%")
+                ->orWhere('responsible_name', 'like', "%{$search}%")
+                ->orWhere('responsible_f_name', 'like', "%{$search}%")
+                ->orWhere('responsible_job', 'like', "%{$search}%")
+                ->orWhere('responsible_phone', 'like', "%{$search}%")
+                ->orWhere('supplier_name', 'like', "%{$search}%")
+                ->orWhere('supplier_job', 'like', "%{$search}%")
+                ->orWhere('supplier_phone', 'like', "%{$search}%")
+                ->orWhere('emarat_tarfdary', 'like', "%{$search}%")
+                ->orWhere('shora_province', 'like', "%{$search}%")
+                ->orWhere('shora_zone', 'like', "%{$search}%")
+                ->orWhere('shora_district', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if (is_numeric($resourceId) && (int) $resourceId > 0) {
+        $query->where('resource_id', (int) $resourceId);
+    }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'withResponsiblePhone') {
+        $query->whereNotNull('responsible_phone')
+            ->whereRaw("TRIM(responsible_phone) != ''");
+    } elseif ($cardFilter === 'withSupplierPhone') {
+        $query->whereNotNull('supplier_phone')
+            ->whereRaw("TRIM(supplier_phone) != ''");
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = Shora::query()
+        ->with(['resource:id,name,code_number,phone_number']);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? $row->resource_phone
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ شوراها');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

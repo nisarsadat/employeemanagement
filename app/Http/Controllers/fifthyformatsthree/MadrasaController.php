@@ -338,4 +338,150 @@ class MadrasaController extends Controller
 
         return response()->noContent();
     }
+    private function printSearchFields(): array
+{
+    return [
+        'name',
+        'madrasa_type',
+
+        'responsible_name',
+        'responsible_f_name',
+        'responsible_position',
+        'responsible_phone',
+        'responsible_main_province',
+        'tarafdari_type_responsible',
+
+        'mazhab',
+        'male_teacher_quantity',
+        'female_teacher_quantity',
+        'male_students_quantity',
+        'female_students_quantity',
+
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'street_number',
+        'coordinates',
+
+        'Province_addr',
+        'note',
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search      = trim((string) $request->query('search', ''));
+    $searchField = trim((string) $request->query('search_field', ''));
+    $searchValue = trim((string) $request->query('search_value', ''));
+    $cardFilter  = trim((string) $request->query('card_filter', 'all'));
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($qq) use ($search) {
+            $qq->where('name', 'like', "%{$search}%")
+                ->orWhere('madrasa_type', 'like', "%{$search}%")
+                ->orWhere('responsible_name', 'like', "%{$search}%")
+                ->orWhere('responsible_f_name', 'like', "%{$search}%")
+                ->orWhere('responsible_position', 'like', "%{$search}%")
+                ->orWhere('responsible_phone', 'like', "%{$search}%")
+                ->orWhere('responsible_main_province', 'like', "%{$search}%")
+                ->orWhere('tarafdari_type_responsible', 'like', "%{$search}%")
+                ->orWhere('mazhab', 'like', "%{$search}%")
+                ->orWhere('male_teacher_quantity', 'like', "%{$search}%")
+                ->orWhere('female_teacher_quantity', 'like', "%{$search}%")
+                ->orWhere('male_students_quantity', 'like', "%{$search}%")
+                ->orWhere('female_students_quantity', 'like', "%{$search}%")
+                ->orWhere('province', 'like', "%{$search}%")
+                ->orWhere('zone', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('village', 'like', "%{$search}%")
+                ->orWhere('specific_place', 'like', "%{$search}%")
+                ->orWhere('street_number', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'withPhone') {
+        $query->whereNotNull('responsible_phone')
+            ->whereRaw("TRIM(responsible_phone) != ''");
+    } elseif ($cardFilter === 'withResponsible') {
+        $query->whereNotNull('responsible_name')
+            ->whereRaw("TRIM(responsible_name) != ''");
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = Madrasa::query()
+        ->with(['resource:id,name,code_number,phone_number']);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->latest()
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? $row->resource_phone
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ مدرسه‌ها');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

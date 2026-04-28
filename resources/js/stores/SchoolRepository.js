@@ -205,7 +205,47 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         throw e;
       }
     },
+    async OpenSchoolsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'schools-print',
+      };
+
+      const res = await axios.get('/schools/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateSchool(id, data) {
       try {
         let res;
@@ -322,7 +362,47 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         throw e;
       }
     },
+    async OpenHadoBusStopsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'hado-bus-stops-print',
+      };
+
+      const res = await axios.get('/hado-bus-stops/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateHadoBusStop(id, data) {
       try {
         let res;
@@ -439,7 +519,47 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         throw e;
       }
     },
+    async OpenTransportCompaniesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'transport-companies-print',
+      };
+
+      const res = await axios.get('/transport-companies/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateTransportCompany(id, data) {
       try {
         let res;
@@ -556,7 +676,47 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         throw e;
       }
     },
+    async OpenCarSalesCompaniesPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'car-sales-companies-print',
+      };
+
+      const res = await axios.get('/car-sales-companies/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateCarSalesCompany(id, data) {
       try {
         let res;
@@ -673,7 +833,47 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         throw e;
       }
     },
+    async OpenParkingsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'parkings-print',
+      };
+
+      const res = await axios.get('/parkings/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateParking(id, data) {
       try {
         let res;
@@ -790,7 +990,47 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         throw e;
       }
     },
+    async OpenBanksPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'banks-print',
+      };
+
+      const res = await axios.get('/banks/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateBank(id, data) {
       try {
         let res;
@@ -907,7 +1147,47 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         throw e;
       }
     },
+    async OpenApartmentsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'apartments-print',
+      };
+
+      const res = await axios.get('/apartments/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateApartment(id, data) {
       try {
         let res;
@@ -1024,7 +1304,47 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         throw e;
       }
     },
+    async OpenRahnomaMamlatsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'rahnoma-mamlats-print',
+      };
+
+      const res = await axios.get('/rahnoma-mamlats/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateRahnomaMamlat(id, data) {
       try {
         let res;
@@ -1141,7 +1461,47 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         throw e;
       }
     },
+    async OpenHosppitalsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'hosppitals-print',
+      };
+
+      const res = await axios.get('/hosppitals/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateHosppital(id, data) {
       try {
         let res;
@@ -1258,7 +1618,47 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         throw e;
       }
     },
+    async OpenWorkShopsPrintView(payload = {}) {
+      const {
+        selected_columns,
+        column_labels,
+        print_labels,
+        locale,
+        title,
+        file_name,
+        module,
+        filters,
+        ...topLevelFilters
+      } = payload;
 
+      const params = {
+        ...(filters || {}),
+        ...topLevelFilters,
+
+        selected_columns: selected_columns || [],
+        column_labels: column_labels || {},
+        print_labels: print_labels || {},
+        locale: locale || 'fa',
+        title: title || '',
+        file_name: file_name || 'work-shops-print',
+      };
+
+      const res = await axios.get('/work-shops/print', {
+        params,
+        responseType: 'text',
+      });
+
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        throw new Error('Print window blocked');
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(res.data);
+      printWindow.document.close();
+      printWindow.focus();
+    },
     async UpdateWorkShop(id, data) {
       try {
         let res;

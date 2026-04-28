@@ -308,4 +308,143 @@ class DamageRasanPlacesController extends Controller
             return response()->noContent();
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specific_place',
+        'specific_dot',
+        'picture',
+        'coordinates',
+        'tahdid_type',
+        'percentage',
+        'damage_place',
+        'Province_addr',
+        'note',
+
+        'resource_id',
+        'resource_code',
+        'resource_phone',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search           = trim((string) $request->query('search', ''));
+    $searchField      = trim((string) $request->query('search_field', ''));
+    $searchValue      = trim((string) $request->query('search_value', ''));
+    $resourceId       = $request->query('resource_id');
+    $fiftySixFormatId = $request->query('fifty_six_format_id');
+    $cardFilter       = trim((string) $request->query('card_filter', 'all'));
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function ($q) use ($search) {
+            $q->where('province', 'like', "%{$search}%")
+                ->orWhere('zone', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('village', 'like', "%{$search}%")
+                ->orWhere('specific_place', 'like', "%{$search}%")
+                ->orWhere('specific_dot', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhere('tahdid_type', 'like', "%{$search}%")
+                ->orWhere('percentage', 'like', "%{$search}%")
+                ->orWhere('damage_place', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if ($resourceId) {
+        $query->where('resource_id', $resourceId);
+    }
+
+    if (is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0) {
+        $query->where('id', (int) $fiftySixFormatId);
+    }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'withThreat') {
+        $query->whereNotNull('tahdid_type')
+            ->whereRaw("TRIM(tahdid_type) != ''");
+    } elseif ($cardFilter === 'withResource') {
+        $query->whereNotNull('resource_id')
+            ->whereRaw("TRIM(resource_id) != ''");
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = DamageRasanPlaces::query()
+        ->with(['resource:id,name,code_number,phone_number']);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone =
+                $row->resource?->phone_number
+                ?? '-';
+
+            // ✅ because your visible header uses resource_id for "کود منبع"
+            $row->resource_id =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ نقاط آسیب رسان');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

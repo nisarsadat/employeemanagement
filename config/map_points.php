@@ -203,7 +203,7 @@ return [
         ],
         [
             'table' => 'lost_mujremeens',
-            'type' => 'lost_mujremeen',
+            'type' => 'lost_mujremeens',
             'typeLabel' => 'نادرکه شوي مجرم',
             'show_url' => '/api/lost-mujremeens/',
             'list_path' => '/app/lostmujremeens',

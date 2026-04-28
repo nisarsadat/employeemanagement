@@ -296,4 +296,152 @@ class CriminalCapturePlaceController extends Controller
             return response()->json(['message' => 'Deleted']);
         });
     }
+    private function printSearchFields(): array
+{
+    return [
+        'name',
+        'father_name',
+        'job',
+
+        'jorm_type',
+        'criminals_quantity',
+        'office',
+
+        'province',
+        'zone',
+        'district',
+        'village',
+        'specefic_place',
+        'picture',
+        'coordinates',
+        'Province_addr',
+
+        'resource_id',
+        'resource_code',
+        'resource_phone_number',
+
+        'note',
+    ];
+}
+
+private function applyPrintFilters($query, Request $request)
+{
+    $search           = trim((string) $request->query('search', ''));
+    $searchField      = trim((string) $request->query('search_field', ''));
+    $searchValue      = trim((string) $request->query('search_value', ''));
+    $fiftySixFormatId = $request->query('fifty_six_format_id');
+    $resourceId       = $request->query('resource_id');
+    $cardFilter       = trim((string) $request->query('card_filter', 'all'));
+
+    $allowedFields = $this->printSearchFields();
+
+    if ($search !== '' && $searchField === '') {
+        $query->where(function (Builder $q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+                ->orWhere('father_name', 'like', "%{$search}%")
+                ->orWhere('job', 'like', "%{$search}%")
+                ->orWhere('jorm_type', 'like', "%{$search}%")
+                ->orWhere('criminals_quantity', 'like', "%{$search}%")
+                ->orWhere('office', 'like', "%{$search}%")
+                ->orWhere('province', 'like', "%{$search}%")
+                ->orWhere('zone', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('village', 'like', "%{$search}%")
+                ->orWhere('specefic_place', 'like', "%{$search}%")
+                ->orWhere('coordinates', 'like', "%{$search}%")
+                ->orWhere('Province_addr', 'like', "%{$search}%")
+                ->orWhere('note', 'like', "%{$search}%")
+                ->orWhereHas('resource', function ($r) use ($search) {
+                    $r->where('code_number', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    if ($searchField !== '' && in_array($searchField, $allowedFields, true)) {
+        $value = $searchValue !== '' ? $searchValue : $search;
+
+        if ($value !== '') {
+            if ($searchField === 'resource_code') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('code_number', 'like', "%{$value}%");
+                });
+            } elseif ($searchField === 'resource_phone_number') {
+                $query->whereHas('resource', function ($r) use ($value) {
+                    $r->where('phone_number', 'like', "%{$value}%");
+                });
+            } else {
+                $query->where($searchField, 'like', "%{$value}%");
+            }
+        }
+    }
+
+    if (is_numeric($fiftySixFormatId) && (int) $fiftySixFormatId > 0) {
+        $query->where('id', (int) $fiftySixFormatId);
+    }
+
+    if (is_numeric($resourceId) && (int) $resourceId > 0) {
+        $query->where('resource_id', (int) $resourceId);
+    }
+
+    if ($cardFilter === 'withCoordinates') {
+        $query->whereNotNull('coordinates')
+            ->whereRaw("TRIM(coordinates) != ''");
+    } elseif ($cardFilter === 'withPhone') {
+        $query->whereHas('resource', function ($r) {
+            $r->whereNotNull('phone_number')
+                ->whereRaw("TRIM(phone_number) != ''");
+        });
+    } elseif ($cardFilter === 'withJob') {
+        $query->whereNotNull('job')
+            ->whereRaw("TRIM(job) != ''");
+    }
+
+    return $query;
+}
+
+public function printView(Request $request)
+{
+    $query = CriminalCapturePlace::query()
+        ->with(['resource:id,name,code_number,phone_number']);
+
+    $this->applyPrintFilters($query, $request);
+
+    $rows = $query
+        ->orderByDesc('id')
+        ->get()
+        ->map(function ($row) {
+            $row->resource_code =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            $row->resource_phone_number =
+                $row->resource?->phone_number
+                ?? '-';
+
+            // Your table header uses resource_id, so print shows resource code there
+            $row->resource_id =
+                $row->resource?->code_number
+                ?? $row->resource_id
+                ?? '-';
+
+            return $row;
+        });
+
+    $selectedColumns = $request->input('selected_columns', []);
+    $columnLabels    = $request->input('column_labels', []);
+    $printLabels     = $request->input('print_labels', []);
+    $locale          = $request->input('locale', 'fa');
+    $title           = $request->input('title', 'چاپ محل دستگیری مجرم');
+
+    return response()->view('prints.table-print', [
+        'title'           => $title,
+        'rows'            => $rows,
+        'selectedColumns' => $selectedColumns,
+        'columnLabels'    => $columnLabels,
+        'printLabels'     => $printLabels,
+        'locale'          => $locale,
+    ]);
+}
 }

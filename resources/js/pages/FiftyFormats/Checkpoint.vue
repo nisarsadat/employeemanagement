@@ -2,10 +2,7 @@
 <template>
   <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
     <!-- APP BAR -->
-    <AppBar
-      :title="t('چک‌پوینت')"
-      :subtitle="t('فهرست، جستجو و مدیریت چک‌پوینت ها')"
-    >
+    <AppBar :title="t('چک‌پوینت')" :subtitle="t('فهرست، جستجو و مدیریت چک‌پوینت ها')">
       <template #actions>
         <v-btn icon />
       </template>
@@ -77,6 +74,44 @@
             {{ t('جدید') }}
           </v-btn>
         </v-col>
+        <v-col cols="12" sm="10">
+          <v-select
+            v-model="selectedPrintColumns"
+            :items="printableHeaderOptions"
+            item-title="title"
+            item-value="key"
+            multiple
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            class="bg-white"
+            hide-details
+            :label="t('ستون‌های چاپ')"
+            :menu-props="{ maxHeight: 400 }"
+          >
+            <template #selection="{ index }">
+              <span v-if="index === 0" class="text-body-2">
+                {{ selectedPrintColumns.length }}
+                {{ t('ستون انتخاب شده') }}
+              </span>
+            </template>
+          </v-select>
+        </v-col>
+
+        <v-col cols="12" sm="2">
+          <v-btn
+            color="error"
+            variant="flat"
+            rounded="lg"
+            size="large"
+            block
+            class="text-none"
+            prepend-icon="mdi-printer"
+            @click="printAll"
+          >
+            {{ t('چاپ') }}
+          </v-btn>
+        </v-col>
       </v-row>
 
       <!-- 📊 Filter Cards -->
@@ -94,9 +129,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('تمام چک‌پوینت ها') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('مجموع') }}: {{ stats.total }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('مجموع') }}: {{ stats.total }}</div>
               </div>
             </div>
           </v-card>
@@ -115,9 +148,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای مختصات') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withCoordinates }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withCoordinates }}</div>
               </div>
             </div>
           </v-card>
@@ -136,9 +167,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای شماره مسؤول') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withOfficerPhone }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withOfficerPhone }}</div>
               </div>
             </div>
           </v-card>
@@ -157,9 +186,7 @@
               </div>
               <div class="stat-card-text">
                 <div class="stat-card-title">{{ t('دارای منبع') }}</div>
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}: {{ stats.withResource }}
-                </div>
+                <div class="stat-card-subtitle">{{ t('تعداد') }}: {{ stats.withResource }}</div>
               </div>
             </div>
           </v-card>
@@ -210,19 +237,19 @@
       </template>
 
       <!-- 🔗 RESOURCE CODE CLICKABLE WITH TOOLTIP -->
-      <template #cell-resource_code="{ row }">
+      <template #cell-resource_id="{ row }">
         <v-tooltip :text="t('رفتن به صفحه منابع')" location="top">
           <template #activator="{ props: tooltipProps }">
             <v-btn
               v-bind="tooltipProps"
-              v-if="row.resource_code"
+              v-if="row.resource_id"
               variant="tonal"
               color="primary"
               append-icon="mdi-account"
               size="default"
               @click.stop="goToResource(row)"
             >
-              {{ row.resource_code }}
+              {{ row.resource_id }}
             </v-btn>
             <span v-else>-</span>
           </template>
@@ -246,12 +273,7 @@
         <div class="d-flex align-center ga-2">
           <v-tooltip :text="t('مشاهده چک‌پوینت')" location="top">
             <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                size="small"
-                color="blue"
-                @click.stop="openPeek(item)"
-              >
+              <v-icon v-bind="tooltipProps" size="small" color="blue" @click.stop="openPeek(item)">
                 mdi-eye
               </v-icon>
             </template>
@@ -326,7 +348,7 @@
   import PictureCell from '@/components/table/PictureCell.vue';
   import GlobalPagination from '@/components/GlobalPagination.vue';
   import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
-
+  import { useTablePrintExport } from '@/composables/useTablePrintExport';
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
@@ -343,7 +365,7 @@
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (l) => (isRtl.value = l === 'fa'));
-
+  const selectedPrintColumns = ref([]);
   const showError = ref(false);
   const errorMessage = ref('');
   const showErrorMessage = (m) => {
@@ -542,7 +564,7 @@
       await repo.FetchCheckpointsData?.({
         search: repo.Search,
         search_field: normalizedSearchField.value || route.query.search_field || null,
-search_value: normalizedSearchValue.value || route.query.search_value || null,
+        search_value: normalizedSearchValue.value || route.query.search_value || null,
         fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
         source: relatedFilters.value.source,
         open: relatedFilters.value.open,
@@ -638,8 +660,66 @@ search_value: normalizedSearchValue.value || route.query.search_value || null,
     },
     { deep: true }
   );
+  const printLabels = computed(() => ({
+    print: t('چاپ'),
+    record_count: t('تعداد ریکارد'),
+    index: t('شماره'),
+    no_data: t('معلومات برای چاپ موجود نیست'),
+    footer_note: '',
+  }));
 
+  const printableHeaderOptions = computed(() => {
+    return headersFT.value.filter((h) => !['map'].includes(h.key));
+  });
+
+  function buildDefaultPrintColumns() {
+    return printableHeaderOptions.value.map((h) => h.key);
+  }
+
+  const { printAll } = useTablePrintExport({
+    repo: {
+      OpenResourcesPrintView: repo.OpenCheckpointsPrintView,
+    },
+
+    moduleKey: 'checkpoints',
+
+    getFilters: () => ({
+      search: repo.Search || '',
+      search_field: normalizedSearchField.value || route.query.search_field || null,
+      search_value: normalizedSearchValue.value || route.query.search_value || null,
+
+      fifty_six_format_id: relatedFilters.value.fifty_six_format_id,
+      source: relatedFilters.value.source,
+      open: relatedFilters.value.open,
+
+      card_filter: cardFilter.value || 'all',
+    }),
+
+    getHeaders: () => headersFT.value,
+
+    getSelectedColumnKeys: () => selectedPrintColumns.value,
+
+    getTitle: () => t('چاپ چک‌پوینت ها'),
+
+    getPrintLabels: () => printLabels.value,
+
+    getLocale: () => locale.value,
+
+    defaultFileName: 'checkpoints-print',
+  });
+
+  watch(
+    printableHeaderOptions,
+    (newColumns) => {
+      if (!selectedPrintColumns.value.length) {
+        selectedPrintColumns.value = newColumns.map((c) => c.key);
+      }
+    },
+    { immediate: true }
+  );
   onMounted(async () => {
+    selectedPrintColumns.value = buildDefaultPrintColumns();
+
     if (!relatedFilters.value.fifty_six_format_id) {
       await fetchAll();
     }
@@ -661,10 +741,7 @@ search_value: normalizedSearchValue.value || route.query.search_value || null,
     border-radius: 14px;
     border: 1px solid rgba(33, 150, 243, 0.08);
     background: #ffffff;
-    transition:
-      box-shadow 0.2s ease,
-      transform 0.15s ease,
-      border-color 0.2s ease,
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease,
       background-color 0.2s ease;
   }
 
