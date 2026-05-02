@@ -56,6 +56,21 @@ class DashboardController extends Controller
             'saved_date',
             'created_at',
         ]);
+        $informationDateCol = $this->detectModelDateColumn(new Information(), [
+            'information_saved_date',
+            'saved_date',
+            'created_at',
+        ]);
+
+        $eventDateCol = $this->detectModelDateColumn(new Event(), [
+            'event_date',
+            'created_at',
+        ]);
+
+        $khayratDateCol = $this->detectModelDateColumn(new KhayratReport(), [
+            'saved_date',
+            'created_at',
+        ]);
         /* -------------------------------------------------
         | ✅ EMPLOYEES SUMMARY (MAIN period)
         |-------------------------------------------------*/
@@ -192,20 +207,28 @@ $employeesInactive = OfficeEmployee::query()
         /* -------------------------------------------------
         | ✅ EMPLOYEES TABLE (NEW) - includes KHAYRAT - FINANCE period
         |-------------------------------------------------*/
+
         $employeesNew = OfficeEmployee::query()
-            ->select('id', 'name', 'nick_name', 'code_number' ,'picture')
-            ->withCount([
-            'resources as resources_count' => fn ($q) => $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),            
-            'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
-                'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
-                'khayratReports as khayrat_reports_count' => fn ($q) => $this->applyDateRange($q, 'saved_date', $financeFrom, $financeTo),
-            ])
-            ->orderByDesc('events_count')
-            ->orderByDesc('resources_count')
-            ->orderByDesc('informations_count')
-            ->orderByDesc('khayrat_reports_count')
-            ->orderBy('name')
-            ->get();
+        ->select('id', 'name', 'nick_name', 'code_number', 'picture')
+        ->withCount([
+            'resources as resources_count' => fn ($q) =>
+                $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),
+
+            'informations as informations_count' => fn ($q) =>
+                $this->applyDateRange($q, $informationDateCol, $financeFrom, $financeTo),
+
+            'events as events_count' => fn ($q) =>
+                $this->applyDateRange($q, $eventDateCol, $financeFrom, $financeTo),
+
+            'khayratReports as khayrat_reports_count' => fn ($q) =>
+                $this->applyDateRange($q, $khayratDateCol, $financeFrom, $financeTo),
+        ])
+        ->orderByDesc('events_count')
+        ->orderByDesc('resources_count')
+        ->orderByDesc('informations_count')
+        ->orderByDesc('khayrat_reports_count')
+        ->orderBy('name')
+        ->get();
 
         $employeesForDashboardNew = $employeesNew
             ->filter(function ($e) {
@@ -295,10 +318,7 @@ $employeesInactive = OfficeEmployee::query()
 /* -------------------------------------------------
 | INFORMATIONS (MAIN period) + dashboard stats
 |-------------------------------------------------*/
-$informationDateCol = $this->detectModelDateColumn(new Information(), [
-    'information_saved_date',
-    'created_at',
-]);
+
 
 $informationBase = Information::query()
     ->when($from && $to, fn ($q) => $this->applyDateRange($q, $informationDateCol, $from, $to));
@@ -537,9 +557,9 @@ $informationsBySyasiType = (clone $informationBase)
         $now = Carbon::now();
         $monthlyBuckets = $this->buildShamsiYearMonthBuckets($now);
         $resourcesMonthlyCounts = $this->monthlyCount(Resource::query(), $resourceDateCol, $monthlyBuckets);
-        $eventsMonthlyCounts        = $this->monthlyCount(Event::query(), 'created_at', $monthlyBuckets);
+        $eventsMonthlyCounts = $this->monthlyCount(Event::query(), $eventDateCol, $monthlyBuckets);
         $informationsMonthlyCounts  = $this->monthlyCount(Information::query(), $informationDateCol, $monthlyBuckets);
-        $khayratMonthlyCounts       = $this->monthlyCount(KhayratReport::query(), 'saved_date', $monthlyBuckets);
+        $khayratMonthlyCounts = $this->monthlyCount(KhayratReport::query(), $khayratDateCol, $monthlyBuckets);
 
         $moneyIncomeMonthly  = $this->monthlySum(Income::query(), $incomeDateCol, 'amount', $monthlyBuckets);
         $moneyExpenseMonthly = $this->monthlySum(Finance::query(), $financeDateCol, 'money_amount_number', $monthlyBuckets);
