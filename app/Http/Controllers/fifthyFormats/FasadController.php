@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\fifthyFormats\Fasad;
 use App\Models\fifthyFormats\FasadDocument;
-use App\Http\Resources\fifthyformats\FasadResource;
+use App\Http\Resources\fifthyFormats\FasadResource;
 use App\Http\Requests\fifthyformats\StoreFasadRequest;
 use App\Http\Requests\fifthyformats\UpdateFasadRequest;
 use Illuminate\Support\Facades\DB;

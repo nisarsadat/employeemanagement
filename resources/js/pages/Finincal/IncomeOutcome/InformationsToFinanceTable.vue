@@ -69,6 +69,8 @@
               v-model="page"
               :length="pageCount"
               rounded="circle"
+              prev-icon="mdi-chevron-right"
+              next-icon="mdi-chevron-left"
               density="comfortable"
               @update:model-value="fetch"
             />

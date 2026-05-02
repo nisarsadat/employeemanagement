@@ -638,8 +638,23 @@
   }
 
   const focusId = computed(() => {
-    const id = relatedFilters.value.office_employee_id || route.query?.id;
+    const id =
+      route.query?.office_employee_id ||
+      route.query?.office_employee_akhistonky_id ||
+      route.query?.office_employee_info_id ||
+      relatedFilters.value.office_employee_id ||
+      route.query?.id;
+
     return id ? Number(id) : null;
+  });
+  const routeEmployeeId = computed(() => {
+    return (
+      route.query?.office_employee_id ||
+      route.query?.office_employee_akhistonky_id ||
+      route.query?.office_employee_info_id ||
+      relatedFilters.value.office_employee_id ||
+      null
+    );
   });
 
   const rowsFT = computed(() => repo.Employees || []);
@@ -859,26 +874,44 @@
     expanded.value = true;
     fetchOne(row.id);
   }
-
   async function fetchAll() {
     try {
       await repo.FetchEmployeesData({
+        search: repo.Search,
         year: filterYear.value,
         month: filterMonth.value,
         date_field: 'join_date',
+
         status: selectedCardStatus.value,
         job_type: selectedCardJobType.value,
+
         search_field: searchField.value,
         search_value: selectedColumnValue.value,
-        office_employee_id: relatedFilters.value.office_employee_id,
+
+        office_employee_id: routeEmployeeId.value,
+
         resource_id: relatedFilters.value.resource_id,
         information_id: relatedFilters.value.information_id,
         event_id: relatedFilters.value.event_id,
+        office_employee_info_id: route.query?.office_employee_info_id || null,
+        // keep this too if your backend supports it
+        office_employee_akhistonky_id: route.query?.office_employee_akhistonky_id || null,
       });
     } catch (e) {
       console.error('fetchAll error', e);
       showErrorMessage(t('خطا در دریافت فهرست کارمندان'));
     }
+  }
+  async function openPeekFromRoute() {
+    if (!focusId.value) return;
+
+    const shouldOpenPeek = route.query?.open === 'peek';
+
+    if (!shouldOpenPeek) return;
+
+    selectedId.value = focusId.value;
+    expanded.value = true;
+    await fetchOne(focusId.value);
   }
   async function fetchColumnValues(field, q = '') {
     try {
@@ -1085,6 +1118,7 @@
       year: filterYear.value,
       month: filterMonth.value,
       date_field: 'join_date',
+      office_employee_info_id,
       status: selectedCardStatus.value,
       job_type: selectedCardJobType.value,
       office_employee_id: relatedFilters.value.office_employee_id,
@@ -1101,20 +1135,43 @@
     defaultFileName: 'office-employees-print',
   });
   onMounted(async () => {
-    syncCardFiltersFromRoute(); // 🔥 IMPORTANT
+    syncCardFiltersFromRoute();
 
     await fetchYearItemsFromDb();
     await fetchMonthItemsFromDb(filterYear.value);
+
     selectedPrintColumns.value = buildDefaultPrintColumns();
+
     await fetchAll();
+
+    if (focusId.value) {
+      await openPeekFromRoute();
+    }
   });
   watch(
-    () => [route.query.status, route.query.job_type],
+    () => [
+      route.query.status,
+      route.query.job_type,
+      route.query.office_employee_id,
+      route.query.office_employee_akhistonky_id,
+      route.query.resource_id,
+      route.query.information_id,
+      route.query.event_id,
+      route.query.id,
+    ],
     async () => {
-      syncCardFiltersFromRoute(); // 🔥 update filters from URL
+      syncCardFiltersFromRoute();
 
-      repo.page = 1; // reset pagination
-      await fetchAll(); // reload with new filter
+      repo.page = 1;
+      await fetchAll();
+
+      if (focusId.value) {
+        await openPeekFromRoute();
+      } else {
+        expanded.value = false;
+        selectedId.value = null;
+        detail.value = null;
+      }
     }
   );
 </script>

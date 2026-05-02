@@ -70,6 +70,8 @@
               :length="pageCount"
               rounded="circle"
               density="comfortable"
+              prev-icon="mdi-chevron-right"
+              next-icon="mdi-chevron-left"
               @update:model-value="fetch"
             />
           </div>
