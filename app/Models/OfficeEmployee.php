@@ -214,6 +214,15 @@ public const INACTIVE = 'غیر فعال';
 
 public function syncActivityFromResources(): void
 {
+    if (in_array($this->job_type, ['اداری', 'اداري'], true)) {
+    if ($this->activity !== self::ACTIVE) {
+        $this->update([
+            'activity' => self::ACTIVE,
+        ]);
+    }
+
+    return;
+}
     $activeResourcesCount = $this->resources()
         ->where('activity', self::ACTIVE)
         ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString())

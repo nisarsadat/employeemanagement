@@ -68,25 +68,28 @@ class DashboardController extends Controller
             $employeeActivityTo   = now()->endOfDay();
 
             $employeesActive = OfficeEmployee::query()
-                ->whereHas('resources', function ($q) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
-                    $q->where('activity', 'فعال')
-                        ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
-                }, '>=', 100)
-                ->count();
+    ->where(function ($q) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
+        $q->whereIn('job_type', ['اداری', 'اداري'])
+            ->orWhereHas('resources', function ($r) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
+                $r->where('activity', 'فعال')
+                    ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
+            }, '>=', 100);
+    })
+    ->count();
 
-            $employeesInactive = OfficeEmployee::query()
-                ->where(function ($query) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
-                    $query
-                        ->whereDoesntHave('resources', function ($q) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
-                            $q->where('activity', 'فعال')
-                                ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
-                        })
-                        ->orWhereHas('resources', function ($q) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
-                            $q->where('activity', 'فعال')
-                                ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
-                        }, '<', 100);
-                })
-                ->count();
+$employeesInactive = OfficeEmployee::query()
+    ->whereNotIn('job_type', ['اداری', 'اداري'])
+    ->where(function ($q) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
+        $q->whereDoesntHave('resources', function ($r) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
+            $r->where('activity', 'فعال')
+                ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
+        })
+        ->orWhereHas('resources', function ($r) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
+            $r->where('activity', 'فعال')
+                ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
+        }, '<', 100);
+    })
+    ->count();
 
         /* -------------------------------------------------
         | ✅ EMPLOYEES BY JOB TYPE (chips) - MAIN period

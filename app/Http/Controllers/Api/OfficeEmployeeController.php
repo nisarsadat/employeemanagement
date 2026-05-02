@@ -339,28 +339,34 @@ class OfficeEmployeeController extends Controller
                 });
             }
         })
-       ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
+
+
+        ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
     $from = now()->subDays(30)->startOfDay();
     $to   = now()->endOfDay();
 
     if ($status === 'active') {
-        $q->whereHas('resources', function ($r) use ($from, $to) {
-            $r->where('activity', 'فعال')
-              ->whereBetween('resource_saved_date', [$from, $to]);
-        }, '>=', 100);
+        $q->where(function ($qq) use ($from, $to) {
+            $qq->whereIn('job_type', ['اداری', 'اداري'])
+                ->orWhereHas('resources', function ($r) use ($from, $to) {
+                    $r->where('activity', 'فعال')
+                      ->whereBetween('resource_saved_date', [$from, $to]);
+                }, '>=', 100);
+        });
     }
 
     if ($status === 'inactive') {
-        $q->where(function ($qq) use ($from, $to) {
-            $qq->whereDoesntHave('resources', function ($r) use ($from, $to) {
-                $r->where('activity', 'فعال')
-                  ->whereBetween('resource_saved_date', [$from, $to]);
-            })
-            ->orWhereHas('resources', function ($r) use ($from, $to) {
-                $r->where('activity', 'فعال')
-                  ->whereBetween('resource_saved_date', [$from, $to]);
-            }, '<', 100);
-        });
+        $q->whereNotIn('job_type', ['اداری', 'اداري'])
+            ->where(function ($qq) use ($from, $to) {
+                $qq->whereDoesntHave('resources', function ($r) use ($from, $to) {
+                    $r->where('activity', 'فعال')
+                      ->whereBetween('resource_saved_date', [$from, $to]);
+                })
+                ->orWhereHas('resources', function ($r) use ($from, $to) {
+                    $r->where('activity', 'فعال')
+                      ->whereBetween('resource_saved_date', [$from, $to]);
+                }, '<', 100);
+            });
     }
 })
         ->when($jobType, function ($q) use ($jobType) {
@@ -400,22 +406,28 @@ class OfficeEmployeeController extends Controller
             'edari'      => (clone $base)->whereIn('job_type', ['اداری', 'اداري'])->count(),
             'operatifi'  => (clone $base)->whereIn('job_type', ['اوپراتیفی', 'اوپراتیفي'])->count(),
            
-            'active' => (clone $base)
-    ->whereHas('resources', function ($q) {
-        $q->where('activity', 'فعال')
-          ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
-    }, '>=', 100)
+           'active' => (clone $base)
+    ->where(function ($q) {
+        $q->whereIn('job_type', ['اداری', 'اداري'])
+            ->orWhereHas('resources', function ($r) {
+                $r->where('activity', 'فعال')
+                  ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
+            }, '>=', 100);
+    })
     ->count(),
 
 'inactive' => (clone $base)
-    ->whereDoesntHave('resources', function ($q) {
-        $q->where('activity', 'فعال')
-          ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
+    ->whereNotIn('job_type', ['اداری', 'اداري'])
+    ->where(function ($q) {
+        $q->whereDoesntHave('resources', function ($r) {
+            $r->where('activity', 'فعال')
+              ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
+        })
+        ->orWhereHas('resources', function ($r) {
+            $r->where('activity', 'فعال')
+              ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
+        }, '<', 100);
     })
-    ->orWhereHas('resources', function ($q) {
-        $q->where('activity', 'فعال')
-          ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
-    }, '<', 100)
     ->count(),
         ];
     }
@@ -991,13 +1003,16 @@ public function printView(Request $request)
             }
         }
 
-        $activeResourcesCount = $employee->resources()
-            ->where('activity', 'فعال')
-            ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString())
-            ->count();
+       if (in_array($employee->job_type, ['اداری', 'اداري'], true)) {
+    $employee->activity = 'فعال';
+} else {
+    $activeResourcesCount = $employee->resources()
+        ->where('activity', 'فعال')
+        ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString())
+        ->count();
 
-        $employee->activity = $activeResourcesCount >= 100 ? 'فعال' : 'غیر فعال';
-
+    $employee->activity = $activeResourcesCount >= 100 ? 'فعال' : 'غیر فعال';
+}
         return $employee;
     });
 
