@@ -517,7 +517,7 @@
     { title: t('شماره منبع'), key: 'resource_phone' },
 
     { title: t('نقشه'), key: 'map', sortable: false },
-    { title: t('جواسیس'), key: 'notes', sortable: false },
+    { title: t('ملاحظات'), key: 'notes', sortable: false },
   ]);
 
   const topGroups = computed(() => [

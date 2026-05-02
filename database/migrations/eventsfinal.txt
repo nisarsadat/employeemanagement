@@ -1,0 +1,926 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Models\Event;
+use Illuminate\Console\Command;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+use Throwable;
+
+class ImportEvents extends Command
+{
+    protected $signature = 'app:import-events {path?} {--dry-run}';
+
+    protected $description = 'One-time import of events.xlsx into events table from the "events" sheet';
+
+    protected array $allowedColumns = [
+        'resource_id',
+        'office_employee_id',
+        'office_employee_akhistonky_id',
+        'account_id',
+
+        'event_type',
+        'event_specific_type',
+        'target_person',
+        'criminal',
+        'event_date',
+        'event_hour',
+        'event_zone',
+        'event_hawza',
+        'event_specific_place',
+        'talafat_jani',
+        'talafat_mali',
+        'injured',
+        'trust_percentage',
+        'killed',
+        'tafseel',
+        'Province_addr',
+        'talks',
+        'coordinates',
+        'note',
+        'docs_note',
+        'message_to_finance',
+        'money_amount_words',
+        'finance_status',
+        'finance_paid_at',
+    ];
+
+    protected array $skipColumns = [
+        'id',
+        'created_at',
+        'updated_at',
+        'resource_code',
+        'code_number',
+    ];
+
+    protected array $summary = [
+        'rows_seen' => 0,
+        'inserted' => 0,
+        'duplicates_skipped' => 0,
+        'rows_failed' => 0,
+        'columns_dropped' => 0,
+        'empty_rows_attempted' => 0,
+    ];
+
+    protected $logger;
+
+    protected string $targetSheetName = 'events';
+
+    protected array $headerAliases = [
+        'resource_id' => 'resource_id',
+        'office_employee_id' => 'office_employee_id',
+        'office_employee_akhistonky_id' => 'office_employee_akhistonky_id',
+        'account_id' => 'account_id',
+
+        'event_type' => 'event_type',
+        'event_specific_type' => 'event_specific_type',
+        'target_person' => 'target_person',
+        'criminal' => 'criminal',
+        'event_date' => 'event_date',
+        'event_hour' => 'event_hour',
+        'event_zone' => 'event_zone',
+        'event_hawza' => 'event_hawza',
+        'event_specific_place' => 'event_specific_place',
+        'talafat_jani' => 'talafat_jani',
+        'talafat_mali' => 'talafat_mali',
+        'injured' => 'injured',
+        'trust_percentage' => 'trust_percentage',
+        'killed' => 'killed',
+        'tafseel' => 'tafseel',
+        'province_addr' => 'Province_addr',
+        'talks' => 'talks',
+        'coordinates' => 'coordinates',
+        'note' => 'note',
+        'docs_note' => 'docs_note',
+        'message_to_finance' => 'message_to_finance',
+        'money_amount_words' => 'money_amount_words',
+        'finance_status' => 'finance_status',
+        'finance_paid_at' => 'finance_paid_at',
+
+        // common variations
+        'eventtype' => 'event_type',
+        'event_specifictype' => 'event_specific_type',
+        'eventplace' => 'event_specific_place',
+        'specific_place' => 'event_specific_place',
+        'specificplace' => 'event_specific_place',
+        'hour' => 'event_hour',
+        'time' => 'event_hour',
+        'date' => 'event_date',
+        'zone' => 'event_zone',
+        'hawza' => 'event_hawza',
+        'details' => 'tafseel',
+        'detail' => 'tafseel',
+        'address' => 'Province_addr',
+        'finance_message' => 'message_to_finance',
+        'amount_words' => 'money_amount_words',
+
+        // skip if present in excel
+        'resource_code' => 'resource_code',
+        'code_number' => 'resource_code',
+        'resourcecode' => 'resource_code',
+        'کود_منبع' => 'resource_code',
+        'کود' => 'resource_code',
+
+        // localized aliases
+        'آیدی_منبع' => 'resource_id',
+        'منبع' => 'resource_id',
+        'آیدی_کارمند' => 'office_employee_id',
+        'کارمند' => 'office_employee_id',
+        'آیدی_کارمند_اخیستونکی' => 'office_employee_akhistonky_id',
+        'کارمند_اخیستونکی' => 'office_employee_akhistonky_id',
+        'اخیستونکی' => 'office_employee_akhistonky_id',
+        'آیدی_حساب' => 'account_id',
+
+        'نوع_واقعه' => 'event_type',
+        'نوع_مشخص_واقعه' => 'event_specific_type',
+        'نوع_جزئی_واقعه' => 'event_specific_type',
+        'شخص_هدف' => 'target_person',
+        'مجرم' => 'criminal',
+        'تاریخ_واقعه' => 'event_date',
+        'تاریخ' => 'event_date',
+        'ساعت_واقعه' => 'event_hour',
+        'ساعت' => 'event_hour',
+        'زون' => 'event_zone',
+        'حوزه' => 'event_hawza',
+        'محل_مشخص' => 'event_specific_place',
+        'محل' => 'event_specific_place',
+        'تلفات_جانی' => 'talafat_jani',
+        'تلفات_مالی' => 'talafat_mali',
+        'زخمی' => 'injured',
+        'فیصدی_اعتماد' => 'trust_percentage',
+        'اعتماد' => 'trust_percentage',
+        'کشته' => 'killed',
+        'تفصیل' => 'tafseel',
+        'آدرس_ولایت' => 'Province_addr',
+        'صحبتها' => 'talks',
+        'صحبت_ها' => 'talks',
+        'مختصات' => 'coordinates',
+        'کوردینات' => 'coordinates',
+        'یادداشت' => 'note',
+        'نوت' => 'note',
+        'نوت_اسناد' => 'docs_note',
+        'اسناد_نوت' => 'docs_note',
+        'پیام_به_مالی' => 'message_to_finance',
+        'مبلغ_به_حروف' => 'money_amount_words',
+        'حالت_مالی' => 'finance_status',
+        'تاریخ_پرداخت_مالی' => 'finance_paid_at',
+    ];
+
+    public function handle(): int
+    {
+        $path = $this->argument('path') ?: $this->defaultImportPath();
+        $dryRun = (bool) $this->option('dry-run');
+
+        $this->logger = Log::build([
+            'driver' => 'single',
+            'path'   => storage_path('logs/events-import.log'),
+        ]);
+
+        $this->line('');
+        $this->info('=== events import started ===');
+        $this->line('Path: ' . $path);
+        $this->line('Sheet: ' . $this->targetSheetName);
+        $this->line('Dry run: ' . ($dryRun ? 'YES' : 'NO'));
+        $this->line('');
+
+        if (!is_file($path) || !is_readable($path)) {
+            $this->error("File not found or not readable: {$path}");
+            return self::FAILURE;
+        }
+
+        try {
+            $reader = new Xlsx();
+            $reader->setReadDataOnly(true);
+            $reader->setLoadSheetsOnly([$this->targetSheetName]);
+            $spreadsheet = $reader->load($path);
+        } catch (Throwable $e) {
+            $this->error('Excel error: ' . $e->getMessage());
+            return self::FAILURE;
+        }
+
+        $sheet = $spreadsheet->getSheetByName($this->targetSheetName);
+
+        if (!$sheet) {
+            $availableSheets = $spreadsheet->getSheetNames();
+
+            $this->error('Sheet "' . $this->targetSheetName . '" not found.');
+            $this->line('Available sheets: ' . implode(', ', $availableSheets));
+
+            $this->logger->error('Target sheet not found', [
+                'target_sheet' => $this->targetSheetName,
+                'available_sheets' => $availableSheets,
+            ]);
+
+            return self::FAILURE;
+        }
+
+        $rows = $sheet->toArray(null, true, true, false);
+
+        if (count($rows) < 1) {
+            $this->warn('The events sheet is empty.');
+            return self::SUCCESS;
+        }
+
+        [$headerRowIndex, $headers, $score] = $this->detectHeaderRow($rows);
+
+        if ($headerRowIndex === null) {
+            $this->error('Could not detect a valid header row in the "events" sheet.');
+
+            $this->logger->error('Header row detection failed', [
+                'sheet' => $this->targetSheetName,
+                'sample_rows' => array_slice($rows, 0, 10),
+            ]);
+
+            return self::FAILURE;
+        }
+
+        $this->info('Detected header row: ' . ($headerRowIndex + 1));
+        $this->line('Header match score: ' . $score);
+
+        foreach ($headers as $index => $header) {
+            $this->line('[' . $index . '] => ' . ($header !== '' ? $header : '(empty)'));
+        }
+
+        $dataRows = array_slice($rows, $headerRowIndex + 1);
+
+        foreach ($dataRows as $offset => $rowValues) {
+            $excelRow = $headerRowIndex + 2 + $offset;
+            $this->summary['rows_seen']++;
+
+            $prepared = $this->prepareRow($headers, $rowValues, $excelRow);
+
+            if ($prepared['was_empty']) {
+                $this->summary['empty_rows_attempted']++;
+                continue;
+            }
+
+            if ($dryRun) {
+                $this->logger->info('Dry run row parsed', [
+                    'excel_row' => $excelRow,
+                    'payload' => $prepared['data'],
+                ]);
+                continue;
+            }
+
+            $result = $this->insertRow($prepared['data'], $excelRow);
+            $this->summary[$result]++;
+        }
+
+        $this->printSummary();
+
+        return self::SUCCESS;
+    }
+
+    protected function detectHeaderRow(array $rows): array
+    {
+        $bestRowIndex = null;
+        $bestHeaders = [];
+        $bestScore = 0;
+
+        $scanLimit = min(count($rows), 100);
+
+        for ($r = 0; $r < $scanLimit; $r++) {
+            $candidateHeaders = [];
+            $score = 0;
+
+            foreach ($rows[$r] as $index => $cellValue) {
+                $normalized = $this->normalizeHeader((string) $cellValue);
+                $candidateHeaders[$index] = $normalized;
+
+                if ($normalized !== '' && in_array($normalized, $this->allowedColumns, true)) {
+                    $score++;
+                }
+            }
+
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $bestRowIndex = $r;
+                $bestHeaders = $candidateHeaders;
+            }
+        }
+
+        if ($bestRowIndex === null || $bestScore < 2) {
+            return [null, [], 0];
+        }
+
+        return [$bestRowIndex, $bestHeaders, $bestScore];
+    }
+
+    protected function prepareRow(array $headers, array $values, int $excelRow): array
+    {
+        $data = [];
+
+        foreach ($headers as $i => $header) {
+            if ($header === '') {
+                continue;
+            }
+
+            if (!$this->isAllowed($header)) {
+                $this->summary['columns_dropped']++;
+                continue;
+            }
+
+           $value = $values[$i] ?? null;
+
+if (is_string($value)) {
+    $value = trim($value);
+}
+
+if ($value === '' || $value === null) {
+    if ($this->shouldKeepEmptyAsNull($header)) {
+        continue;
+    }
+
+    $value = '.';
+} else {
+    $value = $this->normalizeValue($header, $value, $excelRow);
+
+    if ($value === null || $value === '') {
+        if ($this->shouldKeepEmptyAsNull($header)) {
+            continue;
+        }
+
+        $value = '.';
+    }
+}
+
+$data[$header] = $value;
+        }
+
+        if (array_key_exists('office_employee_id', $data)) {
+            $officeEmployeeId = $this->normalizeInteger($data['office_employee_id']);
+
+            if ($officeEmployeeId === null || !$this->officeEmployeeExists($officeEmployeeId)) {
+                $this->logger->warning('Invalid office_employee_id detected, setting to null', [
+                    'excel_row' => $excelRow,
+                    'office_employee_id' => $data['office_employee_id'],
+                ]);
+                unset($data['office_employee_id']);
+            } else {
+                $data['office_employee_id'] = $officeEmployeeId;
+            }
+        }
+
+        if (array_key_exists('office_employee_akhistonky_id', $data)) {
+            $akhistonkyId = $this->normalizeInteger($data['office_employee_akhistonky_id']);
+
+            if ($akhistonkyId === null || !$this->officeEmployeeExists($akhistonkyId)) {
+                $this->logger->warning('Invalid office_employee_akhistonky_id detected, setting to null', [
+                    'excel_row' => $excelRow,
+                    'office_employee_akhistonky_id' => $data['office_employee_akhistonky_id'],
+                ]);
+                unset($data['office_employee_akhistonky_id']);
+            } else {
+                $data['office_employee_akhistonky_id'] = $akhistonkyId;
+            }
+        }
+
+        if (array_key_exists('resource_id', $data)) {
+            $resourceId = $this->normalizeInteger($data['resource_id']);
+
+            if ($resourceId === null || !$this->resourceExists($resourceId)) {
+                $this->logger->warning('Invalid resource_id detected, setting to null', [
+                    'excel_row' => $excelRow,
+                    'resource_id' => $data['resource_id'],
+                ]);
+                unset($data['resource_id']);
+            } else {
+                $data['resource_id'] = $resourceId;
+            }
+        }
+
+        if (array_key_exists('account_id', $data)) {
+            $accountId = $this->normalizeInteger($data['account_id']);
+
+            if ($accountId === null || !$this->accountExists($accountId)) {
+                $this->logger->warning('Invalid account_id detected, setting to null', [
+                    'excel_row' => $excelRow,
+                    'account_id' => $data['account_id'],
+                ]);
+                unset($data['account_id']);
+            } else {
+                $data['account_id'] = $accountId;
+            }
+        }
+
+        unset($data['resource_code']);
+
+        return [
+            'data' => $data,
+            'was_empty' => empty($data),
+        ];
+    }
+
+    protected function normalizeHeader(string $header): string
+    {
+        $header = preg_replace('/^\xEF\xBB\xBF/', '', $header ?? '');
+        $header = trim((string) $header);
+
+        if ($header === '') {
+            return '';
+        }
+
+        $header = $this->convertEasternDigitsToLatin($header);
+        $header = preg_replace('/\s+/u', '_', $header);
+        $header = preg_replace('/[^\p{L}\p{N}_]+/u', '', $header);
+        $header = trim($header, '_');
+
+        if ($header === '') {
+            return '';
+        }
+
+        $asciiHeader = mb_strtolower($header, 'UTF-8');
+
+        return $this->headerAliases[$asciiHeader]
+            ?? $this->headerAliases[$header]
+            ?? $asciiHeader;
+    }
+
+    protected function normalizeValue(string $column, mixed $value, int $excelRow): mixed
+    {
+        if (is_string($value)) {
+            $value = $this->convertEasternDigitsToLatin($value);
+            $value = trim($value);
+        }
+
+        if ($column === 'event_date') {
+            return $this->normalizeDateValue($value, $excelRow, 'event_date');
+        }
+
+        if ($column === 'event_hour') {
+            return $this->normalizeTimeValue($value);
+        }
+
+        if ($column === 'finance_paid_at') {
+            return $this->normalizeDateTime($value, $excelRow, 'finance_paid_at');
+        }
+
+        if (in_array($column, [
+            'resource_id',
+            'office_employee_id',
+            'office_employee_akhistonky_id',
+            'account_id',
+        ], true)) {
+            return $this->normalizeInteger($value);
+        }
+
+        if (in_array($column, [
+            'event_type',
+            'event_specific_type',
+            'target_person',
+            'criminal',
+            'event_zone',
+            'event_hawza',
+            'event_specific_place',
+            'talafat_jani',
+            'talafat_mali',
+            'injured',
+            'trust_percentage',
+            'killed',
+            'Province_addr',
+            'coordinates',
+            'finance_status',
+            'money_amount_words',
+            'message_to_finance',
+        ], true) && is_string($value)) {
+            return mb_substr($value, 0, 255);
+        }
+
+        return $value;
+    }
+protected function shouldKeepEmptyAsNull(string $column): bool
+{
+    return in_array($column, [
+        // relations
+        'resource_id',
+        'office_employee_id',
+        'office_employee_akhistonky_id',
+        'account_id',
+
+'finance_status',
+        // date/time
+        'event_date',
+        'event_hour',
+        'finance_paid_at',
+
+        // unique/core fields
+        'event_type',
+        'event_specific_type',
+        'target_person',
+        'criminal',
+        'event_zone',
+        'event_hawza',
+        'event_specific_place',
+    ], true);
+}
+    protected function normalizeDateValue(mixed $value, int $excelRow, string $column): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            try {
+                return ExcelDate::excelToDateTimeObject((float) $value)->format('Y-m-d');
+            } catch (Throwable $e) {
+                $this->logger->warning("Could not convert numeric {$column}", [
+                    'excel_row' => $excelRow,
+                    'original_value' => $value,
+                ]);
+                return null;
+            }
+        }
+
+        $converted = $this->convertMixedHijriDateToGregorian($value);
+
+        if ($converted !== null) {
+            return $converted;
+        }
+
+        $timestamp = strtotime((string) $value);
+        if ($timestamp !== false) {
+            return date('Y-m-d', $timestamp);
+        }
+
+        $this->logger->warning("Could not convert {$column}; original value skipped", [
+            'excel_row' => $excelRow,
+            'original_value' => $value,
+        ]);
+
+        return null;
+    }
+
+    protected function normalizeTimeValue(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            try {
+                return ExcelDate::excelToDateTimeObject((float) $value)->format('H:i:s');
+            } catch (Throwable $e) {
+                return null;
+            }
+        }
+
+        $value = $this->convertEasternDigitsToLatin((string) $value);
+        $value = trim($value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        $normalized = strtolower($value);
+        $normalized = preg_replace('/\s+/u', '', $normalized);
+
+        $formats = [
+            'g:ia',
+            'g:i a',
+            'h:ia',
+            'h:i a',
+            'g:iA',
+            'g:i A',
+            'h:iA',
+            'h:i A',
+            'H:i',
+            'G:i',
+            'H:i:s',
+            'G:i:s',
+        ];
+
+        foreach ($formats as $format) {
+            $dt = \DateTime::createFromFormat($format, $normalized);
+            if ($dt instanceof \DateTime) {
+                return $dt->format('H:i:s');
+            }
+        }
+
+        $timestamp = strtotime($value);
+        return $timestamp !== false ? date('H:i:s', $timestamp) : null;
+    }
+
+    protected function normalizeDateTime(mixed $value, int $excelRow, string $column): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d H:i:s');
+        }
+
+        if (is_numeric($value)) {
+            try {
+                return ExcelDate::excelToDateTimeObject((float) $value)->format('Y-m-d H:i:s');
+            } catch (Throwable $e) {
+                $this->logger->warning("Could not convert numeric {$column}", [
+                    'excel_row' => $excelRow,
+                    'original_value' => $value,
+                ]);
+                return null;
+            }
+        }
+
+        $value = $this->convertEasternDigitsToLatin((string) $value);
+        $value = trim($value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        $convertedDate = $this->convertMixedHijriDateTimeToGregorian($value);
+        if ($convertedDate !== null) {
+            return $convertedDate;
+        }
+
+        $timestamp = strtotime($value);
+
+        if ($timestamp !== false) {
+            return date('Y-m-d H:i:s', $timestamp);
+        }
+
+        $this->logger->warning("Could not convert {$column}; original value skipped", [
+            'excel_row' => $excelRow,
+            'original_value' => $value,
+        ]);
+
+        return null;
+    }
+
+    protected function convertMixedHijriDateToGregorian(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return null;
+        }
+
+        $value = $this->convertEasternDigitsToLatin((string) $value);
+        $value = trim($value);
+        $value = str_replace(['\\', '.', '_', '-'], '/', $value);
+        $value = preg_replace('/\s+/', '', $value);
+
+        if (!preg_match('/^(\d{3,4})\/(\d{1,2})\/(\d{1,2})$/', $value, $matches)) {
+            return null;
+        }
+
+        $year = (int) $matches[1];
+        $month = (int) $matches[2];
+        $day = (int) $matches[3];
+
+        if ($month < 1 || $month > 12 || $day < 1 || $day > 31) {
+            return null;
+        }
+
+        if ($year >= 1300 && $year < 1440) {
+            [$gy, $gm, $gd] = $this->jalaliToGregorian($year, $month, $day);
+        } elseif ($year >= 1440 && $year <= 1600) {
+            if ($day > 30) {
+                return null;
+            }
+            [$gy, $gm, $gd] = $this->hijriToGregorian($year, $month, $day);
+        } else {
+            return null;
+        }
+
+        if (!checkdate($gm, $gd, $gy)) {
+            return null;
+        }
+
+        return sprintf('%04d-%02d-%02d', $gy, $gm, $gd);
+    }
+
+    protected function convertMixedHijriDateTimeToGregorian(string $value): ?string
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        $compact = preg_replace('/\s+/u', ' ', $value);
+
+        if (!preg_match('/^(\d{3,4}[\/\.\-_]\d{1,2}[\/\.\-_]\d{1,2})(?:\s+(.*))?$/u', $compact, $matches)) {
+            return null;
+        }
+
+        $datePart = $matches[1] ?? null;
+        $timePart = trim($matches[2] ?? '');
+
+        $gregorianDate = $this->convertMixedHijriDateToGregorian($datePart);
+        if (!$gregorianDate) {
+            return null;
+        }
+
+        $time = $timePart !== '' ? $this->normalizeTimeValue($timePart) : '00:00:00';
+        if (!$time) {
+            $time = '00:00:00';
+        }
+
+        return $gregorianDate . ' ' . $time;
+    }
+
+    protected function insertRow(array $row, int $excelRow): string
+    {
+        try {
+            DB::transaction(function () use ($row) {
+                Event::create($row);
+            });
+
+            $this->logger->info('Row inserted', [
+                'excel_row' => $excelRow,
+                'payload' => $row,
+            ]);
+
+            return 'inserted';
+        } catch (QueryException $e) {
+            $this->logger->warning('Row failed with query error', [
+                'excel_row' => $excelRow,
+                'payload' => $row,
+                'error' => $e->getMessage(),
+            ]);
+
+            if ($this->isDuplicate($e)) {
+                return 'duplicates_skipped';
+            }
+
+            return 'rows_failed';
+        } catch (Throwable $e) {
+            $this->logger->error('Row failed with general error', [
+                'excel_row' => $excelRow,
+                'payload' => $row,
+                'error' => $e->getMessage(),
+            ]);
+
+            return 'rows_failed';
+        }
+    }
+
+    protected function officeEmployeeExists(int $id): bool
+    {
+        return DB::table('office_employees')->where('id', $id)->exists();
+    }
+
+    protected function resourceExists(int $id): bool
+    {
+        return DB::table('resources')->where('id', $id)->exists();
+    }
+
+    protected function accountExists(int $id): bool
+    {
+        return DB::table('accounts')->where('id', $id)->exists();
+    }
+
+    protected function normalizeInteger(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_string($value)) {
+            $value = $this->convertEasternDigitsToLatin($value);
+            $value = trim($value);
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return null;
+    }
+
+    protected function isAllowed(string $column): bool
+    {
+        return !in_array($column, $this->skipColumns, true)
+            && in_array($column, $this->allowedColumns, true);
+    }
+
+    protected function isDuplicate(QueryException $e): bool
+    {
+        $message = strtolower($e->getMessage());
+
+        return str_contains($message, 'duplicate')
+            || str_contains($message, 'unique')
+            || str_contains($message, '1062')
+            || str_contains($message, 'events_core_unique')
+            || str_contains($message, 'integrity constraint violation');
+    }
+
+    protected function printSummary(): void
+    {
+        $this->line('');
+        $this->info('=== Summary ===');
+
+        foreach ($this->summary as $k => $v) {
+            $this->line("{$k}: {$v}");
+        }
+
+        $this->line('');
+        $this->info('Log file: ' . storage_path('logs/events-import.log'));
+    }
+
+    protected function defaultImportPath(): string
+    {
+        return rtrim(getenv('HOME') ?: '', '/') . '/events.xlsx';
+    }
+
+    protected function convertEasternDigitsToLatin(string $value): string
+    {
+        $arabicIndic = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+        $easternArabic = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+
+        $value = str_replace($arabicIndic, ['0','1','2','3','4','5','6','7','8','9'], $value);
+        $value = str_replace($easternArabic, ['0','1','2','3','4','5','6','7','8','9'], $value);
+
+        return $value;
+    }
+
+    protected function jalaliToGregorian(int $jy, int $jm, int $jd): array
+    {
+        $jy += 1595;
+        $days = -355668 + (365 * $jy) + intdiv($jy, 33) * 8 + intdiv((($jy % 33) + 3), 4) + $jd;
+
+        if ($jm < 7) {
+            $days += ($jm - 1) * 31;
+        } else {
+            $days += (($jm - 7) * 30) + 186;
+        }
+
+        $gy = 400 * intdiv($days, 146097);
+        $days %= 146097;
+
+        if ($days > 36524) {
+            $gy += 100 * intdiv(--$days, 36524);
+            $days %= 36524;
+
+            if ($days >= 365) {
+                $days++;
+            }
+        }
+
+        $gy += 4 * intdiv($days, 1461);
+        $days %= 1461;
+
+        if ($days > 365) {
+            $gy += intdiv($days - 1, 365);
+            $days = ($days - 1) % 365;
+        }
+
+        $gd = $days + 1;
+
+        $sal_a = [
+            0, 31,
+            (($gy % 4 === 0 && $gy % 100 !== 0) || ($gy % 400 === 0)) ? 29 : 28,
+            31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+        ];
+
+        $gm = 1;
+        while ($gm <= 12 && $gd > $sal_a[$gm]) {
+            $gd -= $sal_a[$gm];
+            $gm++;
+        }
+
+        return [$gy, $gm, $gd];
+    }
+
+    protected function hijriToGregorian(int $hy, int $hm, int $hd): array
+    {
+        $jd = $this->hijriToJulianDay($hy, $hm, $hd);
+        return $this->julianDayToGregorian($jd);
+    }
+
+    protected function hijriToJulianDay(int $year, int $month, int $day): int
+    {
+        return (int) floor(
+            $day
+            + ceil(29.5 * ($month - 1))
+            + ($year - 1) * 354
+            + floor((3 + (11 * $year)) / 30)
+            + 1948439
+            - 1
+        );
+    }
+
+    protected function julianDayToGregorian(int $jd): array
+    {
+        $l = $jd + 68569;
+        $n = intdiv(4 * $l, 146097);
+        $l = $l - intdiv(146097 * $n + 3, 4);
+        $i = intdiv(4000 * ($l + 1), 1461001);
+        $l = $l - intdiv(1461 * $i, 4) + 31;
+        $j = intdiv(80 * $l, 2447);
+        $day = $l - intdiv(2447 * $j, 80);
+        $l = intdiv($j, 11);
+        $month = $j + 2 - (12 * $l);
+        $year = 100 * ($n - 49) + $i + $l;
+
+        return [(int) $year, (int) $month, (int) $day];
+    }
+}

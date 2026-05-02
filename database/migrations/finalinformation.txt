@@ -1,0 +1,864 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Models\Information;
+use Illuminate\Console\Command;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+use Throwable;
+
+class ImportInformations extends Command
+{
+    protected $signature = 'app:import-informations
+                            {path? : Absolute path to informations.xlsx}
+                            {--dry-run : Parse only, do not insert}';
+
+    protected $description = 'One-time import of informations.xlsx into information table from the "informations" sheet';
+
+    protected array $allowedColumns = [
+        'office_employee_id',
+        'office_employee_info_id',
+        'account_id',
+
+        'name',
+        'nick_name',
+        'father_name',
+        'grand_father_name',
+        'age',
+        'tahlil',
+        'job',
+        'madani_halat',
+        'estijalyat_degree',
+        'information_category',
+        'resource_lasrasy',
+        'message_to_finance',
+        'money_amount_words',
+        'finance_status',
+        'finance_paid_at',
+
+        'main_province',
+        'main_districts',
+        'main_village',
+
+        'now_province',
+        'now_district',
+        'now_village',
+
+        'specefic_place',
+        'home_number',
+        'street_number',
+
+        'syasi_info_type',
+        'jenayee_info_type',
+
+        'information_saved_date',
+        'hamahangi_date',
+        'maktop_number',
+        'organ',
+        'coordinates',
+        'information_saved_hour',
+        'information_degree',
+        'trust_percentage',
+
+        'tafseel',
+        'manager_comment',
+        'lead_drirection',
+        'talks',
+        'note',
+        'docs_note',
+        'result',
+
+        'Province_addr',
+        'matched_information_id',
+    ];
+
+    protected array $skipColumns = [
+        'id',
+        'created_at',
+        'updated_at',
+    ];
+
+    protected array $summary = [
+        'rows_seen' => 0,
+        'inserted' => 0,
+        'duplicates_skipped' => 0,
+        'rows_failed' => 0,
+        'columns_dropped' => 0,
+        'empty_rows_attempted' => 0,
+    ];
+
+    protected $logger;
+
+    protected string $targetSheetName = 'informations';
+
+    protected array $headerAliases = [
+        'office_employee_id' => 'office_employee_id',
+        'office_employee_info_id' => 'office_employee_info_id',
+        'account_id' => 'account_id',
+
+        'name' => 'name',
+        'nick_name' => 'nick_name',
+        'nickname' => 'nick_name',
+        'father_name' => 'father_name',
+        'grand_father_name' => 'grand_father_name',
+        'grandfather_name' => 'grand_father_name',
+        'age' => 'age',
+        'tahlil' => 'tahlil',
+        'job' => 'job',
+        'madani_halat' => 'madani_halat',
+        'estijalyat_degree' => 'estijalyat_degree',
+        'information_category' => 'information_category',
+        'resource_lasrasy' => 'resource_lasrasy',
+        'message_to_finance' => 'message_to_finance',
+        'money_amount_words' => 'money_amount_words',
+        'finance_status' => 'finance_status',
+        'finance_paid_at' => 'finance_paid_at',
+
+        'main_province' => 'main_province',
+        'main_districts' => 'main_districts',
+        'main_village' => 'main_village',
+
+        'now_province' => 'now_province',
+        'now_district' => 'now_district',
+        'now_village' => 'now_village',
+
+        'specefic_place' => 'specefic_place',
+        'specific_place' => 'specefic_place',
+        'home_number' => 'home_number',
+        'street_number' => 'street_number',
+
+        'syasi_info_type' => 'syasi_info_type',
+        'jenayee_info_type' => 'jenayee_info_type',
+
+        'information_saved_date' => 'information_saved_date',
+        'hamahangi_date' => 'hamahangi_date',
+        'maktop_number' => 'maktop_number',
+        'organ' => 'organ',
+        'coordinates' => 'coordinates',
+        'information_saved_hour' => 'information_saved_hour',
+        'information_degree' => 'information_degree',
+        'trust_percentage' => 'trust_percentage',
+
+        'tafseel' => 'tafseel',
+        'manager_comment' => 'manager_comment',
+        'lead_drirection' => 'lead_drirection',
+        'talks' => 'talks',
+        'note' => 'note',
+        'docs_note' => 'docs_note',
+        'result' => 'result',
+
+        'province_addr' => 'Province_addr',
+        'matched_information_id' => 'matched_information_id',
+
+        // localized
+        'اسم' => 'name',
+        'نام' => 'name',
+        'شهرت' => 'nick_name',
+        'تخلص' => 'nick_name',
+        'ولد' => 'father_name',
+        'نام_پدر' => 'father_name',
+        'اسم_پدر' => 'father_name',
+        'ولدیت' => 'grand_father_name',
+        'نام_پدرکلان' => 'grand_father_name',
+        'اسم_پدرکلان' => 'grand_father_name',
+        'سن' => 'age',
+        'عمر' => 'age',
+        'تحلیل' => 'tahlil',
+        'شغل' => 'job',
+        'حالت_مدنی' => 'madani_halat',
+        'درجه_استعجالیت' => 'estijalyat_degree',
+        'کتگوری_اطلاعات' => 'information_category',
+        'سطح_دسترسی_منبع' => 'resource_lasrasy',
+        'دسترسی_منبع' => 'resource_lasrasy',
+        'پیام_به_مالی' => 'message_to_finance',
+        'مبلغ_به_حروف' => 'money_amount_words',
+        'حالت_مالی' => 'finance_status',
+
+        'ولایت_اصلی' => 'main_province',
+        'ولسوالی_اصلی' => 'main_districts',
+        'قریه_اصلی' => 'main_village',
+        'سکونت_اصلی' => 'main_village',
+
+        'ولایت_فعلی' => 'now_province',
+        'ولسوالی_فعلی' => 'now_district',
+        'قریه_فعلی' => 'now_village',
+
+        'محل_مشخص' => 'specefic_place',
+        'محل_سکونت' => 'specefic_place',
+        'نمبر_خانه' => 'home_number',
+        'سرک' => 'street_number',
+
+        'نوع_اطلاعات_سیاسی' => 'syasi_info_type',
+        'نوع_اطلاعات_جنایی' => 'jenayee_info_type',
+        'سیاسی' => 'syasi_info_type',
+        'جنایی' => 'jenayee_info_type',
+
+        'تاریخ_ثبت' => 'information_saved_date',
+        'تاریخ_ثبت_اطلاعات' => 'information_saved_date',
+        'تاریخ_همآهنگی' => 'hamahangi_date',
+        'تاریخ_هماهنگی' => 'hamahangi_date',
+        'نمبر_مکتوب' => 'maktop_number',
+        'ارگان' => 'organ',
+        'مختصات' => 'coordinates',
+        'کوردینات' => 'coordinates',
+        'ساعت_ثبت' => 'information_saved_hour',
+        'درجه_اطلاعات' => 'information_degree',
+        'فیصدی_اعتماد' => 'trust_percentage',
+        'اعتماد' => 'trust_percentage',
+
+        'تفصیل' => 'tafseel',
+        'نظر_مدیر' => 'manager_comment',
+        'هدایت' => 'lead_drirection',
+        'صحبتها' => 'talks',
+        'صحبت_ها' => 'talks',
+        'یادداشت' => 'note',
+        'نوت' => 'note',
+        'نوت_اسناد' => 'docs_note',
+        'اسناد_نوت' => 'docs_note',
+        'نتیجه' => 'result',
+
+        'آدرس_ولایت' => 'Province_addr',
+
+        'آیدی_کارمند' => 'office_employee_id',
+        'کود_کارمند' => 'office_employee_id',
+        'کارمند' => 'office_employee_id',
+
+        'آیدی_کارمند_اطلاع_گیرنده' => 'office_employee_info_id',
+        'کود_کارمند_اطلاع_گیرنده' => 'office_employee_info_id',
+        'اطلاع_گیرنده' => 'office_employee_info_id',
+
+        'آیدی_حساب' => 'account_id',
+    ];
+
+    public function handle(): int
+    {
+        $path = $this->argument('path') ?: $this->defaultImportPath();
+        $dryRun = (bool) $this->option('dry-run');
+
+        $this->logger = Log::build([
+            'driver' => 'single',
+            'path'   => storage_path('logs/informations-import.log'),
+        ]);
+
+        $this->line('');
+        $this->info('=== information import started ===');
+        $this->line('Path: ' . $path);
+        $this->line('Sheet: ' . $this->targetSheetName);
+        $this->line('Dry run: ' . ($dryRun ? 'YES' : 'NO'));
+        $this->line('');
+
+        if (!is_file($path) || !is_readable($path)) {
+            $this->error("File not found or not readable: {$path}");
+            return self::FAILURE;
+        }
+
+        try {
+            $reader = new Xlsx();
+            $reader->setReadDataOnly(true);
+            $reader->setLoadSheetsOnly([$this->targetSheetName]);
+            $spreadsheet = $reader->load($path);
+        } catch (Throwable $e) {
+            $this->error('Excel error: ' . $e->getMessage());
+            return self::FAILURE;
+        }
+
+        $sheet = $spreadsheet->getSheetByName($this->targetSheetName);
+
+        if (!$sheet) {
+            $availableSheets = $spreadsheet->getSheetNames();
+
+            $this->error('Sheet "' . $this->targetSheetName . '" not found.');
+            $this->line('Available sheets: ' . implode(', ', $availableSheets));
+
+            $this->logger->error('Target sheet not found', [
+                'target_sheet' => $this->targetSheetName,
+                'available_sheets' => $availableSheets,
+            ]);
+
+            return self::FAILURE;
+        }
+
+        $rows = $sheet->toArray(null, true, true, false);
+
+        if (count($rows) < 1) {
+            $this->warn('The informations sheet is empty.');
+            return self::SUCCESS;
+        }
+
+        [$headerRowIndex, $headers, $score] = $this->detectHeaderRow($rows);
+
+        if ($headerRowIndex === null) {
+            $this->error('Could not detect a valid header row in the "informations" sheet.');
+
+            $this->logger->error('Header row detection failed', [
+                'sheet' => $this->targetSheetName,
+                'sample_rows' => array_slice($rows, 0, 10),
+            ]);
+
+            return self::FAILURE;
+        }
+
+        $this->info('Detected header row: ' . ($headerRowIndex + 1));
+        $this->line('Header match score: ' . $score);
+
+        foreach ($headers as $index => $header) {
+            $this->line('[' . $index . '] => ' . ($header !== '' ? $header : '(empty)'));
+        }
+
+        $dataRows = array_slice($rows, $headerRowIndex + 1);
+
+        foreach ($dataRows as $offset => $rowValues) {
+            $excelRow = $headerRowIndex + 2 + $offset;
+            $this->summary['rows_seen']++;
+
+            $prepared = $this->prepareRow($headers, $rowValues, $excelRow);
+
+            if ($prepared['was_empty']) {
+                $this->summary['empty_rows_attempted']++;
+                continue;
+            }
+
+            if ($dryRun) {
+                $this->logger->info('Dry run row parsed', [
+                    'excel_row' => $excelRow,
+                    'payload' => $prepared['data'],
+                ]);
+                continue;
+            }
+
+            $result = $this->insertRow($prepared['data'], $excelRow);
+            $this->summary[$result]++;
+        }
+
+        $this->printSummary();
+
+        return self::SUCCESS;
+    }
+
+    protected function detectHeaderRow(array $rows): array
+    {
+        $bestRowIndex = null;
+        $bestHeaders = [];
+        $bestScore = 0;
+
+        $scanLimit = min(count($rows), 100);
+
+        for ($r = 0; $r < $scanLimit; $r++) {
+            $candidateHeaders = [];
+            $score = 0;
+
+            foreach ($rows[$r] as $index => $cellValue) {
+                $normalized = $this->normalizeHeader((string) $cellValue);
+                $candidateHeaders[$index] = $normalized;
+
+                if ($normalized !== '' && in_array($normalized, $this->allowedColumns, true)) {
+                    $score++;
+                }
+            }
+
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $bestRowIndex = $r;
+                $bestHeaders = $candidateHeaders;
+            }
+        }
+
+        if ($bestRowIndex === null || $bestScore < 2) {
+            return [null, [], 0];
+        }
+
+        return [$bestRowIndex, $bestHeaders, $bestScore];
+    }
+
+    protected function prepareRow(array $headers, array $values, int $excelRow): array
+    {
+        $data = [];
+
+        foreach ($headers as $i => $header) {
+            if ($header === '') {
+                continue;
+            }
+
+            if (!$this->isAllowed($header)) {
+                $this->summary['columns_dropped']++;
+                continue;
+            }
+
+            $value = $values[$i] ?? null;
+
+if (is_string($value)) {
+    $value = trim($value);
+}
+
+if ($value === '' || $value === null) {
+    if ($this->shouldKeepEmptyAsNull($header)) {
+        continue;
+    }
+
+    $value = '.';
+} else {
+    $value = $this->normalizeValue($header, $value, $excelRow);
+
+    if ($value === null || $value === '') {
+        if ($this->shouldKeepEmptyAsNull($header)) {
+            continue;
+        }
+
+        $value = '.';
+    }
+}
+
+$data[$header] = $value;
+        }
+
+        if (array_key_exists('office_employee_id', $data)) {
+            $officeEmployeeId = $this->normalizeInteger($data['office_employee_id']);
+
+            if ($officeEmployeeId === null || !$this->officeEmployeeExists($officeEmployeeId)) {
+                $this->logger->warning('Invalid office_employee_id detected, setting to null', [
+                    'excel_row' => $excelRow,
+                    'office_employee_id' => $data['office_employee_id'],
+                ]);
+                unset($data['office_employee_id']);
+            } else {
+                $data['office_employee_id'] = $officeEmployeeId;
+            }
+        }
+
+        if (array_key_exists('office_employee_info_id', $data)) {
+            $officeEmployeeInfoId = $this->normalizeInteger($data['office_employee_info_id']);
+
+            if ($officeEmployeeInfoId === null || !$this->officeEmployeeExists($officeEmployeeInfoId)) {
+                $this->logger->warning('Invalid office_employee_info_id detected, setting to null', [
+                    'excel_row' => $excelRow,
+                    'office_employee_info_id' => $data['office_employee_info_id'],
+                ]);
+                unset($data['office_employee_info_id']);
+            } else {
+                $data['office_employee_info_id'] = $officeEmployeeInfoId;
+            }
+        }
+
+        if (array_key_exists('account_id', $data)) {
+            $data['account_id'] = $this->normalizeInteger($data['account_id']);
+            if ($data['account_id'] === null) {
+                unset($data['account_id']);
+            }
+        }
+
+        if (array_key_exists('matched_information_id', $data)) {
+            $data['matched_information_id'] = $this->normalizeInteger($data['matched_information_id']);
+            if ($data['matched_information_id'] === null) {
+                unset($data['matched_information_id']);
+            }
+        }
+
+	if (!array_key_exists('name', $data) || trim((string) $data['name']) === '') {
+    $data['name'] = '.';
+}
+
+        return [
+            'data' => $data,
+            'was_empty' => empty($data),
+        ];
+    }
+
+    protected function normalizeHeader(string $header): string
+    {
+        $header = preg_replace('/^\xEF\xBB\xBF/', '', $header ?? '');
+        $header = trim((string) $header);
+
+        if ($header === '') {
+            return '';
+        }
+
+        $header = $this->convertEasternDigitsToLatin($header);
+        $header = preg_replace('/\s+/u', '_', $header);
+        $header = preg_replace('/[^\p{L}\p{N}_]+/u', '', $header);
+        $header = trim($header, '_');
+
+        if ($header === '') {
+            return '';
+        }
+
+        $asciiHeader = mb_strtolower($header, 'UTF-8');
+
+        return $this->headerAliases[$asciiHeader]
+            ?? $this->headerAliases[$header]
+            ?? $asciiHeader;
+    }
+
+    protected function normalizeValue(string $column, mixed $value, int $excelRow): mixed
+    {
+        if (is_string($value)) {
+            $value = $this->convertEasternDigitsToLatin($value);
+            $value = trim($value);
+        }
+
+        if ($column === 'information_saved_date') {
+            return $this->normalizeDateValue($value, $excelRow, 'information_saved_date');
+        }
+
+        if ($column === 'hamahangi_date') {
+            return $this->normalizeDateValue($value, $excelRow, 'hamahangi_date');
+        }
+
+        if ($column === 'information_saved_hour') {
+            return $this->normalizeTimeValue($value);
+        }
+
+        if ($column === 'finance_paid_at') {
+            return $this->normalizeDateTime($value);
+        }
+
+        if ($column === 'organ' && is_string($value)) {
+            return mb_substr($value, 0, 255);
+        }
+
+        if ($column === 'information_degree' && is_string($value)) {
+            return mb_substr($value, 0, 255);
+        }
+
+        if (in_array($column, ['office_employee_id', 'office_employee_info_id', 'account_id', 'matched_information_id'], true)) {
+            return $this->normalizeInteger($value);
+        }
+
+        return $value;
+    }
+protected function shouldKeepEmptyAsNull(string $column): bool
+{
+    return in_array($column, [
+        // relations
+        'office_employee_id',
+        'office_employee_info_id',
+        'account_id',
+        'matched_information_id',
+
+        // numeric-like fields
+        'age',
+        'trust_percentage',
+
+        // date/time
+        'information_saved_date',
+        'hamahangi_date',
+        'information_saved_hour',
+        'finance_paid_at',
+
+        // default field
+        'finance_status',
+    ], true);
+}
+    protected function normalizeDateValue(mixed $value, int $excelRow, string $column): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            try {
+                return ExcelDate::excelToDateTimeObject((float) $value)->format('Y-m-d');
+            } catch (Throwable $e) {
+                $this->logger->warning("Could not convert numeric {$column}", [
+                    'excel_row' => $excelRow,
+                    'original_value' => $value,
+                ]);
+                return null;
+            }
+        }
+
+        $converted = $this->convertMixedHijriDateToGregorian($value);
+
+        if ($converted !== null) {
+            return $converted;
+        }
+
+        $timestamp = strtotime((string) $value);
+        if ($timestamp !== false) {
+            return date('Y-m-d', $timestamp);
+        }
+
+        $this->logger->warning("Could not convert {$column}; original value skipped", [
+            'excel_row' => $excelRow,
+            'original_value' => $value,
+        ]);
+
+        return null;
+    }
+
+    protected function normalizeTimeValue(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            try {
+                return ExcelDate::excelToDateTimeObject((float) $value)->format('H:i:s');
+            } catch (Throwable $e) {
+                return null;
+            }
+        }
+
+        $timestamp = strtotime((string) $value);
+        return $timestamp !== false ? date('H:i:s', $timestamp) : null;
+    }
+
+    protected function convertMixedHijriDateToGregorian(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return null;
+        }
+
+        $value = $this->convertEasternDigitsToLatin((string) $value);
+        $value = trim($value);
+        $value = str_replace(['\\', '.', '_', '-'], '/', $value);
+        $value = preg_replace('/\s+/', '', $value);
+
+        if (!preg_match('/^(\d{3,4})\/(\d{1,2})\/(\d{1,2})$/', $value, $matches)) {
+            return null;
+        }
+
+        $year = (int) $matches[1];
+        $month = (int) $matches[2];
+        $day = (int) $matches[3];
+
+        if ($month < 1 || $month > 12 || $day < 1 || $day > 31) {
+            return null;
+        }
+
+        if ($year >= 1300 && $year < 1440) {
+            [$gy, $gm, $gd] = $this->jalaliToGregorian($year, $month, $day);
+        } elseif ($year >= 1440 && $year <= 1600) {
+            if ($day > 30) {
+                return null;
+            }
+            [$gy, $gm, $gd] = $this->hijriToGregorian($year, $month, $day);
+        } else {
+            return null;
+        }
+
+        if (!checkdate($gm, $gd, $gy)) {
+            return null;
+        }
+
+        return sprintf('%04d-%02d-%02d', $gy, $gm, $gd);
+    }
+
+    protected function normalizeDateTime(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d H:i:s');
+        }
+
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        $timestamp = strtotime($value);
+
+        return $timestamp ? date('Y-m-d H:i:s', $timestamp) : null;
+    }
+
+    protected function insertRow(array $row, int $excelRow): string
+    {
+        try {
+            DB::transaction(function () use ($row) {
+                Information::create($row);
+            });
+
+            $this->logger->info('Row inserted', [
+                'excel_row' => $excelRow,
+                'payload' => $row,
+            ]);
+
+            return 'inserted';
+        } catch (QueryException $e) {
+            $this->error("Row {$excelRow} failed: " . $e->getMessage());
+
+            $this->logger->warning('Row failed with query error', [
+                'excel_row' => $excelRow,
+                'payload' => $row,
+                'error' => $e->getMessage(),
+            ]);
+
+            if ($this->isDuplicate($e)) {
+                return 'duplicates_skipped';
+            }
+
+            return 'rows_failed';
+        } catch (Throwable $e) {
+            $this->error("Row {$excelRow} failed: " . $e->getMessage());
+
+            $this->logger->error('Row failed with general error', [
+                'excel_row' => $excelRow,
+                'payload' => $row,
+                'error' => $e->getMessage(),
+            ]);
+
+            return 'rows_failed';
+        }
+    }
+
+    protected function officeEmployeeExists(int $id): bool
+    {
+        return DB::table('office_employees')->where('id', $id)->exists();
+    }
+
+    protected function normalizeInteger(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_string($value)) {
+            $value = $this->convertEasternDigitsToLatin($value);
+            $value = trim($value);
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return null;
+    }
+
+    protected function isAllowed(string $column): bool
+    {
+        return !in_array($column, $this->skipColumns, true)
+            && in_array($column, $this->allowedColumns, true);
+    }
+
+    protected function isDuplicate(QueryException $e): bool
+    {
+        $message = strtolower($e->getMessage());
+
+        return str_contains($message, 'duplicate')
+            || str_contains($message, 'unique')
+            || str_contains($message, '1062');
+    }
+
+    protected function printSummary(): void
+    {
+        $this->line('');
+        $this->info('=== Summary ===');
+
+        foreach ($this->summary as $k => $v) {
+            $this->line("{$k}: {$v}");
+        }
+
+        $this->line('');
+        $this->info('Log file: ' . storage_path('logs/informations-import.log'));
+    }
+
+    protected function defaultImportPath(): string
+    {
+        return rtrim(getenv('HOME') ?: '', '/') . '/informations.xlsx';
+    }
+
+    protected function convertEasternDigitsToLatin(string $value): string
+    {
+        $arabicIndic = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+        $easternArabic = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+
+        $value = str_replace($arabicIndic, ['0','1','2','3','4','5','6','7','8','9'], $value);
+        $value = str_replace($easternArabic, ['0','1','2','3','4','5','6','7','8','9'], $value);
+
+        return $value;
+    }
+
+    protected function jalaliToGregorian(int $jy, int $jm, int $jd): array
+    {
+        $jy += 1595;
+        $days = -355668 + (365 * $jy) + intdiv($jy, 33) * 8 + intdiv((($jy % 33) + 3), 4) + $jd;
+
+        if ($jm < 7) {
+            $days += ($jm - 1) * 31;
+        } else {
+            $days += (($jm - 7) * 30) + 186;
+        }
+
+        $gy = 400 * intdiv($days, 146097);
+        $days %= 146097;
+
+        if ($days > 36524) {
+            $gy += 100 * intdiv(--$days, 36524);
+            $days %= 36524;
+
+            if ($days >= 365) {
+                $days++;
+            }
+        }
+
+        $gy += 4 * intdiv($days, 1461);
+        $days %= 1461;
+
+        if ($days > 365) {
+            $gy += intdiv($days - 1, 365);
+            $days = ($days - 1) % 365;
+        }
+
+        $gd = $days + 1;
+
+        $sal_a = [
+            0, 31,
+            (($gy % 4 === 0 && $gy % 100 !== 0) || ($gy % 400 === 0)) ? 29 : 28,
+            31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+        ];
+
+        $gm = 1;
+        while ($gm <= 12 && $gd > $sal_a[$gm]) {
+            $gd -= $sal_a[$gm];
+            $gm++;
+        }
+
+        return [$gy, $gm, $gd];
+    }
+
+    protected function hijriToGregorian(int $hy, int $hm, int $hd): array
+    {
+        $jd = $this->hijriToJulianDay($hy, $hm, $hd);
+        return $this->julianDayToGregorian($jd);
+    }
+
+    protected function hijriToJulianDay(int $year, int $month, int $day): int
+    {
+        return (int) floor(
+            $day
+            + ceil(29.5 * ($month - 1))
+            + ($year - 1) * 354
+            + floor((3 + (11 * $year)) / 30)
+            + 1948439
+            - 1
+        );
+    }
+
+    protected function julianDayToGregorian(int $jd): array
+    {
+        $l = $jd + 68569;
+        $n = intdiv(4 * $l, 146097);
+        $l = $l - intdiv(146097 * $n + 3, 4);
+        $i = intdiv(4000 * ($l + 1), 1461001);
+        $l = $l - intdiv(1461 * $i, 4) + 31;
+        $j = intdiv(80 * $l, 2447);
+        $day = $l - intdiv(2447 * $j, 80);
+        $l = intdiv($j, 11);
+        $month = $j + 2 - (12 * $l);
+        $year = 100 * ($n - 49) + $i + $l;
+
+        return [(int) $year, (int) $month, (int) $day];
+    }
+}
