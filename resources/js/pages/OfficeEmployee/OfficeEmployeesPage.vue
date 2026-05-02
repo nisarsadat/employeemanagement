@@ -316,10 +316,10 @@
           <span
             class="status-dot"
             :class="{
-              'status-dot--active': String(getRow(row).activity || '').trim() === 'فعال',
-              'status-dot--inactive': String(getRow(row).activity || '').trim() === 'غیر فعال',
+              'status-dot--active': getEmployeeActivity(row) === 'فعال',
+              'status-dot--inactive': getEmployeeActivity(row) === 'غیر فعال',
             }"
-            :title="String(getRow(row).activity || '').trim()"
+            :title="getEmployeeActivity(row)"
           />
         </div>
       </template>
@@ -655,7 +655,16 @@
   function getRow(payload) {
     return payload?.raw ?? payload;
   }
+  function getEmployeeActivity(payload) {
+    const row = getRow(payload);
+    const jobType = String(row?.job_type || '').trim();
 
+    if (jobType === 'اداری' || jobType === 'اداري') {
+      return 'فعال';
+    }
+
+    return String(row?.activity || '').trim();
+  }
   function normalizeUrl(url) {
     if (!url) return null;
     return url.replace('/storage/storage/', '/storage/');
