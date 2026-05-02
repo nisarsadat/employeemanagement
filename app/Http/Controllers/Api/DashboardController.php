@@ -72,21 +72,24 @@ class DashboardController extends Controller
         $q->whereIn('job_type', ['اداری', 'اداري'])
             ->orWhereHas('resources', function ($r) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
                 $r->where('activity', 'فعال')
-                    ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
+                  ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
             }, '>=', 100);
     })
     ->count();
 
 $employeesInactive = OfficeEmployee::query()
-    ->whereNotIn('job_type', ['اداری', 'اداري'])
+    ->where(function ($q) {
+        $q->whereNull('job_type')
+          ->orWhereNotIn('job_type', ['اداری', 'اداري']);
+    })
     ->where(function ($q) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
         $q->whereDoesntHave('resources', function ($r) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
             $r->where('activity', 'فعال')
-                ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
+              ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
         })
         ->orWhereHas('resources', function ($r) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
             $r->where('activity', 'فعال')
-                ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
+              ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
         }, '<', 100);
     })
     ->count();

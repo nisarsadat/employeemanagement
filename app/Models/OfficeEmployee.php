@@ -195,12 +195,32 @@ class OfficeEmployee extends Model
 
 public function scopeActive(Builder $q): Builder
 {
-    return $q->where('activity', self::ACTIVE);
+    return $q->where(function ($query) {
+        $query->whereIn('job_type', ['اداری', 'اداري'])
+            ->orWhereHas('resources', function ($r) {
+                $r->where('activity', self::ACTIVE)
+                  ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
+            }, '>=', 100);
+    });
 }
 
 public function scopeInactive(Builder $q): Builder
 {
-    return $q->where('activity', self::INACTIVE);
+    return $q
+        ->where(function ($query) {
+            $query->whereNull('job_type')
+                ->orWhereNotIn('job_type', ['اداری', 'اداري']);
+        })
+        ->where(function ($query) {
+            $query->whereDoesntHave('resources', function ($r) {
+                $r->where('activity', self::ACTIVE)
+                  ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
+            })
+            ->orWhereHas('resources', function ($r) {
+                $r->where('activity', self::ACTIVE)
+                  ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
+            }, '<', 100);
+        });
 }
     public function khayratReports()
     {
@@ -210,19 +230,23 @@ public function scopeInactive(Builder $q): Builder
     public const ACTIVE = 'فعال';
 public const INACTIVE = 'غیر فعال';
 
-
+public function isEdariEmployee(): bool
+{
+    return in_array($this->job_type, ['اداری', 'اداري'], true);
+}
 
 public function syncActivityFromResources(): void
 {
-    if (in_array($this->job_type, ['اداری', 'اداري'], true)) {
-    if ($this->activity !== self::ACTIVE) {
-        $this->update([
-            'activity' => self::ACTIVE,
-        ]);
+    if ($this->isEdariEmployee()) {
+        if ($this->activity !== self::ACTIVE) {
+            $this->update([
+                'activity' => self::ACTIVE,
+            ]);
+        }
+
+        return;
     }
 
-    return;
-}
     $activeResourcesCount = $this->resources()
         ->where('activity', self::ACTIVE)
         ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString())

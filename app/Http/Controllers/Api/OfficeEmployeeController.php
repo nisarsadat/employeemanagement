@@ -259,6 +259,28 @@ class OfficeEmployeeController extends Controller
         return in_array($field, $this->searchableColumns(), true) ? $field : null;
     }
 
+    private function isEdariEmployee($employee): bool
+    {
+        return in_array($employee->job_type, ['اداری', 'اداري'], true);
+    }
+
+    private function applyEffectiveActivity($employee)
+    {
+        if ($this->isEdariEmployee($employee)) {
+            $employee->activity = 'فعال';
+            return $employee;
+        }
+
+        $activeResourcesCount = $employee->resources()
+            ->where('activity', 'فعال')
+            ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString())
+            ->count();
+
+        $employee->activity = $activeResourcesCount >= 100 ? 'فعال' : 'غیر فعال';
+
+        return $employee;
+    }
+
     private function applyMonthYearFilter($query, ?int $year, ?int $month, string $dateField)
     {
         if ($year && $month) {
@@ -309,95 +331,95 @@ class OfficeEmployeeController extends Controller
             ]);
     }
 
-
     private function applyCommonFilters(
-    $query,
-    ?string $search,
-    ?string $status,
-    ?string $jobType,
-    ?string $searchField = null,
-    $searchValue = null
-) {
-    $query
-        ->when($searchValue !== null && $searchValue !== '' && $searchField, function ($q) use ($searchField, $searchValue) {
-            $q->where($searchField, $searchValue);
-        })
-        ->when($search, function ($q) use ($search, $searchField) {
-            $resolvedField = $this->resolveSearchField($searchField);
+        $query,
+        ?string $search,
+        ?string $status,
+        ?string $jobType,
+        ?string $searchField = null,
+        $searchValue = null
+    ) {
+        $query
+            ->when($searchValue !== null && $searchValue !== '' && $searchField, function ($q) use ($searchField, $searchValue) {
+                $q->where($searchField, $searchValue);
+            })
+            ->when($search, function ($q) use ($search, $searchField) {
+                $resolvedField = $this->resolveSearchField($searchField);
 
-            if ($resolvedField) {
-                $q->where($resolvedField, 'like', "%{$search}%");
-            } else {
-                $q->where(function ($qq) use ($search) {
-                    foreach ($this->searchableColumns() as $index => $column) {
-                        if ($index === 0) {
-                            $qq->where($column, 'like', "%{$search}%");
-                        } else {
-                            $qq->orWhere($column, 'like', "%{$search}%");
+                if ($resolvedField) {
+                    $q->where($resolvedField, 'like', "%{$search}%");
+                } else {
+                    $q->where(function ($qq) use ($search) {
+                        foreach ($this->searchableColumns() as $index => $column) {
+                            if ($index === 0) {
+                                $qq->where($column, 'like', "%{$search}%");
+                            } else {
+                                $qq->orWhere($column, 'like', "%{$search}%");
+                            }
                         }
-                    }
-                });
-            }
-        })
+                    });
+                }
+            })
+            ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
+                $from = now()->subDays(30)->startOfDay();
+                $to   = now()->endOfDay();
 
+                if ($status === 'active') {
+                    $q->where(function ($qq) use ($from, $to) {
+                        $qq->whereIn('job_type', ['اداری', 'اداري'])
+                            ->orWhereHas('resources', function ($r) use ($from, $to) {
+                                $r->where('activity', 'فعال')
+                                    ->whereBetween('resource_saved_date', [$from, $to]);
+                            }, '>=', 100);
+                    });
+                }
 
-        ->when($status && strtolower($status) !== 'all', function ($q) use ($status) {
-    $from = now()->subDays(30)->startOfDay();
-    $to   = now()->endOfDay();
+                if ($status === 'inactive') {
+                    $q->where(function ($qq) {
+                        $qq->whereNull('job_type')
+                            ->orWhereNotIn('job_type', ['اداری', 'اداري']);
+                    });
 
-    if ($status === 'active') {
-        $q->where(function ($qq) use ($from, $to) {
-            $qq->whereIn('job_type', ['اداری', 'اداري'])
-                ->orWhereHas('resources', function ($r) use ($from, $to) {
-                    $r->where('activity', 'فعال')
-                      ->whereBetween('resource_saved_date', [$from, $to]);
-                }, '>=', 100);
-        });
-    }
-
-    if ($status === 'inactive') {
-        $q->whereNotIn('job_type', ['اداری', 'اداري'])
-            ->where(function ($qq) use ($from, $to) {
-                $qq->whereDoesntHave('resources', function ($r) use ($from, $to) {
-                    $r->where('activity', 'فعال')
-                      ->whereBetween('resource_saved_date', [$from, $to]);
-                })
-                ->orWhereHas('resources', function ($r) use ($from, $to) {
-                    $r->where('activity', 'فعال')
-                      ->whereBetween('resource_saved_date', [$from, $to]);
-                }, '<', 100);
+                    $q->where(function ($qq) use ($from, $to) {
+                        $qq->whereDoesntHave('resources', function ($r) use ($from, $to) {
+                            $r->where('activity', 'فعال')
+                                ->whereBetween('resource_saved_date', [$from, $to]);
+                        })
+                        ->orWhereHas('resources', function ($r) use ($from, $to) {
+                            $r->where('activity', 'فعال')
+                                ->whereBetween('resource_saved_date', [$from, $to]);
+                        }, '<', 100);
+                    });
+                }
+            })
+            ->when($jobType, function ($q) use ($jobType) {
+                if ($jobType === 'اداری') {
+                    $q->whereIn('job_type', ['اداری', 'اداري']);
+                } elseif ($jobType === 'اوپراتیفی') {
+                    $q->whereIn('job_type', ['اوپراتیفی', 'اوپراتیفي']);
+                } else {
+                    $q->where('job_type', $jobType);
+                }
             });
+
+        return $query;
     }
-})
-        ->when($jobType, function ($q) use ($jobType) {
-            if ($jobType === 'اداری') {
-                $q->whereIn('job_type', ['اداری', 'اداري']);
-            } elseif ($jobType === 'اوپراتیفی') {
-                $q->whereIn('job_type', ['اوپراتیفی', 'اوپراتیفي']);
-            } else {
-                $q->where('job_type', $jobType);
-            }
-        });
-
-    return $query;
-}
-
 
     private function buildCardCounts(
-    Request $request,
-    ?string $search,
-    ?string $status,
-    ?string $jobType,
-    ?int $year,
-    ?int $month,
-    string $dateField,
-    ?string $searchField = null,
-    $searchValue = null
-): array {
+        Request $request,
+        ?string $search,
+        ?string $status,
+        ?string $jobType,
+        ?int $year,
+        ?int $month,
+        string $dateField,
+        ?string $searchField = null,
+        $searchValue = null
+    ): array {
 
         $base = OfficeEmployee::query();
 
-        $this->applyCommonFilters($base, $search, $status, $jobType, $searchField, $searchValue);
+        $this->applyCommonFilters($base, $search, null, $jobType, $searchField, $searchValue);
         $this->applyMonthYearFilter($base, $year, $month, $dateField);
         $this->applyRelatedFilters($base, $request);
 
@@ -405,30 +427,33 @@ class OfficeEmployeeController extends Controller
             'total'      => (clone $base)->count(),
             'edari'      => (clone $base)->whereIn('job_type', ['اداری', 'اداري'])->count(),
             'operatifi'  => (clone $base)->whereIn('job_type', ['اوپراتیفی', 'اوپراتیفي'])->count(),
-           
-           'active' => (clone $base)
-    ->where(function ($q) {
-        $q->whereIn('job_type', ['اداری', 'اداري'])
-            ->orWhereHas('resources', function ($r) {
-                $r->where('activity', 'فعال')
-                  ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
-            }, '>=', 100);
-    })
-    ->count(),
 
-'inactive' => (clone $base)
-    ->whereNotIn('job_type', ['اداری', 'اداري'])
-    ->where(function ($q) {
-        $q->whereDoesntHave('resources', function ($r) {
-            $r->where('activity', 'فعال')
-              ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
-        })
-        ->orWhereHas('resources', function ($r) {
-            $r->where('activity', 'فعال')
-              ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
-        }, '<', 100);
-    })
-    ->count(),
+            'active' => (clone $base)
+                ->where(function ($q) {
+                    $q->whereIn('job_type', ['اداری', 'اداري'])
+                        ->orWhereHas('resources', function ($r) {
+                            $r->where('activity', 'فعال')
+                                ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
+                        }, '>=', 100);
+                })
+                ->count(),
+
+            'inactive' => (clone $base)
+                ->where(function ($q) {
+                    $q->whereNull('job_type')
+                        ->orWhereNotIn('job_type', ['اداری', 'اداري']);
+                })
+                ->where(function ($q) {
+                    $q->whereDoesntHave('resources', function ($r) {
+                        $r->where('activity', 'فعال')
+                            ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
+                    })
+                    ->orWhereHas('resources', function ($r) {
+                        $r->where('activity', 'فعال')
+                            ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
+                    }, '<', 100);
+                })
+                ->count(),
         ];
     }
 
@@ -522,19 +547,18 @@ class OfficeEmployeeController extends Controller
         $month     = $request->filled('month') ? (int) $request->input('month') : null;
         $dateField = $this->resolveDateField($request->input('date_field'));
         $searchValue = $request->input('search_value');
-        
 
         $cardCounts = $this->buildCardCounts(
-    $request,
-    $search,
-    $status,
-    $jobType,
-    $year,
-    $month,
-    $dateField,
-    $searchField,
-    $searchValue
-);
+            $request,
+            $search,
+            $status,
+            $jobType,
+            $year,
+            $month,
+            $dateField,
+            $searchField,
+            $searchValue
+        );
 
         $query = $this->baseListQuery();
 
@@ -545,15 +569,21 @@ class OfficeEmployeeController extends Controller
         $query->orderByDesc('id');
 
         if (is_null($rawPerPage) || $rawPerPage === '' || strtolower((string) $rawPerPage) === 'all' || (int) $rawPerPage === 0) {
-            return OfficeEmployeeResource::collection($query->get())
+            $employees = $query->get()->map(fn ($employee) => $this->applyEffectiveActivity($employee));
+
+            return OfficeEmployeeResource::collection($employees)
                 ->additional([
                     'card_counts' => $cardCounts,
                 ]);
         }
 
-        return OfficeEmployeeResource::collection(
-            $query->paginate(max(1, (int) $rawPerPage), ['*'], 'page', $page)
-        )->additional([
+        $employees = $query->paginate(max(1, (int) $rawPerPage), ['*'], 'page', $page);
+
+        $employees->getCollection()->transform(
+            fn ($employee) => $this->applyEffectiveActivity($employee)
+        );
+
+        return OfficeEmployeeResource::collection($employees)->additional([
             'card_counts' => $cardCounts,
         ]);
     }
@@ -561,6 +591,8 @@ class OfficeEmployeeController extends Controller
     public function show($id)
     {
         $officeEmployee = $this->baseListQuery()->findOrFail($id);
+        $officeEmployee = $this->applyEffectiveActivity($officeEmployee);
+
         return new OfficeEmployeeResource($officeEmployee);
     }
 
@@ -573,132 +605,53 @@ class OfficeEmployeeController extends Controller
         ]);
     }
 
-    // public function store(OfficeEmployeeRequest $request)
-    // {
-    //     DB::beginTransaction();
-
-    //     try {
-    //         $user = $request->user();
-
-    //         $employee = OfficeEmployee::create($request->validated());
-
-    //         if (empty($employee->code_number)) {
-    //             $employee->update(['code_number' => (string) $employee->id]);
-    //         }
-
-    //         if ($request->hasFile('picture')) {
-    //             $path = $request->file('picture')->store('uploads/office-employees', 'public');
-    //             $employee->update(['picture' => $path]);
-    //         }
-
-    //         if ($request->hasFile('documents')) {
-    //             foreach ($request->file('documents') as $file) {
-    //                 $path = $file->store("office_employees/{$employee->id}", 'public');
-    //                 $employee->documents()->create([
-    //                     'file_name'  => $file->getClientOriginalName(),
-    //                     'file_path'  => $path,
-    //                     'mime_type'  => $file->getClientMimeType(),
-    //                     'size_bytes' => $file->getSize(),
-    //                 ]);
-    //             }
-    //         }
-
-    //         NotificationService::recordForAllUsers(
-    //             actor: $user,
-    //             module: 'کارمند',
-    //             action: 'created',
-    //             title: 'کارمند ثبت',
-    //             message: 'کارمند: ' . ($employee->code_number ?? ''),
-    //             routeName: 'officeemployee',
-    //             routeParams: ['id' => $employee->id],
-    //             level: 'success',
-    //             changes: null,
-    //         );
-
-    //         DB::commit();
-
-    //         return new OfficeEmployeeResource(
-    //             $employee->load(['documents'])
-    //                 ->loadSum('finances as payed_money', 'money_amount_number')
-    //                 ->loadCount([
-    //                     'events',
-    //                     'resources',
-    //                     'resources as resources_active_count' => fn ($q) => $q->where('activity', 'فعال'),
-    //                     'resources as resources_inactive_count' => fn ($q) => $q->where('activity', 'غیر فعال'),
-    //                     'informations',
-    //                     'infoInformations',
-    //                     'documents',
-    //                 ])
-    //         );
-    //     } catch (QueryException $e) {
-    //         DB::rollBack();
-
-    //         if ($this->isDuplicateKey($e)) {
-    //             return $this->duplicateResponsePashto();
-    //         }
-
-    //         return response()->json([
-    //             'message' => 'Office employee creation failed',
-    //             'error'   => $e->getMessage(),
-    //         ], 500);
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-
-    //         return response()->json([
-    //             'message' => 'Office employee creation failed',
-    //             'error'   => $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
-
     public function store(OfficeEmployeeRequest $request)
-{
-    DB::beginTransaction();
+    {
+        DB::beginTransaction();
 
-    try {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        $data = $request->validated();
+            $data = $request->validated();
 
-        $employee = OfficeEmployee::create($data);
+            $employee = OfficeEmployee::create($data);
 
-        if (empty($employee->code_number)) {
-            $employee->update(['code_number' => (string) $employee->id]);
-        }
-
-        if ($request->hasFile('picture')) {
-            $path = $request->file('picture')->store('uploads/office-employees', 'public');
-            $employee->update(['picture' => $path]);
-        }
-
-        if ($request->hasFile('documents')) {
-            foreach ($request->file('documents') as $file) {
-                $path = $file->store("office_employees/{$employee->id}", 'public');
-                $employee->documents()->create([
-                    'file_name'  => $file->getClientOriginalName(),
-                    'file_path'  => $path,
-                    'mime_type'  => $file->getClientMimeType(),
-                    'size_bytes' => $file->getSize(),
-                ]);
+            if (empty($employee->code_number)) {
+                $employee->update(['code_number' => (string) $employee->id]);
             }
-        }
 
-        NotificationService::recordForAllUsers(
-            actor: $user,
-            module: 'کارمند',
-            action: 'created',
-            title: 'کارمند ثبت',
-            message: 'کارمند: ' . ($employee->code_number ?? ''),
-            routeName: 'officeemployee',
-            routeParams: ['id' => $employee->id],
-            level: 'success',
-            changes: null,
-        );
+            if ($request->hasFile('picture')) {
+                $path = $request->file('picture')->store('uploads/office-employees', 'public');
+                $employee->update(['picture' => $path]);
+            }
 
-        DB::commit();
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $file) {
+                    $path = $file->store("office_employees/{$employee->id}", 'public');
+                    $employee->documents()->create([
+                        'file_name'  => $file->getClientOriginalName(),
+                        'file_path'  => $path,
+                        'mime_type'  => $file->getClientMimeType(),
+                        'size_bytes' => $file->getSize(),
+                    ]);
+                }
+            }
 
-        return new OfficeEmployeeResource(
-            $employee->load(['documents'])
+            NotificationService::recordForAllUsers(
+                actor: $user,
+                module: 'کارمند',
+                action: 'created',
+                title: 'کارمند ثبت',
+                message: 'کارمند: ' . ($employee->code_number ?? ''),
+                routeName: 'officeemployee',
+                routeParams: ['id' => $employee->id],
+                level: 'success',
+                changes: null,
+            );
+
+            DB::commit();
+
+            $employee = $employee->load(['documents'])
                 ->loadSum('finances as payed_money', 'money_amount_number')
                 ->loadCount([
                     'events',
@@ -708,94 +661,96 @@ class OfficeEmployeeController extends Controller
                     'informations',
                     'infoInformations',
                     'documents',
-                ])
-        );
-    } catch (QueryException $e) {
-        DB::rollBack();
+                ]);
 
-        if ($this->isDuplicateKey($e)) {
-            return $this->duplicateResponsePashto();
+            $employee = $this->applyEffectiveActivity($employee);
+
+            return new OfficeEmployeeResource($employee);
+        } catch (QueryException $e) {
+            DB::rollBack();
+
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponsePashto();
+            }
+
+            return response()->json([
+                'message' => 'Office employee creation failed',
+                'error'   => $e->getMessage(),
+            ], 500);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Office employee creation failed',
+                'error'   => $e->getMessage(),
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Office employee creation failed',
-            'error'   => $e->getMessage(),
-        ], 500);
-    } catch (\Throwable $e) {
-        DB::rollBack();
-
-        return response()->json([
-            'message' => 'Office employee creation failed',
-            'error'   => $e->getMessage(),
-        ], 500);
     }
-}
-public function update(UpdateOfficeEmployeeRequest $request, $id)
-{
-    DB::beginTransaction();
 
-    try {
-        $user = $request->user();
-        $officeEmployee = OfficeEmployee::with(['documents'])->findOrFail($id);
+    public function update(UpdateOfficeEmployeeRequest $request, $id)
+    {
+        DB::beginTransaction();
 
-        $original = $officeEmployee->getOriginal();
+        try {
+            $user = $request->user();
+            $officeEmployee = OfficeEmployee::with(['documents'])->findOrFail($id);
 
-        $data = $request->validated();
-        unset($data['code_number']);
+            $original = $officeEmployee->getOriginal();
 
+            $data = $request->validated();
+            unset($data['code_number']);
 
-        if ($request->input('remove_picture') == '1') {
-            if ($officeEmployee->picture) {
-                Storage::disk('public')->delete($officeEmployee->picture);
+            if ($request->input('remove_picture') == '1') {
+                if ($officeEmployee->picture) {
+                    Storage::disk('public')->delete($officeEmployee->picture);
+                }
+
+                $data['picture'] = null;
             }
 
-            $data['picture'] = null;
-        }
+            $officeEmployee->fill($data);
 
-        $officeEmployee->fill($data);
+            $dirty   = $officeEmployee->getDirty();
+            $changes = [];
 
-        $dirty   = $officeEmployee->getDirty();
-        $changes = [];
-
-        foreach ($dirty as $field => $newValue) {
-            $changes[$field] = [
-                'old' => $original[$field] ?? null,
-                'new' => $newValue,
-            ];
-        }
-
-        $officeEmployee->save();
-
-        if ($request->hasFile('picture')) {
-            if ($officeEmployee->picture) {
-                Storage::disk('public')->delete($officeEmployee->picture);
+            foreach ($dirty as $field => $newValue) {
+                $changes[$field] = [
+                    'old' => $original[$field] ?? null,
+                    'new' => $newValue,
+                ];
             }
 
-            $path = $request->file('picture')->store('uploads/office-employees', 'public');
-            $officeEmployee->update(['picture' => $path]);
+            $officeEmployee->save();
 
-            $changes['picture'] = [
-                'old' => $original['picture'] ?? null,
-                'new' => $path,
-            ];
-        }
+            if ($request->hasFile('picture')) {
+                if ($officeEmployee->picture) {
+                    Storage::disk('public')->delete($officeEmployee->picture);
+                }
 
-        NotificationService::recordForAllUsers(
-            actor: $user,
-            module: 'کارمند',
-            action: 'updated',
-            title: 'کارمند اصلاح',
-            message: 'کارمند: ' . ($officeEmployee->code_number ?? ''),
-            routeName: 'officeemployee',
-            routeParams: ['id' => $officeEmployee->id],
-            level: 'info',
-            changes: $changes ?: null,
-        );
+                $path = $request->file('picture')->store('uploads/office-employees', 'public');
+                $officeEmployee->update(['picture' => $path]);
 
-        DB::commit();
+                $changes['picture'] = [
+                    'old' => $original['picture'] ?? null,
+                    'new' => $path,
+                ];
+            }
 
-        return new OfficeEmployeeResource(
-            $officeEmployee
+            NotificationService::recordForAllUsers(
+                actor: $user,
+                module: 'کارمند',
+                action: 'updated',
+                title: 'کارمند اصلاح',
+                message: 'کارمند: ' . ($officeEmployee->code_number ?? ''),
+                routeName: 'officeemployee',
+                routeParams: ['id' => $officeEmployee->id],
+                level: 'info',
+                changes: $changes ?: null,
+            );
+
+            DB::commit();
+
+            $officeEmployee = $officeEmployee
                 ->load(['documents'])
                 ->loadSum('finances as payed_money', 'money_amount_number')
                 ->loadCount([
@@ -806,28 +761,31 @@ public function update(UpdateOfficeEmployeeRequest $request, $id)
                     'informations',
                     'infoInformations',
                     'documents',
-                ])
-        );
-    } catch (QueryException $e) {
-        DB::rollBack();
+                ]);
 
-        if ($this->isDuplicateKey($e)) {
-            return $this->duplicateResponsePashto();
+            $officeEmployee = $this->applyEffectiveActivity($officeEmployee);
+
+            return new OfficeEmployeeResource($officeEmployee);
+        } catch (QueryException $e) {
+            DB::rollBack();
+
+            if ($this->isDuplicateKey($e)) {
+                return $this->duplicateResponsePashto();
+            }
+
+            return response()->json([
+                'message' => 'Office employee update failed',
+                'error'   => $e->getMessage(),
+            ], 500);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Office employee update failed',
+                'error'   => $e->getMessage(),
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Office employee update failed',
-            'error'   => $e->getMessage(),
-        ], 500);
-    } catch (\Throwable $e) {
-        DB::rollBack();
-
-        return response()->json([
-            'message' => 'Office employee update failed',
-            'error'   => $e->getMessage(),
-        ], 500);
     }
-}
 
     public function destroy(Request $request, $id)
     {
@@ -918,111 +876,111 @@ public function update(UpdateOfficeEmployeeRequest $request, $id)
         $perPage = $request->input('perPage', 0);
 
         if (!$perPage || strtolower((string) $perPage) === 'all') {
-            return OfficeEmployeeResource::collection($query->get());
+            $employees = $query->get()->map(fn ($employee) => $this->applyEffectiveActivity($employee));
+
+            return OfficeEmployeeResource::collection($employees);
         }
 
-        return OfficeEmployeeResource::collection($query->paginate((int) $perPage));
+        $employees = $query->paginate((int) $perPage);
+
+        $employees->getCollection()->transform(
+            fn ($employee) => $this->applyEffectiveActivity($employee)
+        );
+
+        return OfficeEmployeeResource::collection($employees);
     }
+
     public function filterOptions(Request $request)
-{
-    $request->validate([
-        'field' => 'required|string',
-        'q'     => 'nullable|string',
-    ]);
+    {
+        $request->validate([
+            'field' => 'required|string',
+            'q'     => 'nullable|string',
+        ]);
 
-    $field = $this->resolveSearchField($request->input('field'));
+        $field = $this->resolveSearchField($request->input('field'));
 
-    if (!$field) {
+        if (!$field) {
+            return response()->json([
+                'options' => [],
+            ]);
+        }
+
+        $q = trim((string) $request->input('q', ''));
+
+        $query = OfficeEmployee::query()
+            ->whereNotNull($field)
+            ->where($field, '!=', '');
+
+        if ($q !== '') {
+            $query->where($field, 'like', "%{$q}%");
+        }
+
+        $options = $query
+            ->select($field)
+            ->distinct()
+            ->orderBy($field)
+            ->pluck($field)
+            ->map(fn ($value) => [
+                'title' => (string) $value,
+                'value' => $value,
+            ])
+            ->values();
+
         return response()->json([
-            'options' => [],
+            'options' => $options,
         ]);
     }
 
-    $q = trim((string) $request->input('q', ''));
+    public function printView(Request $request)
+    {
+        $query = $this->baseListQuery();
 
-    $query = OfficeEmployee::query()
-        ->whereNotNull($field)
-        ->where($field, '!=', '');
+        $search      = $request->input('search');
+        $searchField = $this->resolveSearchField($request->input('search_field'));
+        $searchValue = $request->input('search_value');
+        $status      = $request->input('status', 'all');
+        $jobType     = $request->input('job_type');
 
-    if ($q !== '') {
-        $query->where($field, 'like', "%{$q}%");
-    }
+        $year      = $request->filled('year') ? (int) $request->input('year') : null;
+        $month     = $request->filled('month') ? (int) $request->input('month') : null;
+        $dateField = $this->resolveDateField($request->input('date_field'));
 
-    $options = $query
-        ->select($field)
-        ->distinct()
-        ->orderBy($field)
-        ->pluck($field)
-        ->map(fn ($value) => [
-            'title' => (string) $value,
-            'value' => $value,
-        ])
-        ->values();
+        $this->applyCommonFilters($query, $search, $status, $jobType, $searchField, $searchValue);
+        $this->applyMonthYearFilter($query, $year, $month, $dateField);
+        $this->applyRelatedFilters($query, $request);
 
-    return response()->json([
-        'options' => $options,
-    ]);
-}
-public function printView(Request $request)
-{
-    $query = $this->baseListQuery();
+        $rows = $query
+            ->latest('id')
+            ->get()
+            ->map(function ($employee) {
+                foreach (['join_date', 'left_date'] as $field) {
+                    if (!empty($employee->{$field})) {
+                        try {
+                            $carbon = \Carbon\Carbon::parse($employee->{$field});
 
-    $search      = $request->input('search');
-    $searchField = $this->resolveSearchField($request->input('search_field'));
-    $searchValue = $request->input('search_value');
-    $status      = $request->input('status', 'all');
-    $jobType     = $request->input('job_type');
+                            [$jy, $jm, $jd] = $this->gregorianToJalali(
+                                (int) $carbon->format('Y'),
+                                (int) $carbon->format('m'),
+                                (int) $carbon->format('d')
+                            );
 
-    $year      = $request->filled('year') ? (int) $request->input('year') : null;
-    $month     = $request->filled('month') ? (int) $request->input('month') : null;
-    $dateField = $this->resolveDateField($request->input('date_field'));
-
-    $this->applyCommonFilters($query, $search, $status, $jobType, $searchField, $searchValue);
-    $this->applyMonthYearFilter($query, $year, $month, $dateField);
-    $this->applyRelatedFilters($query, $request);
-
-   $rows = $query
-    ->latest('id')
-    ->get()
-    ->map(function ($employee) {
-        foreach (['join_date', 'left_date'] as $field) {
-            if (!empty($employee->{$field})) {
-                try {
-                    $carbon = \Carbon\Carbon::parse($employee->{$field});
-
-                    [$jy, $jm, $jd] = $this->gregorianToJalali(
-                        (int) $carbon->format('Y'),
-                        (int) $carbon->format('m'),
-                        (int) $carbon->format('d')
-                    );
-
-                    $employee->{$field} = sprintf('%04d/%02d/%02d', $jy, $jm, $jd);
-                } catch (\Throwable $e) {
-                    //
+                            $employee->{$field} = sprintf('%04d/%02d/%02d', $jy, $jm, $jd);
+                        } catch (\Throwable $e) {
+                            //
+                        }
+                    }
                 }
-            }
-        }
 
-       if (in_array($employee->job_type, ['اداری', 'اداري'], true)) {
-    $employee->activity = 'فعال';
-} else {
-    $activeResourcesCount = $employee->resources()
-        ->where('activity', 'فعال')
-        ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString())
-        ->count();
+                return $this->applyEffectiveActivity($employee);
+            });
 
-    $employee->activity = $activeResourcesCount >= 100 ? 'فعال' : 'غیر فعال';
-}
-        return $employee;
-    });
-
-    return response()->view('prints.table-print', [
-        'title'           => $request->input('title', 'چاپ کارمندان مدیریت'),
-        'rows'            => $rows,
-        'selectedColumns' => $request->input('selected_columns', []),
-        'columnLabels'    => $request->input('column_labels', []),
-        'printLabels'     => $request->input('print_labels', []),
-        'locale'          => $request->input('locale', 'fa'),
-    ]);
-}
+        return response()->view('prints.table-print', [
+            'title'           => $request->input('title', 'چاپ کارمندان مدیریت'),
+            'rows'            => $rows,
+            'selectedColumns' => $request->input('selected_columns', []),
+            'columnLabels'    => $request->input('column_labels', []),
+            'printLabels'     => $request->input('print_labels', []),
+            'locale'          => $request->input('locale', 'fa'),
+        ]);
+    }
 }
