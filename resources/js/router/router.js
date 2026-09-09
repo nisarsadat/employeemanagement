@@ -30,8 +30,18 @@ const Resources = () => import('@/pages/Resources/Resources.vue');
 const ResourcesForm = () => import('../pages/Resources/ResourcesForm.vue');
 const Events = () => import('@/pages/Events/Events.vue');
 const EventsForm = () => import('../pages/Events/EventsForm.vue');
+
 const DeleviryCaptive = () => import('@/pages/DeleviryCaptive/DeleviryCaptive.vue');
 const DeleviryCaptiveForm = () => import('../pages/DeleviryCaptive/DeleviryCaptiveForm.vue');
+
+// ================= MEETINGS =================
+const Meetings = () => import('@/pages/Meetings/Meetings.vue');
+const MeetingForm = () => import('@/pages/Meetings/MeetingForm.vue');
+
+// ================= SECURITY ASSESSMENTS =================
+const SecurityAssessments = () => import('@/pages/SecurityAssessments/SecurityAssessments.vue');
+const SecurityAssessmentForm = () => import('@/pages/SecurityAssessments/SecurityAssessmentForm.vue');
+
 const Informations = () => import('@/pages/Informations/Informations.vue');
 const InformationsForm = () => import('../pages/Informations/InformationsForm.vue');
 const InformationPrintDialog = () => import('../pages/Informations/InformationPrintDialog.vue');
@@ -360,6 +370,64 @@ const router = createRouter({
           name: 'EventsEdit',
           component: EventsForm,
           props: true,
+        },
+        // ================= MEETINGS =================
+        {
+          path: 'meetings',
+          name: 'meetings',
+          component: Meetings,
+          meta: {
+            requiresAuth: true,
+            perm: permFor('meetings'),
+          },
+        },
+        {
+          path: 'meetings/form',
+          name: 'MeetingCreate',
+          component: MeetingForm,
+          meta: {
+            requiresAuth: true,
+            perm: permFor('meetings'),
+          },
+        },
+        {
+          path: 'meetings/form/:id',
+          name: 'MeetingEdit',
+          component: MeetingForm,
+          props: true,
+          meta: {
+            requiresAuth: true,
+            perm: permFor('meetings'),
+          },
+        },
+        // ================= SECURITY ASSESSMENTS =================
+        {
+          path: 'security-assessments',
+          name: 'security-assessments',
+          component: SecurityAssessments,
+          meta: {
+            requiresAuth: true,
+            perm: permFor('securityassessments'),
+          },
+        },
+        {
+          path: 'security-assessments/form',
+          name: 'SecurityAssessmentCreate',
+          component: SecurityAssessmentForm,
+          meta: {
+            requiresAuth: true,
+            perm: permFor('securityassessments'),
+          },
+        },
+        {
+          path: 'security-assessments/form/:id',
+          name: 'SecurityAssessmentEdit',
+          component: SecurityAssessmentForm,
+          props: true,
+          meta: {
+            requiresAuth: true,
+            perm: permFor('securityassessments'),
+          },
         },
         {
           path: 'delevirycaptive',

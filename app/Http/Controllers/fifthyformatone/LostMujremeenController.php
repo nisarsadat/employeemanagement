@@ -14,6 +14,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\LostMujremeenExport;
 
 class LostMujremeenController extends Controller
 {
@@ -692,5 +694,14 @@ private function removePictureFileAndClear($model)
     $lostMujremeen = LostMujremeen::findOrFail($id);
 
     return $this->removePictureFileAndClear($lostMujremeen);
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $fileName = 'lost_mujremeens_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+    return Excel::download(new LostMujremeenExport(['search' => $search, 'search_field' => $searchField, 'search_value' => $searchValue, 'resource_id' => $request->get('resource_id')]), $fileName);
 }
 }

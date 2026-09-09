@@ -13,6 +13,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MasjidExport;
 
 class MasjidController extends Controller
 {
@@ -528,5 +530,14 @@ private function removePictureFileAndClear($model)
     $masjid = Masjid::findOrFail($id);
 
     return $this->removePictureFileAndClear($masjid);
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $fileName = 'masjids_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+    return Excel::download(new MasjidExport(['search' => $search, 'search_field' => $searchField, 'search_value' => $searchValue, 'resource_id' => $request->get('resource_id')]), $fileName);
 }
 }

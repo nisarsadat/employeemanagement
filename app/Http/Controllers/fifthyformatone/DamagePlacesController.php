@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\fifthyformatone;
 
+use App\Exports\DamagePlacesExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\fifthyformatone\StoreDamagePlacesRequest;
 use App\Http\Requests\fifthyformatone\UpdateDamagePlacesRequest;
@@ -12,6 +13,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class DamagePlacesController extends Controller
 {
@@ -553,5 +555,24 @@ public function deletePicture($id)
     $damagePlace = DamagePlaces::findOrFail($id);
 
     return $this->removePictureFileAndClear($damagePlace);
-}  
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $cardFilter = trim((string) $request->get('card_filter', 'all'));
+
+    $fileName = 'damage_places_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+    return Excel::download(
+        new DamagePlacesExport([
+            'search' => $search, 'search_field' => $searchField,
+            'search_value' => $searchValue, 'card_filter' => $cardFilter,
+            'resource_id' => $request->get('resource_id'),
+        ]),
+        $fileName
+    );
+}
 }

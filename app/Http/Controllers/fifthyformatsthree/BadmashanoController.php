@@ -12,6 +12,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\BadmashanoExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BadmashanoController extends Controller
 {
@@ -346,6 +348,28 @@ class BadmashanoController extends Controller
     $badmashano = Badmashano::findOrFail($id);
 
     return $this->removePictureFileAndClear($badmashano);
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $cardFilter = trim((string) $request->get('card_filter', 'all'));
+
+    $fileName = 'badmashanos_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+    return Excel::download(
+        new BadmashanoExport([
+            'search'       => $search,
+            'search_field' => $searchField,
+            'search_value' => $searchValue,
+            'card_filter'  => $cardFilter,
+            'resource_id'         => $request->get('resource_id'),
+            'fifty_six_format_id' => $request->get('fifty_six_format_id'),
+        ]),
+        $fileName
+    );
 }
 private function printSearchFields(): array
 {

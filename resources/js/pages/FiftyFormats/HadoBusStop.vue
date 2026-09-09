@@ -73,6 +73,14 @@
             {{ t('جدید') }}
           </v-btn>
         </v-col>
+
+        <!-- Excel Button -->
+        <v-col cols="12" sm="12" md="4" lg="4">
+          <v-btn color="success" variant="flat" class="text-none" rounded="lg" size="large" block prepend-icon="mdi-microsoft-excel" :loading="excelDownloading" :disabled="excelDownloading" @click="downloadHadoBusStopExcel">
+            {{ t('اکسل') }}
+          </v-btn>
+        </v-col>
+
         <v-col cols="12" sm="10">
           <v-select
             v-model="selectedPrintColumns"
@@ -344,6 +352,20 @@
       @confirm="handleDeleteConfirmed"
     />
 
+    <!-- Excel Download Dialog -->
+    <v-dialog v-model="excelDownloadDialog" max-width="360" persistent>
+      <v-card rounded="xl">
+        <v-card-text class="pa-5">
+          <div class="d-flex align-center justify-space-between mb-3">
+            <div class="text-subtitle-1 font-weight-bold">{{ t('در حال دانلود اکسل...') }}</div>
+            <div class="text-body-2 text-primary font-weight-bold">{{ excelDownloadProgress }}%</div>
+          </div>
+          <v-progress-linear :model-value="excelDownloadProgress" color="success" height="10" rounded striped />
+          <div class="text-caption text-medium-emphasis mt-3">{{ t('لطفاً منتظر بمانید') }}</div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
     <!-- ❗ Error Snackbar -->
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
@@ -380,6 +402,9 @@
   const searchField = ref(null);
   const selectedColumnValue = ref(null);
   const selectedPrintColumns = ref([]);
+  const excelDownloadDialog = ref(false);
+  const excelDownloadProgress = ref(0);
+  const excelDownloading = ref(false);
   /* i18n / RTL */
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -688,6 +713,21 @@
     },
     { deep: true }
   );
+
+  /* =========== HADO BUS STOP EXCEL DOWNLOAD =========== */
+  async function downloadHadoBusStopExcel() {
+    try {
+      excelDownloading.value = true; excelDownloadDialog.value = true; excelDownloadProgress.value = 0;
+      await repo.DownloadHadoBusStopExcel({
+        search: repo.Search || '', search_field: normalizedSearchField.value || null,
+        search_value: normalizedSearchValue.value || null, resource_id: null,
+        onDownloadProgress: (p) => { const t = p.total || 0; const l = p.loaded || 0; excelDownloadProgress.value = t > 0 ? Math.min(100, Math.round((l * 100) / t)) : (excelDownloadProgress.value < 90 ? excelDownloadProgress.value + 5 : excelDownloadProgress.value); },
+      });
+      excelDownloadProgress.value = 100;
+    } catch (e) { console.error('downloadHadoBusStopExcel error', e); showErrorMessage(t('خطا در دانلود اکسل'));
+    } finally { setTimeout(() => { excelDownloadDialog.value = false; excelDownloading.value = false; excelDownloadProgress.value = 0; }, 400); }
+  }
+
   const printLabels = computed(() => ({
     print: t('چاپ'),
     record_count: t('تعداد ریکارد'),

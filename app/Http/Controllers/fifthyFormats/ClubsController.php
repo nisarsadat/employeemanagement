@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\fifthyFormats;
 
+use App\Exports\ClubsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\fifthyFormats\StoreClubsRequest;
 use App\Http\Requests\fifthyFormats\UpdateClubsRequest;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use App\Services\NotificationService; // 🔔 notifications
+use Maatwebsite\Excel\Facades\Excel;
 
 class ClubsController extends Controller
 {
@@ -467,5 +469,27 @@ public function deletePicture($id)
     $club = Clubs::findOrFail($id);
 
     return $this->removePictureFileAndClear($club);
-}  
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $cardFilter = trim((string) $request->get('card_filter', 'all'));
+
+    $fileName = 'clubs_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+    return Excel::download(
+        new ClubsExport([
+            'search'       => $search,
+            'search_field' => $searchField,
+            'search_value' => $searchValue,
+            'card_filter'  => $cardFilter,
+            'resource_id'  => $request->get('resource_id'),
+        ]),
+        $fileName
+    );
+}
+
 }

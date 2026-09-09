@@ -1,8 +1,428 @@
 {
-  "_pdfmake-D2zSfgve.js": {
-    "file": "assets/pdfmake-D2zSfgve.js",
-    "name": "pdfmake",
-    "isDynamicEntry": true,
+  "_AppBar-C6sKSCad.css": {
+    "file": "assets/AppBar-C6sKSCad.css",
+    "src": "_AppBar-C6sKSCad.css"
+  },
+  "_AppBar-CPPzsFuR.js": {
+    "file": "assets/AppBar-CPPzsFuR.js",
+    "name": "AppBar",
+    "imports": [
+      "resources/js/app.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/AppBar-C6sKSCad.css"
+    ]
+  },
+  "_BadmashanoRepository-C80md4x9.js": {
+    "file": "assets/BadmashanoRepository-C80md4x9.js",
+    "name": "BadmashanoRepository",
+    "imports": [
+      "resources/js/app.js",
+      "_usePageRefresh-EVB4Pxgo.js"
+    ]
+  },
+  "_DatabaseRepository-2Nzkn7ZE.js": {
+    "file": "assets/DatabaseRepository-2Nzkn7ZE.js",
+    "name": "DatabaseRepository",
+    "imports": [
+      "resources/js/app.js",
+      "_usePageRefresh-EVB4Pxgo.js"
+    ]
+  },
+  "_DateInput-DaeNofuf.css": {
+    "file": "assets/DateInput-DaeNofuf.css",
+    "src": "_DateInput-DaeNofuf.css"
+  },
+  "_DateInput-V0GAcCJy.js": {
+    "file": "assets/DateInput-V0GAcCJy.js",
+    "name": "DateInput",
+    "imports": [
+      "resources/js/app.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/DateInput-DaeNofuf.css"
+    ]
+  },
+  "_DeleteConfirmDialog-13FrnXKp.css": {
+    "file": "assets/DeleteConfirmDialog-13FrnXKp.css",
+    "src": "_DeleteConfirmDialog-13FrnXKp.css"
+  },
+  "_DeleteConfirmDialog-jpBrmegC.js": {
+    "file": "assets/DeleteConfirmDialog-jpBrmegC.js",
+    "name": "DeleteConfirmDialog",
+    "imports": [
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/DeleteConfirmDialog-13FrnXKp.css"
+    ]
+  },
+  "_EventTypeSpecificTypePicker-B__SmgiF.js": {
+    "file": "assets/EventTypeSpecificTypePicker-B__SmgiF.js",
+    "name": "EventTypeSpecificTypePicker",
+    "imports": [
+      "_LookupsRepository-Ckrky1EN.js",
+      "resources/js/app.js"
+    ]
+  },
+  "_FasadRepository-DM8YwSEQ.js": {
+    "file": "assets/FasadRepository-DM8YwSEQ.js",
+    "name": "FasadRepository",
+    "imports": [
+      "resources/js/app.js",
+      "_usePageRefresh-EVB4Pxgo.js"
+    ]
+  },
+  "_FinanceRepository-Ct1Sv8XK.js": {
+    "file": "assets/FinanceRepository-Ct1Sv8XK.js",
+    "name": "FinanceRepository",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_FinancesFormDialog-DoCbFyzG.js": {
+    "file": "assets/FinancesFormDialog-DoCbFyzG.js",
+    "name": "FinancesFormDialog",
+    "imports": [
+      "resources/js/app.js",
+      "_FinanceRepository-Ct1Sv8XK.js",
+      "_DateInput-V0GAcCJy.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js"
+    ],
+    "css": [
+      "assets/FinancesFormDialog-oPgS0zeN.css"
+    ]
+  },
+  "_FinancesFormDialog-oPgS0zeN.css": {
+    "file": "assets/FinancesFormDialog-oPgS0zeN.css",
+    "src": "_FinancesFormDialog-oPgS0zeN.css"
+  },
+  "_FlyToMapButton-R7guZmQS.js": {
+    "file": "assets/FlyToMapButton-R7guZmQS.js",
+    "name": "FlyToMapButton",
+    "imports": [
+      "resources/js/app.js",
+      "_MapBusStore-B383Jtrk.js"
+    ]
+  },
+  "_FormatZoneAutocomplete-Dx4-gyzQ.js": {
+    "file": "assets/FormatZoneAutocomplete-Dx4-gyzQ.js",
+    "name": "FormatZoneAutocomplete",
+    "imports": [
+      "_LookupsRepository-Ckrky1EN.js",
+      "resources/js/app.js"
+    ]
+  },
+  "_FoulReportsRepository-C7G21gFW.js": {
+    "file": "assets/FoulReportsRepository-C7G21gFW.js",
+    "name": "FoulReportsRepository",
+    "imports": [
+      "resources/js/app.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ]
+  },
+  "_GlobalPagination-BGpMXK1T.js": {
+    "file": "assets/GlobalPagination-BGpMXK1T.js",
+    "name": "GlobalPagination",
+    "imports": [
+      "resources/js/app.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/GlobalPagination-DDEo5MfN.css"
+    ]
+  },
+  "_GlobalPagination-DDEo5MfN.css": {
+    "file": "assets/GlobalPagination-DDEo5MfN.css",
+    "src": "_GlobalPagination-DDEo5MfN.css"
+  },
+  "_InformationCategorySelect-EIqXmdxW.js": {
+    "file": "assets/InformationCategorySelect-EIqXmdxW.js",
+    "name": "InformationCategorySelect",
+    "imports": [
+      "_LookupsRepository-Ckrky1EN.js",
+      "resources/js/app.js"
+    ]
+  },
+  "_JawasiRepository-DOTJEaok.js": {
+    "file": "assets/JawasiRepository-DOTJEaok.js",
+    "name": "JawasiRepository",
+    "imports": [
+      "resources/js/app.js",
+      "_usePageRefresh-EVB4Pxgo.js"
+    ]
+  },
+  "_KhayratReportRepository-C8Wc0_uz.js": {
+    "file": "assets/KhayratReportRepository-C8Wc0_uz.js",
+    "name": "KhayratReportRepository",
+    "imports": [
+      "resources/js/app.js",
+      "_usePageRefresh-EVB4Pxgo.js"
+    ]
+  },
+  "_LetryFormatSelect-BzF4I4_2.js": {
+    "file": "assets/LetryFormatSelect-BzF4I4_2.js",
+    "name": "LetryFormatSelect",
+    "imports": [
+      "_LookupsRepository-Ckrky1EN.js",
+      "resources/js/app.js"
+    ]
+  },
+  "_LoginRepository-wB1O9RbZ.js": {
+    "file": "assets/LoginRepository-wB1O9RbZ.js",
+    "name": "LoginRepository",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_LookupRepository-DgT0JEiN.js": {
+    "file": "assets/LookupRepository-DgT0JEiN.js",
+    "name": "LookupRepository",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_LookupsRepository-Ckrky1EN.js": {
+    "file": "assets/LookupsRepository-Ckrky1EN.js",
+    "name": "LookupsRepository",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_MapBusStore-B383Jtrk.js": {
+    "file": "assets/MapBusStore-B383Jtrk.js",
+    "name": "MapBusStore",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_MawadRepository-ByCAtR7C.js": {
+    "file": "assets/MawadRepository-ByCAtR7C.js",
+    "name": "MawadRepository",
+    "imports": [
+      "resources/js/app.js",
+      "_usePageRefresh-EVB4Pxgo.js"
+    ]
+  },
+  "_OfficeEmployeeActivityRepository-CUMlcMNy.js": {
+    "file": "assets/OfficeEmployeeActivityRepository-CUMlcMNy.js",
+    "name": "OfficeEmployeeActivityRepository",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_OilRepository-C8Rma1wI.js": {
+    "file": "assets/OilRepository-C8Rma1wI.js",
+    "name": "OilRepository",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_OrganSelect-L8fcjnBc.js": {
+    "file": "assets/OrganSelect-L8fcjnBc.js",
+    "name": "OrganSelect",
+    "imports": [
+      "_LookupsRepository-Ckrky1EN.js",
+      "resources/js/app.js"
+    ]
+  },
+  "_OutgoingIncomingRepository-ClDer-2h.js": {
+    "file": "assets/OutgoingIncomingRepository-ClDer-2h.js",
+    "name": "OutgoingIncomingRepository",
+    "imports": [
+      "resources/js/app.js",
+      "_usePageRefresh-EVB4Pxgo.js"
+    ]
+  },
+  "_PeekButton-C5YrkApU.css": {
+    "file": "assets/PeekButton-C5YrkApU.css",
+    "src": "_PeekButton-C5YrkApU.css"
+  },
+  "_PeekButton-DDH8bIVU.js": {
+    "file": "assets/PeekButton-DDH8bIVU.js",
+    "name": "PeekButton",
+    "imports": [
+      "resources/js/app.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/PeekButton-C5YrkApU.css"
+    ]
+  },
+  "_PictureCell-Dxifqhg6.css": {
+    "file": "assets/PictureCell-Dxifqhg6.css",
+    "src": "_PictureCell-Dxifqhg6.css"
+  },
+  "_PictureCell-mQb-74-w.js": {
+    "file": "assets/PictureCell-mQb-74-w.js",
+    "name": "PictureCell",
+    "imports": [
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/PictureCell-Dxifqhg6.css"
+    ]
+  },
+  "_PicturePicker-BNaPimyo.js": {
+    "file": "assets/PicturePicker-BNaPimyo.js",
+    "name": "PicturePicker",
+    "imports": [
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/PicturePicker-CuqttLfO.css"
+    ]
+  },
+  "_PicturePicker-CuqttLfO.css": {
+    "file": "assets/PicturePicker-CuqttLfO.css",
+    "src": "_PicturePicker-CuqttLfO.css"
+  },
+  "_ProvinceDistrictRepository-BM4aPJ5k.js": {
+    "file": "assets/ProvinceDistrictRepository-BM4aPJ5k.js",
+    "name": "ProvinceDistrictRepository",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_ProvinceDistrictSelect-MBR_YIFL.js": {
+    "file": "assets/ProvinceDistrictSelect-MBR_YIFL.js",
+    "name": "ProvinceDistrictSelect",
+    "imports": [
+      "_LookupsRepository-Ckrky1EN.js",
+      "resources/js/app.js"
+    ]
+  },
+  "_ReportNoteRepository-BjE_Q7OI.js": {
+    "file": "assets/ReportNoteRepository-BjE_Q7OI.js",
+    "name": "ReportNoteRepository",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_ReportNotesPeriodTable-BN1PYDy6.js": {
+    "file": "assets/ReportNotesPeriodTable-BN1PYDy6.js",
+    "name": "ReportNotesPeriodTable",
+    "imports": [
+      "resources/js/app.js",
+      "_ReportNoteRepository-BjE_Q7OI.js"
+    ],
+    "css": [
+      "assets/ReportNotesPeriodTable-CAIyDbQa.css"
+    ]
+  },
+  "_ReportNotesPeriodTable-CAIyDbQa.css": {
+    "file": "assets/ReportNotesPeriodTable-CAIyDbQa.css",
+    "src": "_ReportNotesPeriodTable-CAIyDbQa.css"
+  },
+  "_ResourceActivityRepository-Byxa5v4w.js": {
+    "file": "assets/ResourceActivityRepository-Byxa5v4w.js",
+    "name": "ResourceActivityRepository",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_ResourceRemoteAutocomplete-80kBQ3wB.js": {
+    "file": "assets/ResourceRemoteAutocomplete-80kBQ3wB.js",
+    "name": "ResourceRemoteAutocomplete",
+    "imports": [
+      "resources/js/app.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ]
+  },
+  "_SchoolRepository-JgHw0nS_.js": {
+    "file": "assets/SchoolRepository-JgHw0nS_.js",
+    "name": "SchoolRepository",
+    "imports": [
+      "resources/js/app.js",
+      "_usePageRefresh-EVB4Pxgo.js"
+    ]
+  },
+  "_SearchColumnFilter-Dg4twSij.js": {
+    "file": "assets/SearchColumnFilter-Dg4twSij.js",
+    "name": "SearchColumnFilter",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_UsersRepository-BRBqTS1C.js": {
+    "file": "assets/UsersRepository-BRBqTS1C.js",
+    "name": "UsersRepository",
+    "imports": [
+      "resources/js/app.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ]
+  },
+  "_WakilanoRepository-DNBiA6w7.js": {
+    "file": "assets/WakilanoRepository-DNBiA6w7.js",
+    "name": "WakilanoRepository",
+    "imports": [
+      "resources/js/app.js",
+      "_usePageRefresh-EVB4Pxgo.js"
+    ]
+  },
+  "_ZoneHawzaRepository-CU6TjQNS.js": {
+    "file": "assets/ZoneHawzaRepository-CU6TjQNS.js",
+    "name": "ZoneHawzaRepository",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_ZoneHawzaSelect-DercjXQO.js": {
+    "file": "assets/ZoneHawzaSelect-DercjXQO.js",
+    "name": "ZoneHawzaSelect",
+    "imports": [
+      "_LookupsRepository-Ckrky1EN.js",
+      "resources/js/app.js"
+    ]
+  },
+  "_eventRepo-xx-2nrdH.js": {
+    "file": "assets/eventRepo-xx-2nrdH.js",
+    "name": "eventRepo",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_moduleIcons-CZl11fXO.js": {
+    "file": "assets/moduleIcons-CZl11fXO.js",
+    "name": "moduleIcons"
+  },
+  "_useCalendar-li7Ce3BY.js": {
+    "file": "assets/useCalendar-li7Ce3BY.js",
+    "name": "useCalendar",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_usePageRefresh-EVB4Pxgo.js": {
+    "file": "assets/usePageRefresh-EVB4Pxgo.js",
+    "name": "usePageRefresh",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_usePermI18n-DDolZc1x.js": {
+    "file": "assets/usePermI18n-DDolZc1x.js",
+    "name": "usePermI18n",
+    "imports": [
+      "resources/js/app.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ]
+  },
+  "_useRelatedRouteFilters-tDpikC44.js": {
+    "file": "assets/useRelatedRouteFilters-tDpikC44.js",
+    "name": "useRelatedRouteFilters",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_useTablePrintExport-DfW-_--y.js": {
+    "file": "assets/useTablePrintExport-DfW-_--y.js",
+    "name": "useTablePrintExport",
     "imports": [
       "resources/js/app.js"
     ]
@@ -120,7 +540,7 @@
     "src": "node_modules/@mdi/font/fonts/materialdesignicons-webfont.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BZ3-cbsa.css",
+    "file": "assets/app-DLzAatfQ.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "names": [
@@ -128,15 +548,196 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-CamF0iUF.js",
+    "file": "assets/app-DRdRyu29.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "dynamicImports": [
-      "_pdfmake-D2zSfgve.js"
+      "resources/js/pages/Settings/InformationCategory/InformationCategoriesIndex.vue",
+      "resources/js/pages/profile/ProfilePage.vue",
+      "resources/js/pages/Login.vue",
+      "resources/js/pages/Home.vue",
+      "resources/js/pages/Dashboard/Dashboard.vue",
+      "resources/js/pages/ActiveInactive/ActiveEmployeesIndex.vue",
+      "resources/js/pages/ActiveInactive/InactiveEmployeesIndex.vue",
+      "resources/js/pages/User/User.vue",
+      "resources/js/pages/OfficeEmployee/OfficeEmployeesPage.vue",
+      "resources/js/pages/OfficeEmployee/OfficeEmployeeForm.vue",
+      "resources/js/pages/Resources/Resources.vue",
+      "resources/js/pages/Resources/ResourcesForm.vue",
+      "resources/js/pages/Events/Events.vue",
+      "resources/js/pages/Events/EventsForm.vue",
+      "resources/js/pages/DeleviryCaptive/DeleviryCaptive.vue",
+      "resources/js/pages/DeleviryCaptive/DeleviryCaptiveForm.vue",
+      "resources/js/pages/Informations/Informations.vue",
+      "resources/js/pages/Informations/InformationsForm.vue",
+      "resources/js/pages/Informations/InformationPrintDialog.vue",
+      "resources/js/components/FiftyFormatsRoute.vue",
+      "resources/js/pages/FiftyFormats/Fasads.vue",
+      "resources/js/pages/FiftyFormats/SaeenFasad.vue",
+      "resources/js/pages/FiftyFormats/Heist.vue",
+      "resources/js/pages/FiftyFormats/Captives.vue",
+      "resources/js/pages/FiftyFormats/Mulkanos.vue",
+      "resources/js/pages/FiftyFormats/EntryExit.vue",
+      "resources/js/pages/FiftyFormats/Sarafyano.vue",
+      "resources/js/pages/FiftyFormats/Clubs.vue",
+      "resources/js/pages/FiftyFormats/Mahajerat.vue",
+      "resources/js/pages/FiftyFormats/Soldiers.vue",
+      "resources/js/pages/FiftyFormats/Mawads.vue",
+      "resources/js/pages/FiftyFormats/LostMujremens.vue",
+      "resources/js/pages/FiftyFormats/OldSoldiersHomes.vue",
+      "resources/js/pages/FiftyFormats/Robbers.vue",
+      "resources/js/pages/FiftyFormats/NonResponsablePeople.vue",
+      "resources/js/pages/FiftyFormats/MashkokHomes.vue",
+      "resources/js/pages/FiftyFormats/DamagePlacses.vue",
+      "resources/js/pages/FiftyFormats/DamageRasanPlaces.vue",
+      "resources/js/pages/FiftyFormats/MashkokShops.vue",
+      "resources/js/pages/FiftyFormats/Luchakanos.vue",
+      "resources/js/pages/FiftyFormats/Schools.vue",
+      "resources/js/pages/FiftyFormats/HadoBusStop.vue",
+      "resources/js/pages/FiftyFormats/TransportCompany.vue",
+      "resources/js/pages/FiftyFormats/CarSalesCompany.vue",
+      "resources/js/pages/FiftyFormats/Parkings.vue",
+      "resources/js/pages/FiftyFormats/Bank.vue",
+      "resources/js/pages/FiftyFormats/Apartments.vue",
+      "resources/js/pages/FiftyFormats/RahnomaMamlat.vue",
+      "resources/js/pages/FiftyFormats/Hosppital.vue",
+      "resources/js/pages/FiftyFormats/WorkShops.vue",
+      "resources/js/pages/FiftyFormats/Badmashano.vue",
+      "resources/js/pages/FiftyFormats/Sarayanos.vue",
+      "resources/js/pages/FiftyFormats/Hotels.vue",
+      "resources/js/pages/FiftyFormats/Hostels.vue",
+      "resources/js/pages/FiftyFormats/Tujarans.vue",
+      "resources/js/pages/FiftyFormats/Mujahedinos.vue",
+      "resources/js/pages/FiftyFormats/EmaratOffices.vue",
+      "resources/js/pages/FiftyFormats/OldJahadis.vue",
+      "resources/js/pages/FiftyFormats/MashkokPeoples.vue",
+      "resources/js/pages/FiftyFormats/Madrasa.vue",
+      "resources/js/pages/FiftyFormats/Wakilano.vue",
+      "resources/js/pages/FiftyFormats/University.vue",
+      "resources/js/pages/FiftyFormats/Masjid.vue",
+      "resources/js/pages/FiftyFormats/Highway.vue",
+      "resources/js/pages/FiftyFormats/Company.vue",
+      "resources/js/pages/FiftyFormats/DoneLostPlaces.vue",
+      "resources/js/pages/FiftyFormats/EconemyProject.vue",
+      "resources/js/pages/FiftyFormats/CriminalCapturePlace.vue",
+      "resources/js/pages/FiftyFormats/Pump.vue",
+      "resources/js/pages/FiftyFormats/Shora.vue",
+      "resources/js/pages/FiftyFormats/Checkpoint.vue",
+      "resources/js/pages/FiftyFormats/GovernmentPlace.vue",
+      "resources/js/pages/FiftyFormats/Park.vue",
+      "resources/js/pages/FiftyFormats/Complex.vue",
+      "resources/js/pages/FiftyFormats/DeplomaticPlace.vue",
+      "resources/js/pages/FiftyFormats/SuperMarket.vue",
+      "resources/js/pages/Finincal/finincalIndex.vue",
+      "resources/js/pages/Finincal/Accounts/AccountsIndex.vue",
+      "resources/js/pages/Finincal/IncomeOutcome/EventsToFinanceTable.vue",
+      "resources/js/pages/Finincal/IncomeOutcome/InformationsToFinanceTable.vue",
+      "resources/js/pages/Finincal/IncomeOutcome/IncomesIndex.vue",
+      "resources/js/pages/Finincal/IncomeOutcome/Finances.vue",
+      "resources/js/pages/Finincal/oil/oilIndex.vue",
+      "resources/js/pages/Finincal/oil/oilIncomeIndex.vue",
+      "resources/js/pages/Finincal/oil/expenseOil.vue",
+      "resources/js/pages/InlineInfo/inlineinfoindex.vue",
+      "resources/js/pages/InlineInfo/ResourceInfo.vue",
+      "resources/js/pages/InlineInfo/Resourcetab.vue",
+      "resources/js/pages/InlineInfo/Eventtab.vue",
+      "resources/js/pages/InlineInfo/khayratreport.vue",
+      "resources/js/pages/Map/MapAfghanistan.vue",
+      "resources/js/pages/rbac/Roles.vue",
+      "resources/js/pages/rbac/RolePermissions.vue",
+      "resources/js/pages/NoAccess.vue",
+      "resources/js/components/NotificationsPage.vue",
+      "resources/js/pages/reports/DailyFoulReport.vue",
+      "resources/js/pages/reports/MonthlyFoulReport.vue",
+      "resources/js/pages/reports/YearlyFoulReport.vue",
+      "resources/js/pages/reports/WeeklyFoulReports.vue",
+      "resources/js/pages/reports/FoulQuarterlyReports.vue",
+      "resources/js/pages/reports/AllTimeFoulReports.vue",
+      "resources/js/pages/reports/ReportNotesIndex.vue",
+      "resources/js/pages/OutgoingIncoming/OutgoingIncomingForm.vue",
+      "resources/js/pages/OutgoingIncoming/OutgoingIncomingIndex.vue",
+      "resources/js/pages/ActiveInactiveResource/ActiveResource.vue",
+      "resources/js/pages/ActiveInactiveResource/InactiveResource.vue",
+      "resources/js/pages/Settings/ProvincesPage.vue",
+      "resources/js/pages/Settings/DistrictsPage.vue",
+      "resources/js/pages/Settings/Zones/ZonesIndex.vue",
+      "resources/js/pages/Settings/Zones/HawzasIndex.vue",
+      "resources/js/pages/Settings/EventType/EventTypes.vue",
+      "resources/js/pages/Settings/EventType/EventSpecificTypes.vue",
+      "resources/js/pages/Settings/JenayeeTypes/JenayeeTypesIndex.vue",
+      "resources/js/pages/Settings/SeyaseeTypes/SeyaseeTypesIndex.vue",
+      "resources/js/pages/Settings/Organs/OrgansIndex.vue",
+      "resources/js/pages/Settings/JobTypes/JobTypesIndex.vue",
+      "resources/js/pages/Settings/ResourceActivityTypes/ResourceActivityTypesIndex.vue",
+      "resources/js/pages/Settings/SystemSettingsIndex.vue",
+      "resources/js/pages/Settings/MawqafJahadis/MawqafJahadisIndex.vue",
+      "resources/js/pages/Settings/FormatZone/FormatZonePage.vue",
+      "resources/js/pages/Settings/DocsType/DocsTypesIndex.vue",
+      "resources/js/pages/Settings/Marja/MarjasIndex.vue",
+      "resources/js/pages/Settings/LetryFormats/LetryFormatsIndex.vue",
+      "resources/js/pages/KHayratReport/KhayratReportsIndex.vue",
+      "resources/js/pages/FiftyFormats/JawasisIndex.vue",
+      "resources/js/pages/FiftyFormats/JawasiForm.vue",
+      "resources/js/pages/FiftyFormats/CaptiveForm.vue",
+      "resources/js/pages/FiftyFormats/HeistForm.vue",
+      "resources/js/pages/FiftyFormats/FasadForm.vue",
+      "resources/js/pages/FiftyFormats/SaeenFasadForm.vue",
+      "resources/js/pages/FiftyFormats/EntryExitForm.vue",
+      "resources/js/pages/FiftyFormats/SarafyanoForm.vue",
+      "resources/js/pages/FiftyFormats/MahajeratForm.vue",
+      "resources/js/pages/FiftyFormats/ClubForm.vue",
+      "resources/js/pages/FiftyFormats/SoldierForm.vue",
+      "resources/js/pages/FiftyFormats/MawadForm.vue",
+      "resources/js/pages/FiftyFormats/MulkanoForm.vue",
+      "resources/js/pages/FiftyFormats/LostMujremeenForm.vue",
+      "resources/js/pages/FiftyFormats/OldSoldiersHomeForm.vue",
+      "resources/js/pages/FiftyFormats/RobberForm.vue",
+      "resources/js/pages/FiftyFormats/NonResponsablePeopleForm.vue",
+      "resources/js/pages/FiftyFormats/MashkokHomeForm.vue",
+      "resources/js/pages/FiftyFormats/DamagePlaceForm.vue",
+      "resources/js/pages/FiftyFormats/DamageRasanPlaceForm.vue",
+      "resources/js/pages/FiftyFormats/MashkokShopForm.vue",
+      "resources/js/pages/FiftyFormats/LuchakanoForm.vue",
+      "resources/js/pages/FiftyFormats/SchoolForm.vue",
+      "resources/js/pages/FiftyFormats/HadaBusStopForm.vue",
+      "resources/js/pages/FiftyFormats/TransportCompanyForm.vue",
+      "resources/js/pages/FiftyFormats/ParkingForm.vue",
+      "resources/js/pages/FiftyFormats/BankForm.vue",
+      "resources/js/pages/FiftyFormats/CarSalesCompanyForm.vue",
+      "resources/js/pages/FiftyFormats/ApartmentForm.vue",
+      "resources/js/pages/FiftyFormats/RahnomaMamlatForm.vue",
+      "resources/js/pages/FiftyFormats/HospitalForm.vue",
+      "resources/js/pages/FiftyFormats/WorkShopForm.vue",
+      "resources/js/pages/FiftyFormats/BadmashanoForm.vue",
+      "resources/js/pages/FiftyFormats/SarayanoForm.vue",
+      "resources/js/pages/FiftyFormats/HostelForm.vue",
+      "resources/js/pages/FiftyFormats/EmaratOfficeForm.vue",
+      "resources/js/pages/FiftyFormats/HotelForm.vue",
+      "resources/js/pages/FiftyFormats/MadrasaForm.vue",
+      "resources/js/pages/FiftyFormats/MashkokPeopleForm.vue",
+      "resources/js/pages/FiftyFormats/MujahedinoForm.vue",
+      "resources/js/pages/FiftyFormats/OldJahadisForm.vue",
+      "resources/js/pages/FiftyFormats/TujaransForm.vue",
+      "resources/js/pages/FiftyFormats/MasjidForm.vue",
+      "resources/js/pages/FiftyFormats/CheckpointForm.vue",
+      "resources/js/pages/FiftyFormats/HighwayForm.vue",
+      "resources/js/pages/FiftyFormats/CompanyForm.vue",
+      "resources/js/pages/FiftyFormats/DoneLostPlaceForm.vue",
+      "resources/js/pages/FiftyFormats/CriminalCapturePlaceForm.vue",
+      "resources/js/pages/FiftyFormats/EconemyProjectForm.vue",
+      "resources/js/pages/FiftyFormats/PumpForm.vue",
+      "resources/js/pages/FiftyFormats/GovernmentPlaceForm.vue",
+      "resources/js/pages/FiftyFormats/SuperMarketForm.vue",
+      "resources/js/pages/FiftyFormats/ShoraForm.vue",
+      "resources/js/pages/FiftyFormats/ParkForm.vue",
+      "resources/js/pages/FiftyFormats/ComplexForm.vue",
+      "resources/js/pages/FiftyFormats/DeplomaticPlaceForm.vue",
+      "resources/js/pages/FiftyFormats/UniversityForm.vue",
+      "resources/js/pages/FiftyFormats/WakilanoForm.vue"
     ],
     "css": [
-      "assets/app-Cvo8wHAN.css"
+      "assets/app-Cu064smF.css"
     ],
     "assets": [
       "assets/materialdesignicons-webfont-CSr8KVlo.eot",
@@ -167,6 +768,4068 @@
       "assets/scheherazade-new-latin-ext-700-normal-CddY41AR.woff",
       "assets/scheherazade-new-latin-700-normal-CPQDEa8M.woff2",
       "assets/scheherazade-new-latin-700-normal-CBC1nKRi.woff"
+    ]
+  },
+  "resources/js/components/FiftyFormatsRoute.vue": {
+    "file": "assets/FiftyFormatsRoute-k1pxkSUS.js",
+    "name": "FiftyFormatsRoute",
+    "src": "resources/js/components/FiftyFormatsRoute.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_AppBar-CPPzsFuR.js",
+      "_moduleIcons-CZl11fXO.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/FiftyFormatsRoute-CEuHVHf0.css"
+    ]
+  },
+  "resources/js/components/NotificationsPage.vue": {
+    "file": "assets/NotificationsPage-R-nW_ofU.js",
+    "name": "NotificationsPage",
+    "src": "resources/js/components/NotificationsPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/NotificationsPage-DAC0T3p8.css"
+    ]
+  },
+  "resources/js/pages/ActiveInactive/ActiveEmployeesIndex.vue": {
+    "file": "assets/ActiveEmployeesIndex-bvBz9Myv.js",
+    "name": "ActiveEmployeesIndex",
+    "src": "resources/js/pages/ActiveInactive/ActiveEmployeesIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_OfficeEmployeeActivityRepository-CUMlcMNy.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_AppBar-CPPzsFuR.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ]
+  },
+  "resources/js/pages/ActiveInactive/InactiveEmployeesIndex.vue": {
+    "file": "assets/InactiveEmployeesIndex-ZWeMAsqA.js",
+    "name": "InactiveEmployeesIndex",
+    "src": "resources/js/pages/ActiveInactive/InactiveEmployeesIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_OfficeEmployeeActivityRepository-CUMlcMNy.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_AppBar-CPPzsFuR.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ]
+  },
+  "resources/js/pages/ActiveInactiveResource/ActiveResource.vue": {
+    "file": "assets/ActiveResource-Ck8oXZYe.js",
+    "name": "ActiveResource",
+    "src": "resources/js/pages/ActiveInactiveResource/ActiveResource.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_ResourceActivityRepository-Byxa5v4w.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/ActiveResource-DWeE1HMz.css"
+    ]
+  },
+  "resources/js/pages/ActiveInactiveResource/InactiveResource.vue": {
+    "file": "assets/InactiveResource-BTdpq4D-.js",
+    "name": "InactiveResource",
+    "src": "resources/js/pages/ActiveInactiveResource/InactiveResource.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_ResourceActivityRepository-Byxa5v4w.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/InactiveResource-pITvZvIc.css"
+    ]
+  },
+  "resources/js/pages/Dashboard/Dashboard.vue": {
+    "file": "assets/Dashboard-ZvJ-BSX_.js",
+    "name": "Dashboard",
+    "src": "resources/js/pages/Dashboard/Dashboard.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_AppBar-CPPzsFuR.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/Dashboard-wyON0RO0.css"
+    ]
+  },
+  "resources/js/pages/DeleviryCaptive/DeleviryCaptive.vue": {
+    "file": "assets/DeleviryCaptive-BaNv-f0c.js",
+    "name": "DeleviryCaptive",
+    "src": "resources/js/pages/DeleviryCaptive/DeleviryCaptive.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/DeleviryCaptive-DRXjNDFr.css"
+    ]
+  },
+  "resources/js/pages/DeleviryCaptive/DeleviryCaptiveForm.vue": {
+    "file": "assets/DeleviryCaptiveForm-ba1uqwtv.js",
+    "name": "DeleviryCaptiveForm",
+    "src": "resources/js/pages/DeleviryCaptive/DeleviryCaptiveForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_DateInput-V0GAcCJy.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_OrganSelect-L8fcjnBc.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/DeleviryCaptiveForm-DqnFwwKP.css"
+    ]
+  },
+  "resources/js/pages/Events/Events.vue": {
+    "file": "assets/Events-C9nbREYx.js",
+    "name": "Events",
+    "src": "resources/js/pages/Events/Events.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_FinanceRepository-Ct1Sv8XK.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Events-OMLDI33M.css"
+    ]
+  },
+  "resources/js/pages/Events/EventsForm.vue": {
+    "file": "assets/EventsForm-ohn_3GwF.js",
+    "name": "EventsForm",
+    "src": "resources/js/pages/Events/EventsForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_EventTypeSpecificTypePicker-B__SmgiF.js",
+      "_AppBar-CPPzsFuR.js",
+      "_DateInput-V0GAcCJy.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_ZoneHawzaSelect-DercjXQO.js",
+      "_FinanceRepository-Ct1Sv8XK.js",
+      "_OrganSelect-L8fcjnBc.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/EventsForm-CpB6nkRl.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/ApartmentForm.vue": {
+    "file": "assets/ApartmentForm-C803b6Gp.js",
+    "name": "ApartmentForm",
+    "src": "resources/js/pages/FiftyFormats/ApartmentForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/ApartmentForm-yfyGch26.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Apartments.vue": {
+    "file": "assets/Apartments-18LiNUL7.js",
+    "name": "Apartments",
+    "src": "resources/js/pages/FiftyFormats/Apartments.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_PictureCell-mQb-74-w.js",
+      "_AppBar-CPPzsFuR.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Apartments-Dys3ZDzy.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Badmashano.vue": {
+    "file": "assets/Badmashano-BnnjWdkK.js",
+    "name": "Badmashano",
+    "src": "resources/js/pages/FiftyFormats/Badmashano.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_PictureCell-mQb-74-w.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Badmashano-BDsAU7au.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/BadmashanoForm.vue": {
+    "file": "assets/BadmashanoForm-CJ0NiMKZ.js",
+    "name": "BadmashanoForm",
+    "src": "resources/js/pages/FiftyFormats/BadmashanoForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/BadmashanoForm-BGWunsRG.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Bank.vue": {
+    "file": "assets/Bank-BAhjFPv7.js",
+    "name": "Bank",
+    "src": "resources/js/pages/FiftyFormats/Bank.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_PictureCell-mQb-74-w.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Bank-B5k0-wLN.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/BankForm.vue": {
+    "file": "assets/BankForm-Bct9dA2I.js",
+    "name": "BankForm",
+    "src": "resources/js/pages/FiftyFormats/BankForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/BankForm-dmk5hM5P.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/CaptiveForm.vue": {
+    "file": "assets/CaptiveForm-B-EQx0lP.js",
+    "name": "CaptiveForm",
+    "src": "resources/js/pages/FiftyFormats/CaptiveForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/CaptiveForm-Bx8hLzm4.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Captives.vue": {
+    "file": "assets/Captives-BvToHua5.js",
+    "name": "Captives",
+    "src": "resources/js/pages/FiftyFormats/Captives.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Captives-DdJms6Ue.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/CarSalesCompany.vue": {
+    "file": "assets/CarSalesCompany-BCkrZi_I.js",
+    "name": "CarSalesCompany",
+    "src": "resources/js/pages/FiftyFormats/CarSalesCompany.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_PictureCell-mQb-74-w.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/CarSalesCompany-ga6c-uj_.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/CarSalesCompanyForm.vue": {
+    "file": "assets/CarSalesCompanyForm-BVrI9xcG.js",
+    "name": "CarSalesCompanyForm",
+    "src": "resources/js/pages/FiftyFormats/CarSalesCompanyForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/CarSalesCompanyForm-QYwr3BFJ.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Checkpoint.vue": {
+    "file": "assets/Checkpoint-CJFYGwYe.js",
+    "name": "Checkpoint",
+    "src": "resources/js/pages/FiftyFormats/Checkpoint.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_PictureCell-mQb-74-w.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Checkpoint-CtRqu00v.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/CheckpointForm.vue": {
+    "file": "assets/CheckpointForm-CPFv_FC3.js",
+    "name": "CheckpointForm",
+    "src": "resources/js/pages/FiftyFormats/CheckpointForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/CheckpointForm-Ch0meNwm.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/ClubForm.vue": {
+    "file": "assets/ClubForm-DSmbPk5G.js",
+    "name": "ClubForm",
+    "src": "resources/js/pages/FiftyFormats/ClubForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/ClubForm-CT8d7jMd.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Clubs.vue": {
+    "file": "assets/Clubs-CdJMTJGR.js",
+    "name": "Clubs",
+    "src": "resources/js/pages/FiftyFormats/Clubs.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Clubs-TWKQL4E2.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Company.vue": {
+    "file": "assets/Company-9NTsCptG.js",
+    "name": "Company",
+    "src": "resources/js/pages/FiftyFormats/Company.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Company-Diy4AL4x.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/CompanyForm.vue": {
+    "file": "assets/CompanyForm-C8D7BIuo.js",
+    "name": "CompanyForm",
+    "src": "resources/js/pages/FiftyFormats/CompanyForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/CompanyForm-DkHm7Okk.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Complex.vue": {
+    "file": "assets/Complex-CKRDqJp_.js",
+    "name": "Complex",
+    "src": "resources/js/pages/FiftyFormats/Complex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_PictureCell-mQb-74-w.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Complex-BOA1G11W.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/ComplexForm.vue": {
+    "file": "assets/ComplexForm-Dw-bDKLr.js",
+    "name": "ComplexForm",
+    "src": "resources/js/pages/FiftyFormats/ComplexForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/ComplexForm-B91KJ-Hi.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/CriminalCapturePlace.vue": {
+    "file": "assets/CriminalCapturePlace-CuszU9aK.js",
+    "name": "CriminalCapturePlace",
+    "src": "resources/js/pages/FiftyFormats/CriminalCapturePlace.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_PictureCell-mQb-74-w.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/CriminalCapturePlace-CMWZZd1r.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/CriminalCapturePlaceForm.vue": {
+    "file": "assets/CriminalCapturePlaceForm-DSBkD1aZ.js",
+    "name": "CriminalCapturePlaceForm",
+    "src": "resources/js/pages/FiftyFormats/CriminalCapturePlaceForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/CriminalCapturePlaceForm-ByOPyfMa.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/DamagePlaceForm.vue": {
+    "file": "assets/DamagePlaceForm-OfBZy9Ch.js",
+    "name": "DamagePlaceForm",
+    "src": "resources/js/pages/FiftyFormats/DamagePlaceForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/DamagePlaceForm-DFdfqH0q.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/DamagePlacses.vue": {
+    "file": "assets/DamagePlacses-DE7f6Ahy.js",
+    "name": "DamagePlacses",
+    "src": "resources/js/pages/FiftyFormats/DamagePlacses.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_PictureCell-mQb-74-w.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/DamagePlacses-D9PGS9P9.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/DamageRasanPlaceForm.vue": {
+    "file": "assets/DamageRasanPlaceForm-DFgBzndz.js",
+    "name": "DamageRasanPlaceForm",
+    "src": "resources/js/pages/FiftyFormats/DamageRasanPlaceForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/DamageRasanPlaceForm-B9RrXBal.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/DamageRasanPlaces.vue": {
+    "file": "assets/DamageRasanPlaces-m8B-PBw2.js",
+    "name": "DamageRasanPlaces",
+    "src": "resources/js/pages/FiftyFormats/DamageRasanPlaces.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_PictureCell-mQb-74-w.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/DamageRasanPlaces-BV394R3s.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/DeplomaticPlace.vue": {
+    "file": "assets/DeplomaticPlace-D2PagHxS.js",
+    "name": "DeplomaticPlace",
+    "src": "resources/js/pages/FiftyFormats/DeplomaticPlace.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_PictureCell-mQb-74-w.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/DeplomaticPlace-C3VKWsKM.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/DeplomaticPlaceForm.vue": {
+    "file": "assets/DeplomaticPlaceForm-BRF-_5y9.js",
+    "name": "DeplomaticPlaceForm",
+    "src": "resources/js/pages/FiftyFormats/DeplomaticPlaceForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/DeplomaticPlaceForm-Crm3mmlJ.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/DoneLostPlaceForm.vue": {
+    "file": "assets/DoneLostPlaceForm-DFJCECl5.js",
+    "name": "DoneLostPlaceForm",
+    "src": "resources/js/pages/FiftyFormats/DoneLostPlaceForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/DoneLostPlaceForm-BCc0uR56.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/DoneLostPlaces.vue": {
+    "file": "assets/DoneLostPlaces-2Y1kNjmY.js",
+    "name": "DoneLostPlaces",
+    "src": "resources/js/pages/FiftyFormats/DoneLostPlaces.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/DoneLostPlaces-DP5HzP55.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/EconemyProject.vue": {
+    "file": "assets/EconemyProject-BZUSSsIK.js",
+    "name": "EconemyProject",
+    "src": "resources/js/pages/FiftyFormats/EconemyProject.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/EconemyProject-DsjtFGyV.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/EconemyProjectForm.vue": {
+    "file": "assets/EconemyProjectForm-orbKd2uM.js",
+    "name": "EconemyProjectForm",
+    "src": "resources/js/pages/FiftyFormats/EconemyProjectForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/EconemyProjectForm-DdPmCAoD.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/EmaratOfficeForm.vue": {
+    "file": "assets/EmaratOfficeForm-QbvgKdny.js",
+    "name": "EmaratOfficeForm",
+    "src": "resources/js/pages/FiftyFormats/EmaratOfficeForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/EmaratOfficeForm-DPgNl4Yc.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/EmaratOffices.vue": {
+    "file": "assets/EmaratOffices-ShDeGbtf.js",
+    "name": "EmaratOffices",
+    "src": "resources/js/pages/FiftyFormats/EmaratOffices.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/EmaratOffices-BRHRmYzo.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/EntryExit.vue": {
+    "file": "assets/EntryExit-DqfYFyZy.js",
+    "name": "EntryExit",
+    "src": "resources/js/pages/FiftyFormats/EntryExit.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/EntryExit-C9lPSqKz.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/EntryExitForm.vue": {
+    "file": "assets/EntryExitForm-BIRLzRAb.js",
+    "name": "EntryExitForm",
+    "src": "resources/js/pages/FiftyFormats/EntryExitForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/EntryExitForm-Cxn4p5tA.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/FasadForm.vue": {
+    "file": "assets/FasadForm-RX0XHqd-.js",
+    "name": "FasadForm",
+    "src": "resources/js/pages/FiftyFormats/FasadForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/FasadForm-CPvcLK7K.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Fasads.vue": {
+    "file": "assets/Fasads-B2PpiSJK.js",
+    "name": "Fasads",
+    "src": "resources/js/pages/FiftyFormats/Fasads.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Fasads-nB2iRZp-.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/GovernmentPlace.vue": {
+    "file": "assets/GovernmentPlace-N1yYBVol.js",
+    "name": "GovernmentPlace",
+    "src": "resources/js/pages/FiftyFormats/GovernmentPlace.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/GovernmentPlace-Cdg1o9Ls.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/GovernmentPlaceForm.vue": {
+    "file": "assets/GovernmentPlaceForm-BavbmQHR.js",
+    "name": "GovernmentPlaceForm",
+    "src": "resources/js/pages/FiftyFormats/GovernmentPlaceForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/GovernmentPlaceForm-DNVQIF_Y.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/HadaBusStopForm.vue": {
+    "file": "assets/HadaBusStopForm-CC4NuYN9.js",
+    "name": "HadaBusStopForm",
+    "src": "resources/js/pages/FiftyFormats/HadaBusStopForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/HadaBusStopForm-nXLsY-Aq.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/HadoBusStop.vue": {
+    "file": "assets/HadoBusStop-B3r4Y8mg.js",
+    "name": "HadoBusStop",
+    "src": "resources/js/pages/FiftyFormats/HadoBusStop.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/HadoBusStop-DfxrgvS2.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Heist.vue": {
+    "file": "assets/Heist-DdH-EMnq.js",
+    "name": "Heist",
+    "src": "resources/js/pages/FiftyFormats/Heist.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Heist-C7-1aYg-.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/HeistForm.vue": {
+    "file": "assets/HeistForm-Bk29AZ7r.js",
+    "name": "HeistForm",
+    "src": "resources/js/pages/FiftyFormats/HeistForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/HeistForm-T0So5umv.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Highway.vue": {
+    "file": "assets/Highway-CzLznMgu.js",
+    "name": "Highway",
+    "src": "resources/js/pages/FiftyFormats/Highway.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_PictureCell-mQb-74-w.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Highway-Czy-DGC_.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/HighwayForm.vue": {
+    "file": "assets/HighwayForm-D5odwbto.js",
+    "name": "HighwayForm",
+    "src": "resources/js/pages/FiftyFormats/HighwayForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/HighwayForm-rkqgKwll.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/HospitalForm.vue": {
+    "file": "assets/HospitalForm-ByjWqcpi.js",
+    "name": "HospitalForm",
+    "src": "resources/js/pages/FiftyFormats/HospitalForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/HospitalForm-BFvoN4LC.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Hosppital.vue": {
+    "file": "assets/Hosppital-rXt7lbEp.js",
+    "name": "Hosppital",
+    "src": "resources/js/pages/FiftyFormats/Hosppital.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_PictureCell-mQb-74-w.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Hosppital-CLJdBHWF.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/HostelForm.vue": {
+    "file": "assets/HostelForm-DFEYKa6_.js",
+    "name": "HostelForm",
+    "src": "resources/js/pages/FiftyFormats/HostelForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/HostelForm-_SuC86UH.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Hostels.vue": {
+    "file": "assets/Hostels-vlHpmXvI.js",
+    "name": "Hostels",
+    "src": "resources/js/pages/FiftyFormats/Hostels.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_PictureCell-mQb-74-w.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Hostels-QmkwfiKs.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/HotelForm.vue": {
+    "file": "assets/HotelForm-OGT32zeQ.js",
+    "name": "HotelForm",
+    "src": "resources/js/pages/FiftyFormats/HotelForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/HotelForm-DWYV68iY.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Hotels.vue": {
+    "file": "assets/Hotels-kxoT2VLw.js",
+    "name": "Hotels",
+    "src": "resources/js/pages/FiftyFormats/Hotels.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Hotels-BZOBwfYH.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/JawasiForm.vue": {
+    "file": "assets/JawasiForm-B3SDw8If.js",
+    "name": "JawasiForm",
+    "src": "resources/js/pages/FiftyFormats/JawasiForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_JawasiRepository-DOTJEaok.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/JawasiForm-Cyjsgyz4.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/JawasisIndex.vue": {
+    "file": "assets/JawasisIndex-D2KnxFGk.js",
+    "name": "JawasisIndex",
+    "src": "resources/js/pages/FiftyFormats/JawasisIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_JawasiRepository-DOTJEaok.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/JawasisIndex--Hw-PwPi.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/LostMujremeenForm.vue": {
+    "file": "assets/LostMujremeenForm-BGbrmoKH.js",
+    "name": "LostMujremeenForm",
+    "src": "resources/js/pages/FiftyFormats/LostMujremeenForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/LostMujremeenForm-LFL0TZEZ.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/LostMujremens.vue": {
+    "file": "assets/LostMujremens-DF7jZGKJ.js",
+    "name": "LostMujremens",
+    "src": "resources/js/pages/FiftyFormats/LostMujremens.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/LostMujremens-B8QZpWkg.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/LuchakanoForm.vue": {
+    "file": "assets/LuchakanoForm-_4Ss9FVA.js",
+    "name": "LuchakanoForm",
+    "src": "resources/js/pages/FiftyFormats/LuchakanoForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/LuchakanoForm-DkjSkOY2.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Luchakanos.vue": {
+    "file": "assets/Luchakanos-CfC76huX.js",
+    "name": "Luchakanos",
+    "src": "resources/js/pages/FiftyFormats/Luchakanos.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Luchakanos-Unc7uVPn.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Madrasa.vue": {
+    "file": "assets/Madrasa-4zfUrmp_.js",
+    "name": "Madrasa",
+    "src": "resources/js/pages/FiftyFormats/Madrasa.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Madrasa-B7Ab3ztC.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/MadrasaForm.vue": {
+    "file": "assets/MadrasaForm-ChrqRzDP.js",
+    "name": "MadrasaForm",
+    "src": "resources/js/pages/FiftyFormats/MadrasaForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/MadrasaForm-B0fpOxYJ.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Mahajerat.vue": {
+    "file": "assets/Mahajerat-DdhYIFfi.js",
+    "name": "Mahajerat",
+    "src": "resources/js/pages/FiftyFormats/Mahajerat.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Mahajerat-tHZYeuiZ.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/MahajeratForm.vue": {
+    "file": "assets/MahajeratForm-2kbWX9LV.js",
+    "name": "MahajeratForm",
+    "src": "resources/js/pages/FiftyFormats/MahajeratForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/MahajeratForm-21Y_UW3X.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/MashkokHomeForm.vue": {
+    "file": "assets/MashkokHomeForm-BJlnLF4o.js",
+    "name": "MashkokHomeForm",
+    "src": "resources/js/pages/FiftyFormats/MashkokHomeForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/MashkokHomeForm-CPwC-XOI.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/MashkokHomes.vue": {
+    "file": "assets/MashkokHomes-CyyMIUSw.js",
+    "name": "MashkokHomes",
+    "src": "resources/js/pages/FiftyFormats/MashkokHomes.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_PictureCell-mQb-74-w.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/MashkokHomes-CW6Yqn2Z.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/MashkokPeopleForm.vue": {
+    "file": "assets/MashkokPeopleForm-B74iHEBv.js",
+    "name": "MashkokPeopleForm",
+    "src": "resources/js/pages/FiftyFormats/MashkokPeopleForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/MashkokPeopleForm-xqb6dXpT.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/MashkokPeoples.vue": {
+    "file": "assets/MashkokPeoples-Bdor-f6W.js",
+    "name": "MashkokPeoples",
+    "src": "resources/js/pages/FiftyFormats/MashkokPeoples.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/MashkokPeoples-D56gHE13.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/MashkokShopForm.vue": {
+    "file": "assets/MashkokShopForm-6rx_eTR6.js",
+    "name": "MashkokShopForm",
+    "src": "resources/js/pages/FiftyFormats/MashkokShopForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/MashkokShopForm-BpkU6F41.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/MashkokShops.vue": {
+    "file": "assets/MashkokShops-CqOQG9qD.js",
+    "name": "MashkokShops",
+    "src": "resources/js/pages/FiftyFormats/MashkokShops.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/MashkokShops-C5wfD5WE.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Masjid.vue": {
+    "file": "assets/Masjid-r7HHlFsr.js",
+    "name": "Masjid",
+    "src": "resources/js/pages/FiftyFormats/Masjid.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Masjid-D4zQNI8N.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/MasjidForm.vue": {
+    "file": "assets/MasjidForm-BTUjsqFU.js",
+    "name": "MasjidForm",
+    "src": "resources/js/pages/FiftyFormats/MasjidForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/MasjidForm-C_KgunJ4.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/MawadForm.vue": {
+    "file": "assets/MawadForm-DxyJfWUA.js",
+    "name": "MawadForm",
+    "src": "resources/js/pages/FiftyFormats/MawadForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/MawadForm-CfNOEY4k.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Mawads.vue": {
+    "file": "assets/Mawads-Cr_3vTY4.js",
+    "name": "Mawads",
+    "src": "resources/js/pages/FiftyFormats/Mawads.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Mawads-BbUG1d-1.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/MujahedinoForm.vue": {
+    "file": "assets/MujahedinoForm-Ct6NBmgL.js",
+    "name": "MujahedinoForm",
+    "src": "resources/js/pages/FiftyFormats/MujahedinoForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/MujahedinoForm-MjIvHvW2.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Mujahedinos.vue": {
+    "file": "assets/Mujahedinos-B31u1ASF.js",
+    "name": "Mujahedinos",
+    "src": "resources/js/pages/FiftyFormats/Mujahedinos.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Mujahedinos-B_eVCubH.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/MulkanoForm.vue": {
+    "file": "assets/MulkanoForm-MLKQp6_b.js",
+    "name": "MulkanoForm",
+    "src": "resources/js/pages/FiftyFormats/MulkanoForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ZoneHawzaSelect-DercjXQO.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/MulkanoForm-DdL8xn0V.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Mulkanos.vue": {
+    "file": "assets/Mulkanos-B1kMV23X.js",
+    "name": "Mulkanos",
+    "src": "resources/js/pages/FiftyFormats/Mulkanos.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Mulkanos-DY20-0f5.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/NonResponsablePeople.vue": {
+    "file": "assets/NonResponsablePeople-DNvJcCCD.js",
+    "name": "NonResponsablePeople",
+    "src": "resources/js/pages/FiftyFormats/NonResponsablePeople.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/NonResponsablePeople-BaLz_rz6.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/NonResponsablePeopleForm.vue": {
+    "file": "assets/NonResponsablePeopleForm-DkgSZ1M2.js",
+    "name": "NonResponsablePeopleForm",
+    "src": "resources/js/pages/FiftyFormats/NonResponsablePeopleForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/NonResponsablePeopleForm-o15StHBc.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/OldJahadis.vue": {
+    "file": "assets/OldJahadis-BbxC9BwM.js",
+    "name": "OldJahadis",
+    "src": "resources/js/pages/FiftyFormats/OldJahadis.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/OldJahadis-CB9Gl3hx.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/OldJahadisForm.vue": {
+    "file": "assets/OldJahadisForm-B2pqIc_h.js",
+    "name": "OldJahadisForm",
+    "src": "resources/js/pages/FiftyFormats/OldJahadisForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/OldJahadisForm-YyqzL1c5.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/OldSoldiersHomeForm.vue": {
+    "file": "assets/OldSoldiersHomeForm-CqjOSvWs.js",
+    "name": "OldSoldiersHomeForm",
+    "src": "resources/js/pages/FiftyFormats/OldSoldiersHomeForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/OldSoldiersHomeForm-DuyrbrwH.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/OldSoldiersHomes.vue": {
+    "file": "assets/OldSoldiersHomes-C9Rm2319.js",
+    "name": "OldSoldiersHomes",
+    "src": "resources/js/pages/FiftyFormats/OldSoldiersHomes.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/OldSoldiersHomes-6umuUVUO.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Park.vue": {
+    "file": "assets/Park-Jezj9h0g.js",
+    "name": "Park",
+    "src": "resources/js/pages/FiftyFormats/Park.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Park-CZn8Mkix.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/ParkForm.vue": {
+    "file": "assets/ParkForm-CMc2CjSA.js",
+    "name": "ParkForm",
+    "src": "resources/js/pages/FiftyFormats/ParkForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/ParkForm-kkEwQk-l.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/ParkingForm.vue": {
+    "file": "assets/ParkingForm-D7o7anaz.js",
+    "name": "ParkingForm",
+    "src": "resources/js/pages/FiftyFormats/ParkingForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/ParkingForm-DElsMWth.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Parkings.vue": {
+    "file": "assets/Parkings-Cmlfw8wD.js",
+    "name": "Parkings",
+    "src": "resources/js/pages/FiftyFormats/Parkings.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Parkings-BA_HsXyr.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Pump.vue": {
+    "file": "assets/Pump-DcpvyBRK.js",
+    "name": "Pump",
+    "src": "resources/js/pages/FiftyFormats/Pump.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Pump-b1IEgINJ.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/PumpForm.vue": {
+    "file": "assets/PumpForm-DCU8f0Ya.js",
+    "name": "PumpForm",
+    "src": "resources/js/pages/FiftyFormats/PumpForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/PumpForm-B1QgET2z.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/RahnomaMamlat.vue": {
+    "file": "assets/RahnomaMamlat-CswNfqyw.js",
+    "name": "RahnomaMamlat",
+    "src": "resources/js/pages/FiftyFormats/RahnomaMamlat.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/RahnomaMamlat-B8V-i2ji.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/RahnomaMamlatForm.vue": {
+    "file": "assets/RahnomaMamlatForm-D75aN4k8.js",
+    "name": "RahnomaMamlatForm",
+    "src": "resources/js/pages/FiftyFormats/RahnomaMamlatForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/RahnomaMamlatForm-D2ryTOht.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/RobberForm.vue": {
+    "file": "assets/RobberForm-D9WoM6z_.js",
+    "name": "RobberForm",
+    "src": "resources/js/pages/FiftyFormats/RobberForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/RobberForm-DAXB1oYu.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Robbers.vue": {
+    "file": "assets/Robbers-DzLtCj7q.js",
+    "name": "Robbers",
+    "src": "resources/js/pages/FiftyFormats/Robbers.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_MawadRepository-ByCAtR7C.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Robbers-DU8pGKvA.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/SaeenFasad.vue": {
+    "file": "assets/SaeenFasad-mtUsCY42.js",
+    "name": "SaeenFasad",
+    "src": "resources/js/pages/FiftyFormats/SaeenFasad.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/SaeenFasad-BsnAFp_U.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/SaeenFasadForm.vue": {
+    "file": "assets/SaeenFasadForm-BkK5YUu3.js",
+    "name": "SaeenFasadForm",
+    "src": "resources/js/pages/FiftyFormats/SaeenFasadForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/SaeenFasadForm-BYFuc1RH.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Sarafyano.vue": {
+    "file": "assets/Sarafyano-Bs_UUHQI.js",
+    "name": "Sarafyano",
+    "src": "resources/js/pages/FiftyFormats/Sarafyano.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Sarafyano-Dl5PIk7e.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/SarafyanoForm.vue": {
+    "file": "assets/SarafyanoForm-CLxbBHg_.js",
+    "name": "SarafyanoForm",
+    "src": "resources/js/pages/FiftyFormats/SarafyanoForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/SarafyanoForm-BIxuHaTR.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/SarayanoForm.vue": {
+    "file": "assets/SarayanoForm-DuNmHvO_.js",
+    "name": "SarayanoForm",
+    "src": "resources/js/pages/FiftyFormats/SarayanoForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/SarayanoForm-CeGxbTE0.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Sarayanos.vue": {
+    "file": "assets/Sarayanos-DohSj-CJ.js",
+    "name": "Sarayanos",
+    "src": "resources/js/pages/FiftyFormats/Sarayanos.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Sarayanos-Cj2ef0fI.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/SchoolForm.vue": {
+    "file": "assets/SchoolForm-CJOe4fX6.js",
+    "name": "SchoolForm",
+    "src": "resources/js/pages/FiftyFormats/SchoolForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/SchoolForm-BPipVF26.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Schools.vue": {
+    "file": "assets/Schools-B3LaTsEk.js",
+    "name": "Schools",
+    "src": "resources/js/pages/FiftyFormats/Schools.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Schools-DHYqWUDB.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Shora.vue": {
+    "file": "assets/Shora-Dog0UcUA.js",
+    "name": "Shora",
+    "src": "resources/js/pages/FiftyFormats/Shora.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Shora-D6jvILMK.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/ShoraForm.vue": {
+    "file": "assets/ShoraForm-BcW6e-F1.js",
+    "name": "ShoraForm",
+    "src": "resources/js/pages/FiftyFormats/ShoraForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/ShoraForm-UMp_wyI6.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/SoldierForm.vue": {
+    "file": "assets/SoldierForm-DeMNnOk7.js",
+    "name": "SoldierForm",
+    "src": "resources/js/pages/FiftyFormats/SoldierForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/SoldierForm-ByETop6_.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Soldiers.vue": {
+    "file": "assets/Soldiers-BMo3HMX9.js",
+    "name": "Soldiers",
+    "src": "resources/js/pages/FiftyFormats/Soldiers.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_FasadRepository-DM8YwSEQ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Soldiers-DI1xMhb2.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/SuperMarket.vue": {
+    "file": "assets/SuperMarket-aunUF5GY.js",
+    "name": "SuperMarket",
+    "src": "resources/js/pages/FiftyFormats/SuperMarket.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/SuperMarket-CYHiSaFl.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/SuperMarketForm.vue": {
+    "file": "assets/SuperMarketForm-BUQQvDeB.js",
+    "name": "SuperMarketForm",
+    "src": "resources/js/pages/FiftyFormats/SuperMarketForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/SuperMarketForm-B-Jm9ULx.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/TransportCompany.vue": {
+    "file": "assets/TransportCompany-qmnpeGAg.js",
+    "name": "TransportCompany",
+    "src": "resources/js/pages/FiftyFormats/TransportCompany.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/TransportCompany-CEg1sfEA.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/TransportCompanyForm.vue": {
+    "file": "assets/TransportCompanyForm-ShndQI-7.js",
+    "name": "TransportCompanyForm",
+    "src": "resources/js/pages/FiftyFormats/TransportCompanyForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/TransportCompanyForm-DjTn3c2c.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Tujarans.vue": {
+    "file": "assets/Tujarans-vmw66u7q.js",
+    "name": "Tujarans",
+    "src": "resources/js/pages/FiftyFormats/Tujarans.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Tujarans-D6a7DMsy.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/TujaransForm.vue": {
+    "file": "assets/TujaransForm-DQu_HY8B.js",
+    "name": "TujaransForm",
+    "src": "resources/js/pages/FiftyFormats/TujaransForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_BadmashanoRepository-C80md4x9.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/TujaransForm-CGFcBDXE.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/University.vue": {
+    "file": "assets/University-CH2a0lJV.js",
+    "name": "University",
+    "src": "resources/js/pages/FiftyFormats/University.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/University-ejO142ak.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/UniversityForm.vue": {
+    "file": "assets/UniversityForm-6nLzP9UQ.js",
+    "name": "UniversityForm",
+    "src": "resources/js/pages/FiftyFormats/UniversityForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/UniversityForm-DKObr_WF.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/Wakilano.vue": {
+    "file": "assets/Wakilano-BqLhNvXs.js",
+    "name": "Wakilano",
+    "src": "resources/js/pages/FiftyFormats/Wakilano.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Wakilano-75790af4.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/WakilanoForm.vue": {
+    "file": "assets/WakilanoForm-B_6loyjc.js",
+    "name": "WakilanoForm",
+    "src": "resources/js/pages/FiftyFormats/WakilanoForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_WakilanoRepository-DNBiA6w7.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/WakilanoForm-Dmv5NVuy.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/WorkShopForm.vue": {
+    "file": "assets/WorkShopForm-kZ11CLiz.js",
+    "name": "WorkShopForm",
+    "src": "resources/js/pages/FiftyFormats/WorkShopForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_AppBar-CPPzsFuR.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_FormatZoneAutocomplete-Dx4-gyzQ.js",
+      "_PicturePicker-BNaPimyo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/WorkShopForm-DdGSRu7_.css"
+    ]
+  },
+  "resources/js/pages/FiftyFormats/WorkShops.vue": {
+    "file": "assets/WorkShops-BMR5p0rA.js",
+    "name": "WorkShops",
+    "src": "resources/js/pages/FiftyFormats/WorkShops.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_SchoolRepository-JgHw0nS_.js",
+      "_PictureCell-mQb-74-w.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/WorkShops-B6aMXhp-.css"
+    ]
+  },
+  "resources/js/pages/Finincal/Accounts/AccountsIndex.vue": {
+    "file": "assets/AccountsIndex-CZ0ZK-7-.js",
+    "name": "AccountsIndex",
+    "src": "resources/js/pages/Finincal/Accounts/AccountsIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_FinanceRepository-Ct1Sv8XK.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_AppBar-CPPzsFuR.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/AccountsIndex-CM4zEGko.css"
+    ]
+  },
+  "resources/js/pages/Finincal/IncomeOutcome/EventsToFinanceTable.vue": {
+    "file": "assets/EventsToFinanceTable-C7ZP2hZj.js",
+    "name": "EventsToFinanceTable",
+    "src": "resources/js/pages/Finincal/IncomeOutcome/EventsToFinanceTable.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_FinancesFormDialog-DoCbFyzG.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_AppBar-CPPzsFuR.js",
+      "resources/js/app.js",
+      "_FinanceRepository-Ct1Sv8XK.js",
+      "_DateInput-V0GAcCJy.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupRepository-DgT0JEiN.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/EventsToFinanceTable-CiEj65pq.css"
+    ]
+  },
+  "resources/js/pages/Finincal/IncomeOutcome/Finances.vue": {
+    "file": "assets/Finances-DhEZ2Hyd.js",
+    "name": "Finances",
+    "src": "resources/js/pages/Finincal/IncomeOutcome/Finances.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_FinancesFormDialog-DoCbFyzG.js",
+      "_FinanceRepository-Ct1Sv8XK.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_AppBar-CPPzsFuR.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_DateInput-V0GAcCJy.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupRepository-DgT0JEiN.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/Finances-CL5NyJl7.css"
+    ]
+  },
+  "resources/js/pages/Finincal/IncomeOutcome/IncomesIndex.vue": {
+    "file": "assets/IncomesIndex-CkYnwFkk.js",
+    "name": "IncomesIndex",
+    "src": "resources/js/pages/Finincal/IncomeOutcome/IncomesIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_FinanceRepository-Ct1Sv8XK.js",
+      "_DateInput-V0GAcCJy.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_AppBar-CPPzsFuR.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/IncomesIndex-BnXoaXtc.css"
+    ]
+  },
+  "resources/js/pages/Finincal/IncomeOutcome/InformationsToFinanceTable.vue": {
+    "file": "assets/InformationsToFinanceTable-nAsxpn4j.js",
+    "name": "InformationsToFinanceTable",
+    "src": "resources/js/pages/Finincal/IncomeOutcome/InformationsToFinanceTable.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_FinancesFormDialog-DoCbFyzG.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_AppBar-CPPzsFuR.js",
+      "resources/js/app.js",
+      "_FinanceRepository-Ct1Sv8XK.js",
+      "_DateInput-V0GAcCJy.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupRepository-DgT0JEiN.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/InformationsToFinanceTable-CWPDJDac.css"
+    ]
+  },
+  "resources/js/pages/Finincal/finincalIndex.vue": {
+    "file": "assets/finincalIndex-C9rd4xkQ.js",
+    "name": "finincalIndex",
+    "src": "resources/js/pages/Finincal/finincalIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/finincalIndex-BECODZLF.css"
+    ]
+  },
+  "resources/js/pages/Finincal/oil/expenseOil.vue": {
+    "file": "assets/expenseOil-B1cRBeg0.js",
+    "name": "expenseOil",
+    "src": "resources/js/pages/Finincal/oil/expenseOil.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_OilRepository-C8Rma1wI.js",
+      "_DateInput-V0GAcCJy.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_AppBar-CPPzsFuR.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/expenseOil-C0YBQCxm.css"
+    ]
+  },
+  "resources/js/pages/Finincal/oil/oilIncomeIndex.vue": {
+    "file": "assets/oilIncomeIndex-CYnsPACT.js",
+    "name": "oilIncomeIndex",
+    "src": "resources/js/pages/Finincal/oil/oilIncomeIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_OilRepository-C8Rma1wI.js",
+      "_DateInput-V0GAcCJy.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/oilIncomeIndex-BTgW7NSR.css"
+    ]
+  },
+  "resources/js/pages/Finincal/oil/oilIndex.vue": {
+    "file": "assets/oilIndex-BHz0ZSmU.js",
+    "name": "oilIndex",
+    "src": "resources/js/pages/Finincal/oil/oilIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_OilRepository-C8Rma1wI.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_AppBar-CPPzsFuR.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/oilIndex-DcAN0T6p.css"
+    ]
+  },
+  "resources/js/pages/Home.vue": {
+    "file": "assets/Home-C48NhtGE.js",
+    "name": "Home",
+    "src": "resources/js/pages/Home.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_UsersRepository-BRBqTS1C.js"
+    ],
+    "css": [
+      "assets/Home-BxOV6McS.css"
+    ]
+  },
+  "resources/js/pages/Informations/InformationPrintDialog.vue": {
+    "file": "assets/InformationPrintDialog-W3nhVf-F.js",
+    "name": "InformationPrintDialog",
+    "src": "resources/js/pages/Informations/InformationPrintDialog.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/InformationPrintDialog-DP0SumL4.css"
+    ]
+  },
+  "resources/js/pages/Informations/Informations.vue": {
+    "file": "assets/Informations-QnNM5EE2.js",
+    "name": "Informations",
+    "src": "resources/js/pages/Informations/Informations.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_FinanceRepository-Ct1Sv8XK.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Informations-BpwPkrOb.css"
+    ]
+  },
+  "resources/js/pages/Informations/InformationsForm.vue": {
+    "file": "assets/InformationsForm-BK8nOipV.js",
+    "name": "InformationsForm",
+    "src": "resources/js/pages/Informations/InformationsForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_InformationCategorySelect-EIqXmdxW.js",
+      "_LetryFormatSelect-BzF4I4_2.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_OrganSelect-L8fcjnBc.js",
+      "_AppBar-CPPzsFuR.js",
+      "_DateInput-V0GAcCJy.js",
+      "_FinanceRepository-Ct1Sv8XK.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_LookupRepository-DgT0JEiN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/InformationsForm-HQ_Pqx2V.css"
+    ]
+  },
+  "resources/js/pages/InlineInfo/Eventtab.vue": {
+    "file": "assets/Eventtab-B51yfwn-.js",
+    "name": "Eventtab",
+    "src": "resources/js/pages/InlineInfo/Eventtab.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_DateInput-V0GAcCJy.js",
+      "_ZoneHawzaSelect-DercjXQO.js",
+      "_EventTypeSpecificTypePicker-B__SmgiF.js",
+      "_OrganSelect-L8fcjnBc.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/Eventtab-BRpX0K3q.css"
+    ]
+  },
+  "resources/js/pages/InlineInfo/ResourceInfo.vue": {
+    "file": "assets/ResourceInfo-DGQIpRuL.js",
+    "name": "ResourceInfo",
+    "src": "resources/js/pages/InlineInfo/ResourceInfo.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_LookupRepository-DgT0JEiN.js",
+      "_usePageRefresh-EVB4Pxgo.js"
+    ],
+    "css": [
+      "assets/ResourceInfo-bvsnbykf.css"
+    ]
+  },
+  "resources/js/pages/InlineInfo/Resourcetab.vue": {
+    "file": "assets/Resourcetab-BXr1XasW.js",
+    "name": "Resourcetab",
+    "src": "resources/js/pages/InlineInfo/Resourcetab.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_DateInput-V0GAcCJy.js",
+      "_OrganSelect-L8fcjnBc.js",
+      "_InformationCategorySelect-EIqXmdxW.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/Resourcetab-D08QZlYk.css"
+    ]
+  },
+  "resources/js/pages/InlineInfo/inlineinfoindex.vue": {
+    "file": "assets/inlineinfoindex-DsuHagNh.js",
+    "name": "inlineinfoindex",
+    "src": "resources/js/pages/InlineInfo/inlineinfoindex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "resources/js/pages/InlineInfo/Resourcetab.vue",
+      "resources/js/pages/InlineInfo/Eventtab.vue",
+      "resources/js/pages/InlineInfo/ResourceInfo.vue",
+      "resources/js/pages/InlineInfo/khayratreport.vue",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_DateInput-V0GAcCJy.js",
+      "_OrganSelect-L8fcjnBc.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_InformationCategorySelect-EIqXmdxW.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LookupRepository-DgT0JEiN.js",
+      "_ZoneHawzaSelect-DercjXQO.js",
+      "_EventTypeSpecificTypePicker-B__SmgiF.js",
+      "_KhayratReportRepository-C8Wc0_uz.js"
+    ],
+    "css": [
+      "assets/inlineinfoindex-GO9yKRXb.css"
+    ]
+  },
+  "resources/js/pages/InlineInfo/khayratreport.vue": {
+    "file": "assets/khayratreport-B_QBn-CU.js",
+    "name": "khayratreport",
+    "src": "resources/js/pages/InlineInfo/khayratreport.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_DateInput-V0GAcCJy.js",
+      "_ZoneHawzaSelect-DercjXQO.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_KhayratReportRepository-C8Wc0_uz.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/khayratreport-CZQ2QLkV.css"
+    ]
+  },
+  "resources/js/pages/KHayratReport/KhayratReportsIndex.vue": {
+    "file": "assets/KhayratReportsIndex-tPqubbPo.js",
+    "name": "KhayratReportsIndex",
+    "src": "resources/js/pages/KHayratReport/KhayratReportsIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_KhayratReportRepository-C8Wc0_uz.js",
+      "_ZoneHawzaSelect-DercjXQO.js",
+      "_DateInput-V0GAcCJy.js",
+      "_ResourceRemoteAutocomplete-80kBQ3wB.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_LookupRepository-DgT0JEiN.js"
+    ],
+    "css": [
+      "assets/KhayratReportsIndex-caBPsy4h.css"
+    ]
+  },
+  "resources/js/pages/Login.vue": {
+    "file": "assets/Login-DfAaIg9j.js",
+    "name": "Login",
+    "src": "resources/js/pages/Login.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/Login-sxTZBmsi.css"
+    ]
+  },
+  "resources/js/pages/Map/MapAfghanistan.vue": {
+    "file": "assets/MapAfghanistan-TTB87uir.js",
+    "name": "MapAfghanistan",
+    "src": "resources/js/pages/Map/MapAfghanistan.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_moduleIcons-CZl11fXO.js",
+      "_MapBusStore-B383Jtrk.js",
+      "_AppBar-CPPzsFuR.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/MapAfghanistan-DRJ3LG8S.css"
+    ]
+  },
+  "resources/js/pages/NoAccess.vue": {
+    "file": "assets/NoAccess-8II-e6Pq.js",
+    "name": "NoAccess",
+    "src": "resources/js/pages/NoAccess.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/pages/OfficeEmployee/OfficeEmployeeForm.vue": {
+    "file": "assets/OfficeEmployeeForm-8iY97taZ.js",
+    "name": "OfficeEmployeeForm",
+    "src": "resources/js/pages/OfficeEmployee/OfficeEmployeeForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_DateInput-V0GAcCJy.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_ZoneHawzaSelect-DercjXQO.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/OfficeEmployeeForm-xuEbbGSr.css"
+    ]
+  },
+  "resources/js/pages/OfficeEmployee/OfficeEmployeesPage.vue": {
+    "file": "assets/OfficeEmployeesPage-Dw81ESjH.js",
+    "name": "OfficeEmployeesPage",
+    "src": "resources/js/pages/OfficeEmployee/OfficeEmployeesPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_AppBar-CPPzsFuR.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/OfficeEmployeesPage-CyjJgF6O.css"
+    ]
+  },
+  "resources/js/pages/OutgoingIncoming/OutgoingIncomingForm.vue": {
+    "file": "assets/OutgoingIncomingForm-BrLUldFi.js",
+    "name": "OutgoingIncomingForm",
+    "src": "resources/js/pages/OutgoingIncoming/OutgoingIncomingForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_DateInput-V0GAcCJy.js",
+      "_AppBar-CPPzsFuR.js",
+      "_OutgoingIncomingRepository-ClDer-2h.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/OutgoingIncomingForm-C340geKz.css"
+    ]
+  },
+  "resources/js/pages/OutgoingIncoming/OutgoingIncomingIndex.vue": {
+    "file": "assets/OutgoingIncomingIndex-DpM5hvPX.js",
+    "name": "OutgoingIncomingIndex",
+    "src": "resources/js/pages/OutgoingIncoming/OutgoingIncomingIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_OutgoingIncomingRepository-ClDer-2h.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/OutgoingIncomingIndex-BAz9_fRk.css"
+    ]
+  },
+  "resources/js/pages/Resources/Resources.vue": {
+    "file": "assets/Resources-DxEd6eBj.js",
+    "name": "Resources",
+    "src": "resources/js/pages/Resources/Resources.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_PeekButton-DDH8bIVU.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_FlyToMapButton-R7guZmQS.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useRelatedRouteFilters-tDpikC44.js",
+      "_SearchColumnFilter-Dg4twSij.js",
+      "_useTablePrintExport-DfW-_--y.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_MapBusStore-B383Jtrk.js"
+    ],
+    "css": [
+      "assets/Resources-OpnRyJtY.css"
+    ]
+  },
+  "resources/js/pages/Resources/ResourcesForm.vue": {
+    "file": "assets/ResourcesForm-CRCD74Ia.js",
+    "name": "ResourcesForm",
+    "src": "resources/js/pages/Resources/ResourcesForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_LetryFormatSelect-BzF4I4_2.js",
+      "_AppBar-CPPzsFuR.js",
+      "_DateInput-V0GAcCJy.js",
+      "_DatabaseRepository-2Nzkn7ZE.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_ProvinceDistrictSelect-MBR_YIFL.js",
+      "_LookupsRepository-Ckrky1EN.js",
+      "_ZoneHawzaSelect-DercjXQO.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_usePageRefresh-EVB4Pxgo.js"
+    ],
+    "css": [
+      "assets/ResourcesForm-giL2QKck.css"
+    ]
+  },
+  "resources/js/pages/Settings/DistrictsPage.vue": {
+    "file": "assets/DistrictsPage-D-VJSbI4.js",
+    "name": "DistrictsPage",
+    "src": "resources/js/pages/Settings/DistrictsPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_ProvinceDistrictRepository-BM4aPJ5k.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/DistrictsPage-DeQB9nXs.css"
+    ]
+  },
+  "resources/js/pages/Settings/DocsType/DocsTypesIndex.vue": {
+    "file": "assets/DocsTypesIndex-BPXNxbo0.js",
+    "name": "DocsTypesIndex",
+    "src": "resources/js/pages/Settings/DocsType/DocsTypesIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/DocsTypesIndex-uEO826m1.css"
+    ]
+  },
+  "resources/js/pages/Settings/EventType/EventSpecificTypes.vue": {
+    "file": "assets/EventSpecificTypes-YgTweS_6.js",
+    "name": "EventSpecificTypes",
+    "src": "resources/js/pages/Settings/EventType/EventSpecificTypes.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_eventRepo-xx-2nrdH.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/EventSpecificTypes-Dil9rqE4.css"
+    ]
+  },
+  "resources/js/pages/Settings/EventType/EventTypes.vue": {
+    "file": "assets/EventTypes-D7yHpa0D.js",
+    "name": "EventTypes",
+    "src": "resources/js/pages/Settings/EventType/EventTypes.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_eventRepo-xx-2nrdH.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/EventTypes-koBxzNLj.css"
+    ]
+  },
+  "resources/js/pages/Settings/FormatZone/FormatZonePage.vue": {
+    "file": "assets/FormatZonePage-CxD_GW4H.js",
+    "name": "FormatZonePage",
+    "src": "resources/js/pages/Settings/FormatZone/FormatZonePage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/FormatZonePage-3YTfI62r.css"
+    ]
+  },
+  "resources/js/pages/Settings/InformationCategory/InformationCategoriesIndex.vue": {
+    "file": "assets/InformationCategoriesIndex-BWNXYTng.js",
+    "name": "InformationCategoriesIndex",
+    "src": "resources/js/pages/Settings/InformationCategory/InformationCategoriesIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/InformationCategoriesIndex-C0jnOoZf.css"
+    ]
+  },
+  "resources/js/pages/Settings/JenayeeTypes/JenayeeTypesIndex.vue": {
+    "file": "assets/JenayeeTypesIndex-HleYB9bR.js",
+    "name": "JenayeeTypesIndex",
+    "src": "resources/js/pages/Settings/JenayeeTypes/JenayeeTypesIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/JenayeeTypesIndex-B88m6mL8.css"
+    ]
+  },
+  "resources/js/pages/Settings/JobTypes/JobTypesIndex.vue": {
+    "file": "assets/JobTypesIndex-C5qOKtIy.js",
+    "name": "JobTypesIndex",
+    "src": "resources/js/pages/Settings/JobTypes/JobTypesIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/JobTypesIndex-DLMk8C-u.css"
+    ]
+  },
+  "resources/js/pages/Settings/LetryFormats/LetryFormatsIndex.vue": {
+    "file": "assets/LetryFormatsIndex-uIFPouZt.js",
+    "name": "LetryFormatsIndex",
+    "src": "resources/js/pages/Settings/LetryFormats/LetryFormatsIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/LetryFormatsIndex-DOKy7Nh2.css"
+    ]
+  },
+  "resources/js/pages/Settings/Marja/MarjasIndex.vue": {
+    "file": "assets/MarjasIndex-ictZ8tTO.js",
+    "name": "MarjasIndex",
+    "src": "resources/js/pages/Settings/Marja/MarjasIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/MarjasIndex-B7gQfpEl.css"
+    ]
+  },
+  "resources/js/pages/Settings/MawqafJahadis/MawqafJahadisIndex.vue": {
+    "file": "assets/MawqafJahadisIndex-CLZpZ6wS.js",
+    "name": "MawqafJahadisIndex",
+    "src": "resources/js/pages/Settings/MawqafJahadis/MawqafJahadisIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/MawqafJahadisIndex-Byi_Vns4.css"
+    ]
+  },
+  "resources/js/pages/Settings/Organs/OrgansIndex.vue": {
+    "file": "assets/OrgansIndex-CEJRmvap.js",
+    "name": "OrgansIndex",
+    "src": "resources/js/pages/Settings/Organs/OrgansIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/OrgansIndex-DXBbEVmA.css"
+    ]
+  },
+  "resources/js/pages/Settings/ProvincesPage.vue": {
+    "file": "assets/ProvincesPage-Bl2ufIu0.js",
+    "name": "ProvincesPage",
+    "src": "resources/js/pages/Settings/ProvincesPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_ProvinceDistrictRepository-BM4aPJ5k.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/ProvincesPage-ChUedjID.css"
+    ]
+  },
+  "resources/js/pages/Settings/ResourceActivityTypes/ResourceActivityTypesIndex.vue": {
+    "file": "assets/ResourceActivityTypesIndex-BpwcTLpE.js",
+    "name": "ResourceActivityTypesIndex",
+    "src": "resources/js/pages/Settings/ResourceActivityTypes/ResourceActivityTypesIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/ResourceActivityTypesIndex-BGV0H_io.css"
+    ]
+  },
+  "resources/js/pages/Settings/SeyaseeTypes/SeyaseeTypesIndex.vue": {
+    "file": "assets/SeyaseeTypesIndex-CT_jzWVk.js",
+    "name": "SeyaseeTypesIndex",
+    "src": "resources/js/pages/Settings/SeyaseeTypes/SeyaseeTypesIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/SeyaseeTypesIndex-h73N_lYv.css"
+    ]
+  },
+  "resources/js/pages/Settings/SystemSettingsIndex.vue": {
+    "file": "assets/SystemSettingsIndex-CFH9vUdF.js",
+    "name": "SystemSettingsIndex",
+    "src": "resources/js/pages/Settings/SystemSettingsIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/SystemSettingsIndex-CdPHDUnb.css"
+    ]
+  },
+  "resources/js/pages/Settings/Zones/HawzasIndex.vue": {
+    "file": "assets/HawzasIndex-qKVf-sa-.js",
+    "name": "HawzasIndex",
+    "src": "resources/js/pages/Settings/Zones/HawzasIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_ZoneHawzaRepository-CU6TjQNS.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/HawzasIndex-COt8COVM.css"
+    ]
+  },
+  "resources/js/pages/Settings/Zones/ZonesIndex.vue": {
+    "file": "assets/ZonesIndex-CuZBuoKe.js",
+    "name": "ZonesIndex",
+    "src": "resources/js/pages/Settings/Zones/ZonesIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_ZoneHawzaRepository-CU6TjQNS.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/ZonesIndex-DUdSS690.css"
+    ]
+  },
+  "resources/js/pages/User/User.vue": {
+    "file": "assets/User-DkLUKhAE.js",
+    "name": "User",
+    "src": "resources/js/pages/User/User.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_UsersRepository-BRBqTS1C.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_DeleteConfirmDialog-jpBrmegC.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/User-Pcqslvqc.css"
+    ]
+  },
+  "resources/js/pages/profile/ProfilePage.vue": {
+    "file": "assets/ProfilePage-lNJy4nHh.js",
+    "name": "ProfilePage",
+    "src": "resources/js/pages/profile/ProfilePage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/ProfilePage-D1S5wmGA.css"
+    ]
+  },
+  "resources/js/pages/rbac/RolePermissions.vue": {
+    "file": "assets/RolePermissions-D1BGQN0b.js",
+    "name": "RolePermissions",
+    "src": "resources/js/pages/rbac/RolePermissions.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_usePermI18n-DDolZc1x.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/RolePermissions-CNz3V_kG.css"
+    ]
+  },
+  "resources/js/pages/rbac/Roles.vue": {
+    "file": "assets/Roles-CySaKLfN.js",
+    "name": "Roles",
+    "src": "resources/js/pages/rbac/Roles.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_usePermI18n-DDolZc1x.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/Roles-5rYRo1UR.css"
+    ]
+  },
+  "resources/js/pages/reports/AllTimeFoulReports.vue": {
+    "file": "assets/AllTimeFoulReports-Ddp3qnXm.js",
+    "name": "AllTimeFoulReports",
+    "src": "resources/js/pages/reports/AllTimeFoulReports.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/AllTimeFoulReports-DhgrVarj.css"
+    ]
+  },
+  "resources/js/pages/reports/DailyFoulReport.vue": {
+    "file": "assets/DailyFoulReport-CdTzSVGp.js",
+    "name": "DailyFoulReport",
+    "src": "resources/js/pages/reports/DailyFoulReport.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ReportNotesPeriodTable-BN1PYDy6.js",
+      "_AppBar-CPPzsFuR.js",
+      "_DateInput-V0GAcCJy.js",
+      "_FoulReportsRepository-C7G21gFW.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_ReportNoteRepository-BjE_Q7OI.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/DailyFoulReport-BL1gI60A.css"
+    ]
+  },
+  "resources/js/pages/reports/FoulQuarterlyReports.vue": {
+    "file": "assets/FoulQuarterlyReports-C-6FTQMd.js",
+    "name": "FoulQuarterlyReports",
+    "src": "resources/js/pages/reports/FoulQuarterlyReports.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ReportNotesPeriodTable-BN1PYDy6.js",
+      "_AppBar-CPPzsFuR.js",
+      "_DateInput-V0GAcCJy.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_ReportNoteRepository-BjE_Q7OI.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/FoulQuarterlyReports-rl7-XuA_.css"
+    ]
+  },
+  "resources/js/pages/reports/MonthlyFoulReport.vue": {
+    "file": "assets/MonthlyFoulReport-DIyscdZQ.js",
+    "name": "MonthlyFoulReport",
+    "src": "resources/js/pages/reports/MonthlyFoulReport.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ReportNotesPeriodTable-BN1PYDy6.js",
+      "_AppBar-CPPzsFuR.js",
+      "_DateInput-V0GAcCJy.js",
+      "_FoulReportsRepository-C7G21gFW.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_ReportNoteRepository-BjE_Q7OI.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/MonthlyFoulReport-BMQuzrrr.css"
+    ]
+  },
+  "resources/js/pages/reports/ReportNotesIndex.vue": {
+    "file": "assets/ReportNotesIndex-Cmz-CVec.js",
+    "name": "ReportNotesIndex",
+    "src": "resources/js/pages/reports/ReportNotesIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AppBar-CPPzsFuR.js",
+      "_GlobalPagination-BGpMXK1T.js",
+      "_ReportNoteRepository-BjE_Q7OI.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_useCalendar-li7Ce3BY.js",
+      "_LoginRepository-wB1O9RbZ.js"
+    ],
+    "css": [
+      "assets/ReportNotesIndex-DnQGvAsy.css"
+    ]
+  },
+  "resources/js/pages/reports/WeeklyFoulReports.vue": {
+    "file": "assets/WeeklyFoulReports-ns0XFQ2V.js",
+    "name": "WeeklyFoulReports",
+    "src": "resources/js/pages/reports/WeeklyFoulReports.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ReportNotesPeriodTable-BN1PYDy6.js",
+      "_AppBar-CPPzsFuR.js",
+      "_DateInput-V0GAcCJy.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_ReportNoteRepository-BjE_Q7OI.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/WeeklyFoulReports-DfAxPb0u.css"
+    ]
+  },
+  "resources/js/pages/reports/YearlyFoulReport.vue": {
+    "file": "assets/YearlyFoulReport-CEI3TcK0.js",
+    "name": "YearlyFoulReport",
+    "src": "resources/js/pages/reports/YearlyFoulReport.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_ReportNotesPeriodTable-BN1PYDy6.js",
+      "_AppBar-CPPzsFuR.js",
+      "_LoginRepository-wB1O9RbZ.js",
+      "_usePageRefresh-EVB4Pxgo.js",
+      "_ReportNoteRepository-BjE_Q7OI.js",
+      "_useCalendar-li7Ce3BY.js"
+    ],
+    "css": [
+      "assets/YearlyFoulReport-B7B8AYK9.css"
     ]
   }
 }

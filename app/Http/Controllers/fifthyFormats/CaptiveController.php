@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use App\Services\NotificationService; // 🔔 notifications
+use App\Exports\CaptiveExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CaptiveController extends Controller
 {
@@ -649,5 +651,24 @@ public function deletePicture($id)
     $captive = Captive::findOrFail($id);
 
     return $this->removePictureFileAndClear($captive);
-}  
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+
+    $fileName = 'captives_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+    return Excel::download(
+        new CaptiveExport([
+            'search'       => $search,
+            'search_field' => $searchField,
+            'search_value' => $searchValue,
+            'resource_id'  => $request->get('resource_id'),
+        ]),
+        $fileName
+    );
+}
 }

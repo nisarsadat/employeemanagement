@@ -10,6 +10,8 @@ use App\Http\Requests\fifthyformatsthree\UpdateMashkokPeopleRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MashkokPeopleExport;
 
 class MashkokPeopleController extends Controller
 {
@@ -411,5 +413,14 @@ public function deletePicture($id)
     $mashkokPeople = MashkokPeople::findOrFail($id);
 
     return $this->removePictureFileAndClear($mashkokPeople);
-}  
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $fileName = 'mashkok_people_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+    return Excel::download(new MashkokPeopleExport(['search' => $search, 'search_field' => $searchField, 'search_value' => $searchValue, 'resource_id' => $request->get('resource_id')]), $fileName);
+}
 }

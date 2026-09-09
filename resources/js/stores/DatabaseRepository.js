@@ -47,7 +47,34 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     error: null,
 
     // ==== DATA BUCKETS ====
+    // meeting
+    // ====================== MEETINGS ======================
+
+    Meetings: reactive([]),
+    Meeting: reactive({}),
+
+    meetingCardCounts: {
+      total: 0,
+      today: 0,
+      upcoming: 0,
+      ongoing: 0,
+      completed: 0,
+    },
+
+    // ====================== SECURITY ASSESSMENTS ======================
+
+    SecurityAssessments: reactive([]),
+    SecurityAssessment: reactive({}),
+
+    securityAssessmentCardCounts: {
+      total: 0,
+      north: 0,
+      south: 0,
+      east: 0,
+      west: 0,
+    },
     // Events
+
     Events: reactive([]),
     Event: reactive({}),
     // options
@@ -214,7 +241,675 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     clearFinancePrefill() {
       this.financePrefill = null;
     },
+    // ====================== MEETINGS ======================
 
+    async FetchMeetingDateOptions(params = {}) {
+      return await axios.get('/meetings/date-options', { params });
+    },
+
+    async FetchMeetingFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get('/meetings/filter-options', {
+          params,
+        });
+
+        return data;
+      } catch (error) {
+        console.error(error);
+        this.error = error;
+
+        return {
+          data: {
+            options: [],
+          },
+        };
+      }
+    },
+
+    async FetchMeetingsData(params = {}) {
+      this.loading = true;
+
+      try {
+        setContentType('application/json');
+
+        const baseParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: true,
+          defaultDateField: 'start_date',
+        });
+
+        const queryParams = {
+          ...baseParams,
+
+          stat: params.stat ?? 'all',
+
+          ...(params?.search !== undefined ? { search: params.search } : {}),
+
+          ...(params?.search_field !== undefined ? { search_field: params.search_field } : {}),
+
+          ...(params?.search_value !== undefined ? { search_value: params.search_value } : {}),
+
+          ...(params?.year !== undefined ? { year: params.year } : {}),
+
+          ...(params?.month !== undefined ? { month: params.month } : {}),
+
+          ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
+
+          ...(params?.date !== undefined ? { date: params.date } : {}),
+
+          ...(params?.date_from !== undefined ? { date_from: params.date_from } : {}),
+
+          ...(params?.date_to !== undefined ? { date_to: params.date_to } : {}),
+
+          ...(params?.from_date !== undefined ? { from_date: params.from_date } : {}),
+
+          ...(params?.to_date !== undefined ? { to_date: params.to_date } : {}),
+        };
+
+        const response = await axios.get('/meetings', {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, response, 'Meetings');
+
+        this.meetingCardCounts = {
+          total: Number(response?.data?.card_counts?.total ?? 0),
+          today: Number(response?.data?.card_counts?.today ?? 0),
+          upcoming: Number(response?.data?.card_counts?.upcoming ?? 0),
+          ongoing: Number(response?.data?.card_counts?.ongoing ?? 0),
+          completed: Number(response?.data?.card_counts?.completed ?? 0),
+        };
+
+        return response;
+      } catch (error) {
+        console.error(error);
+
+        this.error = error;
+        this.Meetings = [];
+        this.totalItems = 0;
+
+        this.meetingCardCounts = {
+          total: 0,
+          today: 0,
+          upcoming: 0,
+          ongoing: 0,
+          completed: 0,
+        };
+
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async FetchMeetingData(id) {
+      this.loading = true;
+
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/meetings/${id}`);
+
+        this.Meeting = data?.data ?? data;
+
+        return this.Meeting;
+      } catch (error) {
+        console.error(error);
+
+        this.error = error;
+        this.Meeting = {};
+
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async CreateMeeting(formData, onProgress) {
+      try {
+        delete axios.defaults.headers.common['Content-Type'];
+
+        const { data } = await axios.post('/meetings', formData, {
+          onUploadProgress: (event) => {
+            if (!event.total) return;
+
+            const percent = Math.round((event.loaded * 100) / event.total);
+
+            if (typeof onProgress === 'function') {
+              onProgress(percent);
+            }
+          },
+        });
+
+        toast.success('جلسه اضافه شد', {
+          autoClose: 1000,
+        });
+
+        return data?.data ?? data;
+      } catch (error) {
+        console.error(error);
+        this.error = error;
+
+        toast.error('ثبت جلسه ناکام شد');
+
+        throw error;
+      }
+    },
+
+    async UpdateMeeting(id, formDataOrJson, onProgress) {
+      try {
+        let result;
+
+        if (formDataOrJson instanceof FormData) {
+          formDataOrJson.append('_method', 'PUT');
+
+          delete axios.defaults.headers.common['Content-Type'];
+
+          ({ data: result } = await axios.post(`/meetings/${id}`, formDataOrJson, {
+            onUploadProgress: (event) => {
+              if (!event.total) return;
+
+              const percent = Math.round((event.loaded * 100) / event.total);
+
+              if (typeof onProgress === 'function') {
+                onProgress(percent);
+              }
+            },
+          }));
+        } else {
+          setContentType('application/json');
+
+          ({ data: result } = await axios.put(`/meetings/${id}`, formDataOrJson));
+        }
+
+        toast.success('جلسه تغییر شد', {
+          autoClose: 1000,
+        });
+
+        return result?.data ?? result;
+      } catch (error) {
+        console.error(error);
+        this.error = error;
+
+        toast.error('تغییر جلسه ناکام شد');
+
+        throw error;
+      }
+    },
+
+    async DeleteMeeting(id) {
+      try {
+        await axios.delete(`/meetings/${id}`);
+
+        toast.success('جلسه حذف شد', {
+          autoClose: 1100,
+        });
+      } catch (error) {
+        console.error(error);
+        this.error = error;
+
+        toast.error('حذف جلسه ناکام شد');
+
+        throw error;
+      }
+    },
+
+    async DownloadMeetingsExcel(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const response = await axios.get('/meetings/export/excel', {
+          params: {
+            search: params.search ?? this.Search ?? '',
+
+            search_field: params.search_field ?? undefined,
+
+            search_value: params.search_value ?? undefined,
+
+            stat: params.stat ?? 'all',
+
+            year: params.year ?? undefined,
+
+            month: params.month ?? undefined,
+
+            date_field: params.date_field ?? 'start_date',
+
+            date: params.date ?? undefined,
+
+            date_from: params.date_from ?? undefined,
+
+            date_to: params.date_to ?? undefined,
+
+            from_date: params.from_date ?? undefined,
+
+            to_date: params.to_date ?? undefined,
+          },
+
+          responseType: 'blob',
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.download = 'meetings.xlsx';
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error(error);
+        this.error = error;
+
+        toast.error('دانلود اکسل ناکام شد');
+
+        throw error;
+      }
+    },
+
+    async OpenMeetingsPrintView(payload = {}) {
+      try {
+        const response = await axios.get('/meetings/print', {
+          params: payload,
+          responseType: 'text',
+
+          paramsSerializer: {
+            indexes: false,
+          },
+        });
+
+        const printWindow = window.open('', '_blank');
+
+        if (!printWindow) {
+          throw new Error('Popup blocked or failed to open print window.');
+        }
+
+        printWindow.document.open();
+        printWindow.document.write(response.data);
+        printWindow.document.close();
+        printWindow.focus();
+      } catch (error) {
+        console.error('OpenMeetingsPrintView error:', error);
+
+        throw error;
+      }
+    },
+
+    async FetchMeetingDocuments(meetingId) {
+      const { data } = await axios.get(`/meetings/${meetingId}/documents`);
+
+      return data?.data ?? data;
+    },
+
+    async UploadMeetingDocuments(meetingId, files) {
+      const formData = new FormData();
+
+      [...files].forEach((file) => {
+        formData.append('files[]', file);
+      });
+
+      setContentType(null);
+
+      const { data } = await axios.post(`/meetings/${meetingId}/documents`, formData);
+
+      toast.success('اسناد آپلود شد', {
+        autoClose: 1100,
+      });
+
+      return data?.data ?? data;
+    },
+
+    // ====================== SECURITY ASSESSMENTS ======================
+
+    async FetchSecurityAssessmentFilterOptions(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get('/security-assessments/filter-options', {
+          params,
+        });
+
+        return data;
+      } catch (error) {
+        console.error(error);
+        this.error = error;
+
+        return {
+          data: {
+            options: [],
+          },
+        };
+      }
+    },
+
+    async FetchSecurityAssessmentsData(params = {}) {
+      this.loading = true;
+
+      try {
+        setContentType('application/json');
+
+        const baseParams = buildListParams(this, params, {
+          includeSearch: true,
+          includePagination: true,
+          includeDateFilter: true,
+          defaultDateField: 'created_at',
+        });
+
+        const queryParams = {
+          ...baseParams,
+
+          stat: params.stat ?? 'all',
+
+          ...(params?.search !== undefined ? { search: params.search } : {}),
+
+          ...(params?.search_field !== undefined ? { search_field: params.search_field } : {}),
+
+          ...(params?.search_value !== undefined ? { search_value: params.search_value } : {}),
+
+          ...(params?.year !== undefined ? { year: params.year } : {}),
+
+          ...(params?.month !== undefined ? { month: params.month } : {}),
+
+          ...(params?.date_field !== undefined ? { date_field: params.date_field } : {}),
+
+          ...(params?.date !== undefined ? { date: params.date } : {}),
+
+          ...(params?.date_from !== undefined ? { date_from: params.date_from } : {}),
+
+          ...(params?.date_to !== undefined ? { date_to: params.date_to } : {}),
+
+          ...(params?.from_date !== undefined ? { from_date: params.from_date } : {}),
+
+          ...(params?.to_date !== undefined ? { to_date: params.to_date } : {}),
+        };
+
+        const response = await axios.get('/security-assessments', {
+          params: queryParams,
+        });
+
+        applyPaginatedResponse(this, response, 'SecurityAssessments');
+
+        this.securityAssessmentCardCounts = {
+          total: Number(response?.data?.card_counts?.total ?? 0),
+          north: Number(response?.data?.card_counts?.north ?? 0),
+          south: Number(response?.data?.card_counts?.south ?? 0),
+          east: Number(response?.data?.card_counts?.east ?? 0),
+          west: Number(response?.data?.card_counts?.west ?? 0),
+        };
+
+        return response;
+      } catch (error) {
+        console.error(error);
+
+        this.error = error;
+        this.SecurityAssessments = [];
+        this.totalItems = 0;
+
+        this.securityAssessmentCardCounts = {
+          total: 0,
+          north: 0,
+          south: 0,
+          east: 0,
+          west: 0,
+        };
+
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async FetchSecurityAssessmentData(id) {
+      this.loading = true;
+
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get(`/security-assessments/${id}`);
+
+        this.SecurityAssessment = data?.data ?? data;
+
+        return this.SecurityAssessment;
+      } catch (error) {
+        console.error(error);
+
+        this.error = error;
+        this.SecurityAssessment = {};
+
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async CreateSecurityAssessment(formData, onProgress) {
+      try {
+        delete axios.defaults.headers.common['Content-Type'];
+
+        const { data } = await axios.post('/security-assessments', formData, {
+          onUploadProgress: (event) => {
+            if (!event.total) return;
+
+            const percent = Math.round((event.loaded * 100) / event.total);
+
+            if (typeof onProgress === 'function') {
+              onProgress(percent);
+            }
+          },
+        });
+
+        toast.success('ارزیابی امنیتی اضافه شد', {
+          autoClose: 1000,
+        });
+
+        return data?.data ?? data;
+      } catch (error) {
+        console.error(error);
+        this.error = error;
+
+        toast.error('ثبت ارزیابی امنیتی ناکام شد');
+
+        throw error;
+      }
+    },
+
+    async UpdateSecurityAssessment(id, formDataOrJson, onProgress) {
+      try {
+        let result;
+
+        if (formDataOrJson instanceof FormData) {
+          formDataOrJson.append('_method', 'PUT');
+
+          delete axios.defaults.headers.common['Content-Type'];
+
+          ({ data: result } = await axios.post(`/security-assessments/${id}`, formDataOrJson, {
+            onUploadProgress: (event) => {
+              if (!event.total) return;
+
+              const percent = Math.round((event.loaded * 100) / event.total);
+
+              if (typeof onProgress === 'function') {
+                onProgress(percent);
+              }
+            },
+          }));
+        } else {
+          setContentType('application/json');
+
+          ({ data: result } = await axios.put(`/security-assessments/${id}`, formDataOrJson));
+        }
+
+        toast.success('ارزیابی امنیتی تغییر شد', {
+          autoClose: 1000,
+        });
+
+        return result?.data ?? result;
+      } catch (error) {
+        console.error(error);
+        this.error = error;
+
+        toast.error('تغییر ارزیابی امنیتی ناکام شد');
+
+        throw error;
+      }
+    },
+
+    async DeleteSecurityAssessment(id) {
+      try {
+        await axios.delete(`/security-assessments/${id}`);
+
+        toast.success('ارزیابی امنیتی حذف شد', {
+          autoClose: 1100,
+        });
+      } catch (error) {
+        console.error(error);
+        this.error = error;
+
+        toast.error('حذف ارزیابی امنیتی ناکام شد');
+
+        throw error;
+      }
+    },
+
+    async DownloadSecurityAssessmentsExcel(params = {}) {
+      try {
+        setContentType('application/json');
+
+        const response = await axios.get('/security-assessments/export/excel', {
+          params: {
+            search: params.search ?? this.Search ?? '',
+
+            search_field: params.search_field ?? undefined,
+
+            search_value: params.search_value ?? undefined,
+
+            stat: params.stat ?? 'all',
+
+            year: params.year ?? undefined,
+
+            month: params.month ?? undefined,
+
+            date_field: params.date_field ?? 'created_at',
+
+            date: params.date ?? undefined,
+
+            date_from: params.date_from ?? undefined,
+
+            date_to: params.date_to ?? undefined,
+
+            from_date: params.from_date ?? undefined,
+
+            to_date: params.to_date ?? undefined,
+          },
+
+          responseType: 'blob',
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.download = 'security-assessments.xlsx';
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error(error);
+        this.error = error;
+
+        toast.error('دانلود اکسل ناکام شد');
+
+        throw error;
+      }
+    },
+
+    async OpenSecurityAssessmentsPrintView(payload = {}) {
+      try {
+        const response = await axios.get('/security-assessments/print', {
+          params: payload,
+          responseType: 'text',
+
+          paramsSerializer: {
+            indexes: false,
+          },
+        });
+
+        const printWindow = window.open('', '_blank');
+
+        if (!printWindow) {
+          throw new Error('Popup blocked or failed to open print window.');
+        }
+
+        printWindow.document.open();
+        printWindow.document.write(response.data);
+        printWindow.document.close();
+        printWindow.focus();
+      } catch (error) {
+        console.error('OpenSecurityAssessmentsPrintView error:', error);
+
+        throw error;
+      }
+    },
+
+    async DeleteMeetingDocument(meetingId, documentId) {
+      await axios.delete(`/meetings/${meetingId}/documents/${documentId}`);
+
+      toast.success('سند حذف شد', {
+        autoClose: 1100,
+      });
+    },
+
+    async DownloadMeetingZip(id, filename) {
+      const response = await axios.get(`/meetings/${id}/documents/zip`, {
+        responseType: 'blob',
+      });
+
+      const blob = new Blob([response.data], {
+        type: 'application/zip',
+      });
+
+      const url = window.URL.createObjectURL(blob);
+
+      const safeName = (value) =>
+        String(value || `meeting_${id}_documents.zip`)
+          .toLowerCase()
+          .replace(/\s+/g, '_')
+          .replace(/[^a-z0-9._-]/g, '');
+
+      const link = document.createElement('a');
+
+      link.href = url;
+
+      link.download = safeName(filename || `meeting_${id}_documents.zip`);
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+    },
     // ---------------------- OfficeEmployee ----------------------
     async GetOfficeEmployee() {
       this.loading = true;

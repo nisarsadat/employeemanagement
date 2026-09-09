@@ -288,6 +288,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
       }
     },
 
+    /* ==================== FASAD EXCEL EXPORT ==================== */
+    async DownloadFasadExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, card_filter = 'all', resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/fasads/export/excel', { params: { search, search_field, search_value, card_filter, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'fasads.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadFasadExcel error:', error); throw error; }
+    },
+
     /* ============================ SAeen FASADS ============================ */
     async FetchSaeenFasadsData(params = {}) {
       this.loading = true;
@@ -598,6 +614,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.error = e;
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
+    },
+
+    /* ==================== HEIST EXCEL EXPORT ==================== */
+    async DownloadHeistExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, card_filter = 'all', resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/heists/export/excel', { params: { search, search_field, search_value, card_filter, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'heists.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadHeistExcel error:', error); throw error; }
     },
 
     /* ============================ Captive ============================ */
@@ -922,6 +954,23 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
+    /* ==================== MULKANO EXCEL EXPORT ==================== */
+    async DownloadMulkanoExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/mulkanos/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'mulkanos.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadMulkanoExcel error:', error); throw error; }
+    },
+
     async OpenMulkanoPrintView(payload = {}) {
       const {
         selected_columns = [],
@@ -1082,6 +1131,23 @@ export const useFasadRepository = defineStore('FasadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
+    /* ==================== ENTRY EXIT EXCEL EXPORT ==================== */
+    async DownloadEntryExitExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/entry-exits/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'entry_exits.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadEntryExitExcel error:', error); throw error; }
+    },
+
     async OpenEntryExitPrintView(payload = {}) {
       const {
         selected_columns = [],
@@ -1441,6 +1507,61 @@ export const useFasadRepository = defineStore('FasadRepository', {
       }
     },
 
+    /* ==================== CLUBS EXCEL EXPORT/IMPORT ==================== */
+    async DownloadClubExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          search_value = null,
+          card_filter = 'all',
+          resource_id = null,
+          onDownloadProgress = null,
+        } = payload;
+
+        const response = await axios.get('/clubs/export/excel', {
+          params: {
+            search,
+            search_field,
+            search_value,
+            card_filter,
+            resource_id,
+          },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'clubs.xlsx';
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) {
+            fileName = match[1].replace(/['"]/g, '');
+          }
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadClubExcel error:', error);
+        throw error;
+      }
+    },
+
+
     /* ============================ Mahajerat ============================ */
     async FetchMahajeratsData(params = {}) {
       this.loading = true;
@@ -1601,6 +1722,22 @@ export const useFasadRepository = defineStore('FasadRepository', {
       }
     },
 
+    /* ==================== MAHAJERAT EXCEL EXPORT ==================== */
+    async DownloadMahajeratExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/mahajerats/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'mahajerats.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadMahajeratExcel error:', error); throw error; }
+    },
+
     /* ============================ Soldiers ============================ */
     async FetchSoldiersData(params = {}) {
       this.loading = true;
@@ -1759,6 +1896,45 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.error = e;
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
+    },
+
+    /* ============================ SaeenFasad Excel Download ============================ */
+    async DownloadSaeenFasadExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/saeen-fasadas/export/excel', {
+          params: { search, search_field, search_value, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+        return response;
+      } catch (error) { console.error('DownloadSaeenFasadExcel error:', error); throw error; }
+    },
+
+    /* ============================ Sarafyano Excel Download ============================ */
+    async DownloadSarafyanoExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/sarafyanos/export/excel', {
+          params: { search, search_field, search_value, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+        return response;
+      } catch (error) { console.error('DownloadSarafyanoExcel error:', error); throw error; }
+    },
+
+    /* ============================ Soldier Excel Download ============================ */
+    async DownloadSoldierExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/soldiers/export/excel', {
+          params: { search, search_field, search_value, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+        return response;
+      } catch (error) { console.error('DownloadSoldierExcel error:', error); throw error; }
     },
 
     async DownloadFasadZip(id, name = `fasad_${id}`) {
@@ -2028,6 +2204,59 @@ export const useFasadRepository = defineStore('FasadRepository', {
         this.error = e;
         toast.error(errText(e, 'عکس حذف نه شو'));
         throw e;
+      }
+    },
+
+    /* ==================== EXCEL EXPORT ==================== */
+
+    async DownloadCaptiveExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          search_value = null,
+          resource_id = null,
+          onDownloadProgress = null,
+        } = payload;
+
+        const response = await axios.get('/captives/export/excel', {
+          params: {
+            search,
+            search_field,
+            search_value,
+            resource_id,
+          },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'captives.xlsx';
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) {
+            fileName = match[1].replace(/['"]/g, '');
+          }
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadCaptiveExcel error:', error);
+        throw error;
       }
     },
   },

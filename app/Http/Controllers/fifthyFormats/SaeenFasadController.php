@@ -10,6 +10,8 @@ use App\Models\fifthyFormats\SaeenFasad;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\SaeenFasadExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Database\QueryException;
 use App\Services\NotificationService;
 use ZipArchive;
@@ -676,4 +678,10 @@ public function deletePicture($id)
 
     return $this->removePictureFileAndClear($saeenFasad);
 }  
+
+    public function exportExcel(Request $request)
+    {
+        $filters = $request->only(['search', 'search_field', 'search_value', 'resource_id']);
+        return Excel::download(new SaeenFasadExport($filters), 'saeen_fasad_' . now()->format('Y_m_d_His') . '.xlsx');
+    }
 }

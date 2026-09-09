@@ -13,6 +13,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\ShoraExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ShoraController extends Controller
 {
@@ -485,4 +487,10 @@ private function removePictureFileAndClear($model)
 
     return $this->removePictureFileAndClear($shora);
 }
+
+    public function exportExcel(Request $request)
+    {
+        $filters = $request->only(['search', 'search_field', 'search_value', 'resource_id']);
+        return Excel::download(new ShoraExport($filters), 'shora_' . now()->format('Y_m_d_His') . '.xlsx');
+    }
 }

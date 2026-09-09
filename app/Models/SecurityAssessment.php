@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class SecurityAssessment extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'place_name',
+        'responsible_owner_name',
+        'province',
+        'district',
+        'specific_place',
+        'coordinates',
+        'direction',
+        'daily_visitors_count',
+        'risk_places',
+        'vulnerable_places',
+        'security_gaps',
+        'weak_points',
+        'security_incidents',
+        'entrance_gate',
+        'exit_gate',
+        'emergency_gate',
+        'secondary_gate',
+        'physical_check_status',
+        'technical_check_status',
+        'security_cameras',
+        'guards_count',
+        'active_towers_count',
+        'active_guard_posts_count',
+        'security_responsible_name',
+        'security_responsible_phone',
+        'other_problems',
+        'note',
+    ];
+
+    protected $casts = [
+        'daily_visitors_count' => 'integer',
+        'guards_count' => 'integer',
+        'active_towers_count' => 'integer',
+        'active_guard_posts_count' => 'integer',
+    ];
+}

@@ -543,5 +543,14 @@ public function deletePicture($id)
     $robber = Robbers::findOrFail($id);
 
     return $this->removePictureFileAndClear($robber);
-}  
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $fileName = 'robbers_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+    return Excel::download(new \App\Exports\RobbersExport(['search' => $search, 'search_field' => $searchField, 'search_value' => $searchValue, 'resource_id' => $request->get('resource_id')]), $fileName);
+}
 }

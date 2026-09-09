@@ -73,6 +73,14 @@
             {{ t('جدید') }}
           </v-btn>
         </v-col>
+
+        <!-- Excel Button -->
+        <v-col cols="12" sm="12" md="4" lg="4">
+          <v-btn color="success" variant="flat" class="text-none" rounded="lg" size="large" block prepend-icon="mdi-microsoft-excel" :loading="excelDownloading" :disabled="excelDownloading" @click="downloadSarayanoExcel">
+            {{ t('اکسل') }}
+          </v-btn>
+        </v-col>
+
         <v-col cols="12" sm="10">
           <v-select
             v-model="selectedPrintColumns"
@@ -343,6 +351,15 @@
     />
 
     <!-- ❗ Error Snackbar -->
+    <!-- Excel Download Dialog -->
+    <v-dialog v-model="excelDownloadDialog" persistent max-width="420">
+      <v-card class="pa-6 text-center" rounded="xl">
+        <v-progress-circular indeterminate color="success" size="64" width="5" class="mb-4" />
+        <div class="text-subtitle-1 font-weight-bold">{{ t('در حال دانلود اکسل...') }}</div>
+        <div class="text-caption text-grey mt-1">{{ t('لطفاً صبر کنید') }}</div>
+      </v-card>
+    </v-dialog>
+
     <v-snackbar v-model="showError" color="error" timeout="5000">
       {{ errorMessage }}
       <template #actions>
@@ -374,6 +391,11 @@
   const selectedPrintColumns = ref([]);
   const searchField = ref(null);
   const selectedColumnValue = ref(null);
+
+  /* Excel Download */
+  const excelDownloadDialog = ref(false);
+  const excelDownloading = ref(false);
+  const excelDownloadProgress = ref(0);
 
   /* i18n / RTL */
   const { t, locale } = useI18n();
@@ -701,6 +723,19 @@
 
     defaultFileName: 'sarayanos-print',
   });
+
+  /* =========== SARAYANO EXCEL DOWNLOAD =========== */
+  async function downloadSarayanoExcel() {
+    try {
+      excelDownloading.value = true; excelDownloadDialog.value = true; excelDownloadProgress.value = 0;
+      await repo.DownloadSarayanoExcel({
+        search: repo.Search || '', search_field: normalizedSearchField.value || null,
+        search_value: normalizedSearchValue.value || null, resource_id: route.query?.resource_id || null,
+        onDownloadProgress: (e) => { if (e.total) excelDownloadProgress.value = Math.round((e.loaded * 100) / e.total); },
+      });
+    } catch (e) { console.error('downloadSarayanoExcel error', e); showErrorMessage(t('خطا در دانلود اکسل'));
+    } finally { excelDownloading.value = false; excelDownloadDialog.value = false; excelDownloadProgress.value = 0; }
+  }
 
   watch(
     printableHeaderOptions,

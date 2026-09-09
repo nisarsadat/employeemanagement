@@ -11,6 +11,8 @@ use App\Services\NotificationService; // 🔔 notifications
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\WorkShopExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class WorkShopController extends Controller
 {
@@ -509,4 +511,10 @@ public function deletePicture($id)
 
     return $this->removePictureFileAndClear($workShop);
 }  
+
+    public function exportExcel(Request $request)
+    {
+        $filters = $request->only(['search', 'search_field', 'search_value', 'resource_id']);
+        return Excel::download(new WorkShopExport($filters), 'workshop_' . now()->format('Y_m_d_His') . '.xlsx');
+    }
 }

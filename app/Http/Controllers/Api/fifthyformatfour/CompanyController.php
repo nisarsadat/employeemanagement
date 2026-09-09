@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\fifthyformatfour;
 
+use App\Exports\CompanyExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\fifthyformatfour\StoreCompanyRequest;
 use App\Http\Requests\fifthyformatfour\UpdateCompanyRequest;
@@ -13,6 +14,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CompanyController extends Controller
 {
@@ -482,5 +484,26 @@ public function printView(Request $request)
     $company = Company::findOrFail($id);
 
     return $this->removePictureFileAndClear($company);
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $cardFilter = trim((string) $request->get('card_filter', 'all'));
+
+    $fileName = 'companies_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+    return Excel::download(
+        new CompanyExport([
+            'search'       => $search,
+            'search_field' => $searchField,
+            'search_value' => $searchValue,
+            'card_filter'  => $cardFilter,
+            'resource_id'  => $request->get('resource_id'),
+        ]),
+        $fileName
+    );
 }
 }

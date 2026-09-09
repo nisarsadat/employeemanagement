@@ -435,6 +435,19 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       }
     },
 
+    /* ============================ Sarayano Excel Download ============================ */
+    async DownloadSarayanoExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/sarayanos/export/excel', {
+          params: { search, search_field, search_value, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+        return response;
+      } catch (error) { console.error('DownloadSarayanoExcel error:', error); throw error; }
+    },
+
     /* ============================ Hotels ============================ */
     async FetchHotelsData(params = {}) {
       this.loading = true;
@@ -631,6 +644,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       }
     },
 
+    /* ==================== HOTEL EXCEL EXPORT ==================== */
+    async DownloadHotelExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, card_filter = 'all', resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/hotels/export/excel', { params: { search, search_field, search_value, card_filter, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'hotels.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadHotelExcel error:', error); throw error; }
+    },
+
     /* ============================ Hostels ============================ */
     async FetchHostelsData(params = {}) {
       this.loading = true;
@@ -744,6 +773,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.error = e;
         toast.error(errText(e, 'رېکارډ حذف نشو'));
       }
+    },
+
+    /* ==================== HOSTEL EXCEL EXPORT ==================== */
+    async DownloadHostelExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, card_filter = 'all', resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/hostels/export/excel', { params: { search, search_field, search_value, card_filter, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'hostels.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadHostelExcel error:', error); throw error; }
     },
 
     /* ============================ Tujarans ============================ */
@@ -901,6 +946,19 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       }
     },
 
+    /* ============================ Tujaran Excel Download ============================ */
+    async DownloadTujaranExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/tujarans/export/excel', {
+          params: { search, search_field, search_value, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+        return response;
+      } catch (error) { console.error('DownloadTujaranExcel error:', error); throw error; }
+    },
+
     /* ============================ Mujahedinos ============================ */
     async FetchMujahedinosData(params = {}) {
       this.loading = true;
@@ -1056,6 +1114,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       }
     },
 
+    /* ==================== MUJAHEDINO EXCEL EXPORT ==================== */
+    async DownloadMujahedinoExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/mujahedinos/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'mujahedinos.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadMujahedinoExcel error:', error); throw error; }
+    },
+
     /* ============================ EmaratOffices ============================ */
     async FetchEmaratOfficesData(params = {}) {
       this.loading = true;
@@ -1208,6 +1282,52 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         console.error(e);
         this.error = e;
         toast.error(errText(e, 'رېکارډ حذف نشو'));
+      }
+    },
+
+    /* ==================== EMARAT OFFICE EXCEL EXPORT ==================== */
+    async DownloadEmaratOfficeExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          search_value = null,
+          card_filter = 'all',
+          resource_id = null,
+          onDownloadProgress = null,
+        } = payload;
+
+        const response = await axios.get('/emarat-offices/export/excel', {
+          params: { search, search_field, search_value, card_filter, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'emarat_offices.xlsx';
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); }
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadEmaratOfficeExcel error:', error);
+        throw error;
       }
     },
 
@@ -1366,6 +1486,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
       }
     },
 
+    /* ==================== OLD JAHADI EXCEL EXPORT ==================== */
+    async DownloadOldJahadiExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/old-jahadis/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'old_jahadis.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadOldJahadiExcel error:', error); throw error; }
+    },
+
     /* ============================ MashkokPeoples ============================ */
     async FetchMashkokPeoplesData(params = {}) {
       this.loading = true;
@@ -1519,6 +1655,22 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.error = e;
         toast.error(errText(e, 'رېکارډ حذف نشو'));
       }
+    },
+
+    /* ==================== MASHKOK PEOPLE EXCEL EXPORT ==================== */
+    async DownloadMashkokPeopleExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/mashkok-people/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'mashkok_people.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadMashkokPeopleExcel error:', error); throw error; }
     },
 
     /* ============================ Madrasas ============================ */
@@ -1675,6 +1827,23 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         toast.error(errText(e, 'رېکارډ حذف نشو'));
       }
     },
+
+    /* ==================== MADRASA EXCEL EXPORT ==================== */
+    async DownloadMadrasaExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/madrasas/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'madrasas.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadMadrasaExcel error:', error); throw error; }
+    },
+
     /* ============================ Delete Pictures ============================ */
 
     async DeleteBadmashanoPicture(id) {
@@ -1814,6 +1983,63 @@ export const useBadmashanoRepository = defineStore('BadmashanoRepository', {
         this.error = e;
         toast.error(errText(e, 'عکس حذف نه شو'));
         throw e;
+      }
+    },
+
+    /* ==================== EXCEL EXPORT ==================== */
+
+    async DownloadBadmashanoExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          search_value = null,
+          card_filter = 'all',
+          resource_id = null,
+          fifty_six_format_id = null,
+          onDownloadProgress = null,
+        } = payload;
+
+        const response = await axios.get('/badmashanos/export/excel', {
+          params: {
+            search,
+            search_field,
+            search_value,
+            card_filter,
+            resource_id,
+            fifty_six_format_id,
+          },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'badmashanos.xlsx';
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) {
+            fileName = match[1].replace(/['"]/g, '');
+          }
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadBadmashanoExcel error:', error);
+        throw error;
       }
     },
   },

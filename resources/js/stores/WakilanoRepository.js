@@ -298,6 +298,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       }
     },
 
+    /* ============================ Wakilano Excel Download ============================ */
+    async DownloadWakilanoExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/wakilanos/export/excel', {
+          params: { search, search_field, search_value, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+        return response;
+      } catch (error) { console.error('DownloadWakilanoExcel error:', error); throw error; }
+    },
+
     /* ============================ Universities ============================ */
     async FetchUniversitiesData(params = {}) {
       this.loading = true;
@@ -443,6 +456,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.error = e;
         toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
+    },
+
+    /* ============================ University Excel Download ============================ */
+    async DownloadUniversityExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/universities/export/excel', {
+          params: { search, search_field, search_value, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+        return response;
+      } catch (error) { console.error('DownloadUniversityExcel error:', error); throw error; }
     },
 
     /* ============================ Masjids ============================ */
@@ -592,6 +618,22 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       }
     },
 
+    /* ==================== MASJID EXCEL EXPORT ==================== */
+    async DownloadMasjidExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/masjids/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'masjids.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadMasjidExcel error:', error); throw error; }
+    },
+
     /* ============================ Companies ============================ */
     async FetchCompaniesData(params = {}) {
       this.loading = true;
@@ -736,6 +778,52 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         console.error(e);
         this.error = e;
         toast.error(errText(e, 'ریکارډ حذف نه شو'));
+      }
+    },
+
+    /* ==================== COMPANY EXCEL EXPORT ==================== */
+    async DownloadCompanyExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          search_value = null,
+          card_filter = 'all',
+          resource_id = null,
+          onDownloadProgress = null,
+        } = payload;
+
+        const response = await axios.get('/companies/export/excel', {
+          params: { search, search_field, search_value, card_filter, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'companies.xlsx';
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) fileName = match[1].replace(/['"]/g, '');
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadCompanyExcel error:', error);
+        throw error;
       }
     },
 
@@ -886,6 +974,22 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       }
     },
 
+    /* ==================== HIGHWAY EXCEL EXPORT ==================== */
+    async DownloadHighwayExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/highways/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'highways.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadHighwayExcel error:', error); throw error; }
+    },
+
     /* ============================ DoneLostPlaces ============================ */
     async FetchDoneLostPlacesData(params = {}) {
       this.loading = true;
@@ -1030,6 +1134,52 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         console.error(e);
         this.error = e;
         toast.error(errText(e, 'ریکارډ حذف نه شو'));
+      }
+    },
+
+    /* ==================== DONE LOST PLACES EXCEL EXPORT ==================== */
+    async DownloadDoneLostPlaceExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          search_value = null,
+          card_filter = 'all',
+          resource_id = null,
+          onDownloadProgress = null,
+        } = payload;
+
+        const response = await axios.get('/done-lost-places/export/excel', {
+          params: { search, search_field, search_value, card_filter, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'done_lost_places.xlsx';
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); }
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadDoneLostPlaceExcel error:', error);
+        throw error;
       }
     },
 
@@ -1180,6 +1330,52 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       }
     },
 
+    /* ==================== ECONEMY PROJECT EXCEL EXPORT ==================== */
+    async DownloadEconemyProjectExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          search_value = null,
+          card_filter = 'all',
+          resource_id = null,
+          onDownloadProgress = null,
+        } = payload;
+
+        const response = await axios.get('/econemy-projects/export/excel', {
+          params: { search, search_field, search_value, card_filter, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'econemy_projects.xlsx';
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); }
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadEconemyProjectExcel error:', error);
+        throw error;
+      }
+    },
+
     /* ============================ CriminalCapturePlaces ============================ */
     async FetchCriminalCapturePlacesData(params = {}) {
       this.loading = true;
@@ -1324,6 +1520,52 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         console.error(e);
         this.error = e;
         toast.error(errText(e, 'ریکارډ حذف نه شو'));
+      }
+    },
+
+    /* ==================== CRIMINAL CAPTURE PLACE EXCEL EXPORT ==================== */
+    async DownloadCriminalCapturePlaceExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          search_value = null,
+          card_filter = 'all',
+          resource_id = null,
+          onDownloadProgress = null,
+        } = payload;
+
+        const response = await axios.get('/criminal-capture-places/export/excel', {
+          params: { search, search_field, search_value, card_filter, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'criminal_capture_places.xlsx';
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) fileName = match[1].replace(/['"]/g, '');
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadCriminalCapturePlaceExcel error:', error);
+        throw error;
       }
     },
 
@@ -1474,6 +1716,22 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       }
     },
 
+    /* ==================== PUMP EXCEL EXPORT ==================== */
+    async DownloadPumpExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/pumps/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'pumps.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadPumpExcel error:', error); throw error; }
+    },
+
     /* ============================ Shoras ============================ */
     async FetchShorasData(params = {}) {
       this.loading = true;
@@ -1619,6 +1877,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.error = e;
         toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
+    },
+
+    /* ============================ Shora Excel Download ============================ */
+    async DownloadShoraExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/shoras/export/excel', {
+          params: { search, search_field, search_value, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+        return response;
+      } catch (error) { console.error('DownloadShoraExcel error:', error); throw error; }
     },
 
     /* ============================ DeplomaticPlaces ============================ */
@@ -1769,6 +2040,52 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       }
     },
 
+    /* ==================== DEPLOMATIC PLACE EXCEL EXPORT ==================== */
+    async DownloadDeplomaticPlaceExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          search_value = null,
+          card_filter = 'all',
+          resource_id = null,
+          onDownloadProgress = null,
+        } = payload;
+
+        const response = await axios.get('/deplomaticplaces/export/excel', {
+          params: { search, search_field, search_value, card_filter, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'deplomatic_places.xlsx';
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); }
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadDeplomaticPlaceExcel error:', error);
+        throw error;
+      }
+    },
+
     /* ============================ Checkpoints ============================ */
     async FetchCheckpointsData(params = {}) {
       this.loading = true;
@@ -1916,6 +2233,61 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       }
     },
 
+    /* ==================== CHECKPOINT EXCEL EXPORT/IMPORT ==================== */
+    async DownloadCheckpointExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          search_value = null,
+          card_filter = 'all',
+          resource_id = null,
+          onDownloadProgress = null,
+        } = payload;
+
+        const response = await axios.get('/checkpoints/export/excel', {
+          params: {
+            search,
+            search_field,
+            search_value,
+            card_filter,
+            resource_id,
+          },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'checkpoints.xlsx';
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) {
+            fileName = match[1].replace(/['"]/g, '');
+          }
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadCheckpointExcel error:', error);
+        throw error;
+      }
+    },
+
+
     /* ============================ Parks ============================ */
     async FetchParksData(params = {}) {
       this.loading = true;
@@ -2061,6 +2433,22 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.error = e;
         toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
+    },
+
+    /* ==================== PARK EXCEL EXPORT ==================== */
+    async DownloadParkExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/parks/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'parks.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadParkExcel error:', error); throw error; }
     },
 
     /* ============================ GovernmentPlaces ============================ */
@@ -2210,6 +2598,22 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
       }
     },
 
+    /* ==================== GOVERNMENT PLACE EXCEL EXPORT ==================== */
+    async DownloadGovernmentPlaceExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, card_filter = 'all', resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/government-places/export/excel', { params: { search, search_field, search_value, card_filter, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'government_places.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadGovernmentPlaceExcel error:', error); throw error; }
+    },
+
     /* ============================ SuperMarkets ============================ */
     async FetchSuperMarketsData(params = {}) {
       this.loading = true;
@@ -2355,6 +2759,19 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         this.error = e;
         toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
+    },
+
+    /* ============================ SuperMarket Excel Download ============================ */
+    async DownloadSuperMarketExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/super-markets/export/excel', {
+          params: { search, search_field, search_value, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+        return response;
+      } catch (error) { console.error('DownloadSuperMarketExcel error:', error); throw error; }
     },
 
     /* ============================ Complexes ============================ */
@@ -2503,6 +2920,26 @@ export const useWakilanoRepository = defineStore('WakilanoRepository', {
         toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
+
+    /* ==================== COMPLEX EXCEL EXPORT ==================== */
+    async DownloadComplexExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, card_filter = 'all', resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/complexes/export/excel', {
+          params: { search, search_field, search_value, card_filter, resource_id },
+          responseType: 'blob', onDownloadProgress,
+        });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'complexes.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) fileName = match[1].replace(/['"]/g, ''); }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadComplexExcel error:', error); throw error; }
+    },
+
     // for pic
     /* ============================ Delete Pictures ============================ */
 

@@ -10,6 +10,8 @@ use App\Models\fifthyFormats\Sarafyano;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\SarafyanoExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Database\QueryException;
 use App\Services\NotificationService; // 🔔 notifications
 
@@ -475,4 +477,10 @@ public function deletePicture($id)
 
     return $this->removePictureFileAndClear($sarafyano);
 }  
+
+    public function exportExcel(Request $request)
+    {
+        $filters = $request->only(['search', 'search_field', 'search_value', 'resource_id']);
+        return Excel::download(new SarafyanoExport($filters), 'sarafyano_' . now()->format('Y_m_d_His') . '.xlsx');
+    }
 }

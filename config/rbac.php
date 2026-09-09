@@ -18,6 +18,8 @@ return [
         'activeandinactiveemployees',
 
         'users',
+        'meetings',
+        'securityassessments',
         'officeemployee',
         'resources',
         'events',

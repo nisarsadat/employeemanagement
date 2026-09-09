@@ -182,6 +182,22 @@ export const useJawasiRepository = defineStore('JawasiRepository', {
         throw e;
       }
     },
+    /* ==================== JAWASIS EXCEL EXPORT ==================== */
+    async DownloadJawasisExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/jawasis/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'jawasis.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadJawasisExcel error:', error); throw error; }
+    },
+
     async OpenJawasisPrintView(payload = {}) {
       const {
         selected_columns,

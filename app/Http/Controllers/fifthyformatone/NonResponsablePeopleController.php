@@ -578,5 +578,14 @@ public function deletePicture($id)
     $nonResponsablePeople = NonResponsablePeople::findOrFail($id);
 
     return $this->removePictureFileAndClear($nonResponsablePeople);
-}  
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $fileName = 'non_responsable_people_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+    return Excel::download(new \App\Exports\NonResponsablePeopleExport(['search' => $search, 'search_field' => $searchField, 'search_value' => $searchValue, 'resource_id' => $request->get('resource_id')]), $fileName);
+}
 }

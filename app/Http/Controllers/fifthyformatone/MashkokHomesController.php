@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MashkokHomesExport;
 
 class MashkokHomesController extends Controller
 {
@@ -638,5 +640,14 @@ public function deletePicture($id)
     $mashkokHome = MashkokHomes::findOrFail($id);
 
     return $this->removePictureFileAndClear($mashkokHome);
-}  
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $fileName = 'mashkok_homes_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+    return Excel::download(new MashkokHomesExport(['search' => $search, 'search_field' => $searchField, 'search_value' => $searchValue, 'resource_id' => $request->get('resource_id')]), $fileName);
+}
 }

@@ -12,6 +12,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\HadoBusStopExport;
 
 class HadoBusStopController extends Controller
 {
@@ -554,5 +556,24 @@ private function removePictureFileAndClear($model)
     $hadoBusStop = HadoBusStop::findOrFail($id);
 
     return $this->removePictureFileAndClear($hadoBusStop);
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+
+    $fileName = 'hado_bus_stops_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+    return Excel::download(
+        new HadoBusStopExport([
+            'search'       => $search,
+            'search_field' => $searchField,
+            'search_value' => $searchValue,
+            'resource_id'  => $request->get('resource_id'),
+        ]),
+        $fileName
+    );
 }
 }

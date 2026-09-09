@@ -489,5 +489,14 @@ public function deletePicture($id)
     $mulkano = Mulkano::findOrFail($id);
 
     return $this->removePictureFileAndClear($mulkano);
-}  
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $fileName = 'mulkanos_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+    return Excel::download(new \App\Exports\MulkanoExport(['search' => $search, 'search_field' => $searchField, 'search_value' => $searchValue, 'resource_id' => $request->get('resource_id')]), $fileName);
+}
 }

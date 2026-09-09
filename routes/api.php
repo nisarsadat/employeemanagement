@@ -1,176 +1,169 @@
 ﻿<?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AccountController;
+use App\Http\Controllers\Api\AccountTypeController;
 
 // ---------------------- Auth ----------------------
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\ActiveInactiveOfficeEmployeeController as AE;
 
 // ---------------------- Core APIs ----------------------
-use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\ResourceController;
-use App\Http\Controllers\Api\OfficeEmployeeController;
-use App\Http\Controllers\InformationController;
-use App\Http\Controllers\InformationDocumentController;
-use App\Http\Controllers\EventController;
-use App\Http\Controllers\EventDocumentController;
-use App\Http\Controllers\CaptiveDeliveryController;
-use App\Http\Controllers\CaptiveDeliveryDocumentController;
-
-// ✅ FINANCE
-use App\Http\Controllers\Api\AccountTypeController;
-use App\Http\Controllers\Api\AccountController;
-use App\Http\Controllers\Api\IncomeController;
-use App\Http\Controllers\Api\ExpenseController;
-
-// ---------------------- Fifty Formats ----------------------
-// (56 formats)
-use App\Http\Controllers\fifthyFormats\{
-    FasadController,
-    SaeenFasadController,
-    HeistController,
-    CaptiveController,
-    MulkanoController,
-    EntryExitController,
-    SarafyanoController,
-    ClubsController,
-    JawasisController,
-    MahajeratController,
-    SoldierController
-};
-
-// FIFTHY FORMAT ONE
-use App\Http\Controllers\fifthyformatone\{
-    MawadController,
-    LostMujremeenController,
-    OldSoldiersHomesController,
-    RobbersController,
-    NonResponsablePeopleController,
-    MashkokHomesController,
-    DamagePlacesController,
-    DamageRasanPlacesController,
-    MashkokShopsController,
-    LuchakanoController
-};
-
-// FIFTHY FORMAT THREE
-use App\Http\Controllers\fifthyformatsthree\{
-    BadmashanoController,
-    EmaratOfficeController,
-    HostelController,
-    HotelController,
-    MadrasaController,
-    MashkokPeopleController,
-    MujahedinoController,
-    OldJahadiController,
-    SarayanoController,
-    TujaranController
-};
-
-// FIFTHY FORMAT TWO
-use App\Http\Controllers\fifthyformatstow\{
-    SchoolController,
-    HadoBusStopController,
-    TransportCompanyController,
-    CarSalesCompanyController,
-    ParkingController,
-    BankController,
-    ApartmentController,
-    RahnomaMamlatController,
-    HosppitalController,
-    WorkShopController
-};
-
-// FIFTHY FORMAT FOUR
-use App\Http\Controllers\Api\fifthyformatfour\{
-    CheckpointController,
-    MasjidController,
-    HighwayController,
-    CompanyController,
-    DoneLostPlaceController,
-    EconemyProjectController,
-    CriminalCapturePlaceController,
-    PumpController,
-    ShoraController,
-    GovernmentPlaceController,
-    SuperMarketController,
-    ParkController,
-    ComplexController,
-    DeplomaticPlaceController,
-    UniversityController,
-    WakilanoController
-};
-
-// ---------------------- Dashboards & Misc ----------------------
-use App\Http\Controllers\Dashboard\FifthyFormatOneDashboardController;
-use App\Http\Controllers\Dashboard\InfoEventDashboardController;
-use App\Http\Controllers\Dashboard\PeopleDashboardController;
-use App\Http\Controllers\OfficeEmployeeDocumentController;
-use App\Http\Controllers\OilAccountController;
-use App\Http\Controllers\IncomeOilController;
-use App\Http\Controllers\ExpenseOilController;
-use App\Http\Controllers\OilReportController;
-use App\Http\Controllers\FinanceReportController;
-use App\Http\Controllers\PmtilesController;
-use App\Http\Controllers\Dashboard\FiftyFormatsDashboardController as FFD;
-use App\Http\Controllers\Dashboard\FifthyFormatsTwoDashboardController;
-use App\Http\Controllers\Dashboard\FifthyFormatThreeDashboardController as FF3;
-use App\Http\Controllers\Dashboard\FifthyFormatFourDashboardController as FF4;
-
-// ---------------------- RBAC (roles/permissions) ----------------------
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\RbacController;
-
-use App\Http\Controllers\Api\ActiveInactiveOfficeEmployeeController as AE; // ✅ NEW
-use App\Http\Controllers\Api\ChatAttachmentController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DistrictController;
 use App\Http\Controllers\Api\EventControllerReport;
-use App\Http\Controllers\Api\EventReportController;
 use App\Http\Controllers\Api\EventSpecificTypeController;
 use App\Http\Controllers\Api\EventTypeController;
-use App\Http\Controllers\Api\ExpenseOilController as ApiExpenseOilController;
-use App\Http\Controllers\Api\FifthyFormatsCountController;
-use App\Http\Controllers\Api\FinanceController;
-use App\Http\Controllers\Api\FormatZoneController;
-use App\Http\Controllers\Api\HawzaController;
-use App\Http\Controllers\Api\MapPointController;
-use App\Http\Controllers\Api\Reports\FiftyFormatsReportController as ReportsFiftyFormatsReportController;
-use App\Http\Controllers\Api\OfficeEmployeeControllerReport;
-use App\Models\OfficeEmployee;
-use App\Http\Controllers\Reports\FiftyFormatsReportController;
-use App\Http\Controllers\Api\InformationReportController;
-use App\Http\Controllers\Api\JenayeeTypeController;
-use App\Http\Controllers\Api\JobTypeController;
-use App\Http\Controllers\Api\KhayratReportController;
-use App\Http\Controllers\Api\MarjaController;
-use App\Http\Controllers\Api\MawqafJahadiController;
-use App\Http\Controllers\Api\NotificationController;
-use App\Http\Controllers\OilSummaryController;
-use App\Http\Controllers\Api\OrganController;
-use App\Http\Controllers\Api\OutgoingIncomingController;
-use App\Http\Controllers\Api\ProfileController;
-use App\Http\Controllers\Api\ProvinceController;
-use App\Http\Controllers\Api\ReportNoteController;
-use App\Http\Controllers\Api\Reports\Foul\AllTimeFoulReportController;
-use App\Http\Controllers\Api\Reports\Foul\DailyFoulReportController;
-use App\Http\Controllers\Api\Reports\Foul\FoulReportNotesController;
-use App\Http\Controllers\Api\Reports\Foul\MonthlyFoulReportController;
-use App\Http\Controllers\Api\Reports\Foul\QuarterlyFoulReportController;
-use App\Http\Controllers\Api\Reports\Foul\WeeklyFoulReportController;
-use App\Http\Controllers\Api\Reports\Foul\YearlyFoulReportController;
-use App\Http\Controllers\Api\ResourceActivityController;
-use App\Http\Controllers\Api\ResourceActivityTypeController;
-use App\Http\Controllers\Api\SeyaseeTypeController;
-use App\Http\Controllers\Api\ZoneController;
-use App\Http\Controllers\CaptiveDocumentController;
+use App\Http\Controllers\Api\ExpenseController;
+
+// ✅ FINANCE
+
+use App\Http\Controllers\Api\fifthyformatfour\CheckpointController;
+
+use App\Http\Controllers\Api\fifthyformatfour\CompanyController;
+
+use App\Http\Controllers\Api\fifthyformatfour\ComplexController;
+
+// ---------------------- Fifty Formats ----------------------
+// (56 formats)
+
+use App\Http\Controllers\Api\fifthyformatfour\CriminalCapturePlaceController;
+use App\Http\Controllers\Api\fifthyformatfour\DeplomaticPlaceController;
+use App\Http\Controllers\Api\fifthyformatfour\DoneLostPlaceController;
+use App\Http\Controllers\Api\fifthyformatfour\EconemyProjectController;
+use App\Http\Controllers\Api\fifthyformatfour\GovernmentPlaceController;
+use App\Http\Controllers\Api\fifthyformatfour\HighwayController;
+use App\Http\Controllers\Api\fifthyformatfour\MasjidController;
+use App\Http\Controllers\Api\fifthyformatfour\ParkController;
+use App\Http\Controllers\Api\fifthyformatfour\PumpController;
+use App\Http\Controllers\Api\fifthyformatfour\ShoraController;
+use App\Http\Controllers\Api\fifthyformatfour\SuperMarketController;
+
+// FIFTHY FORMAT ONE
+
+use App\Http\Controllers\Api\fifthyformatfour\UniversityController;
+use App\Http\Controllers\Api\fifthyformatfour\WakilanoController;;use App\Http\Controllers\Api\FifthyFormatsCountController;use App\Http\Controllers\Api\FinanceController;use App\Http\Controllers\Api\FormatZoneController;use App\Http\Controllers\Api\HawzaController;use App\Http\Controllers\Api\IncomeController;use App\Http\Controllers\Api\InformationReportController;use App\Http\Controllers\Api\JenayeeTypeController;use App\Http\Controllers\Api\JobTypeController;
+
+// FIFTHY FORMAT THREE
+use App\Http\Controllers\Api\KhayratReportController;use App\Http\Controllers\Api\MapPointController;use App\Http\Controllers\Api\MarjaController;use App\Http\Controllers\Api\MawqafJahadiController;use App\Http\Controllers\Api\NotificationController;use App\Http\Controllers\Api\OfficeEmployeeController;use App\Http\Controllers\Api\OfficeEmployeeControllerReport;use App\Http\Controllers\Api\OrganController;use App\Http\Controllers\Api\OutgoingIncomingController;use App\Http\Controllers\Api\ProfileController;
+
+// FIFTHY FORMAT TWO
+use App\Http\Controllers\Api\ProvinceController;use App\Http\Controllers\Api\ReportNoteController;use App\Http\Controllers\Api\Reports\FiftyFormatsReportController as ReportsFiftyFormatsReportController;use App\Http\Controllers\Api\Reports\Foul\AllTimeFoulReportController;use App\Http\Controllers\Api\Reports\Foul\DailyFoulReportController;use App\Http\Controllers\Api\Reports\Foul\FoulReportNotesController;use App\Http\Controllers\Api\Reports\Foul\MonthlyFoulReportController;use App\Http\Controllers\Api\Reports\Foul\QuarterlyFoulReportController;use App\Http\Controllers\Api\Reports\Foul\WeeklyFoulReportController;use App\Http\Controllers\Api\Reports\Foul\YearlyFoulReportController;
+
+// FIFTHY FORMAT FOUR
+use App\Http\Controllers\Api\ResourceActivityController;use App\Http\Controllers\Api\ResourceActivityTypeController;use App\Http\Controllers\Api\ResourceController;use App\Http\Controllers\Api\SeyaseeTypeController;use App\Http\Controllers\Api\UserController;use App\Http\Controllers\Api\ZoneController;use App\Http\Controllers\AuthController;use App\Http\Controllers\CaptiveDeliveryController;use App\Http\Controllers\CaptiveDeliveryDocumentController;use App\Http\Controllers\CaptiveDocumentController;use App\Http\Controllers\Dashboard\FifthyFormatFourDashboardController as FF4;use App\Http\Controllers\Dashboard\FifthyFormatOneDashboardController;use App\Http\Controllers\Dashboard\FifthyFormatsTwoDashboardController;use App\Http\Controllers\Dashboard\FifthyFormatThreeDashboardController as FF3;use App\Http\Controllers\Dashboard\FiftyFormatsDashboardController as FFD;use App\Http\Controllers\Dashboard\InfoEventDashboardController;
+
+// ---------------------- Dashboards & Misc ----------------------
+use App\Http\Controllers\Dashboard\PeopleDashboardController;
 use App\Http\Controllers\DocsTypeController;
 use App\Http\Controllers\EmployeeManagementDashboardController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\EventDocumentController;
+use App\Http\Controllers\ExpenseOilController;
+
+use App\Http\Controllers\fifthyformatone\DamagePlacesController;
+
+use App\Http\Controllers\fifthyformatone\DamageRasanPlacesController;
+
+use App\Http\Controllers\fifthyformatone\LostMujremeenController;
+
+use App\Http\Controllers\fifthyformatone\LuchakanoController;;
+
+use App\Http\Controllers\fifthyformatone\MashkokHomesController;
+
+use App\Http\Controllers\fifthyformatone\MashkokShopsController;
+
+use App\Http\Controllers\fifthyformatone\MawadController;
+
+use App\Http\Controllers\fifthyformatone\NonResponsablePeopleController;
+
+// ---------------------- RBAC (roles/permissions) ----------------------
+
+use App\Http\Controllers\fifthyformatone\OldSoldiersHomesController;
+
+use App\Http\Controllers\fifthyformatone\RobbersController;
+
+use App\Http\Controllers\fifthyformatsthree\BadmashanoController;
+
+use App\Http\Controllers\fifthyformatsthree\EmaratOfficeController; // ✅ NEW
+
+use App\Http\Controllers\fifthyformatsthree\HostelController;
+
+use App\Http\Controllers\fifthyformatsthree\HotelController;
+
+use App\Http\Controllers\fifthyformatsthree\MadrasaController;
+
+use App\Http\Controllers\fifthyformatsthree\MashkokPeopleController;
+
+use App\Http\Controllers\fifthyformatsthree\MujahedinoController;
+
+use App\Http\Controllers\fifthyformatsthree\OldJahadiController;
+
+use App\Http\Controllers\fifthyformatsthree\SarayanoController;
+
+use App\Http\Controllers\fifthyformatsthree\TujaranController;;
+
+use App\Http\Controllers\fifthyformatstow\ApartmentController;
+
+use App\Http\Controllers\fifthyformatstow\BankController;
+
+use App\Http\Controllers\fifthyformatstow\CarSalesCompanyController;
+
+use App\Http\Controllers\fifthyformatstow\HadoBusStopController;
+
+use App\Http\Controllers\fifthyformatstow\HosppitalController;
+
+use App\Http\Controllers\fifthyformatstow\ParkingController;
+
+use App\Http\Controllers\fifthyformatstow\RahnomaMamlatController;
+
+use App\Http\Controllers\fifthyformatstow\SchoolController;
+
+use App\Http\Controllers\fifthyformatstow\TransportCompanyController;
+
+use App\Http\Controllers\fifthyformatstow\WorkShopController;;
+
+use App\Http\Controllers\fifthyFormats\CaptiveController;
+
+use App\Http\Controllers\fifthyFormats\ClubsController;
+
+use App\Http\Controllers\fifthyFormats\EntryExitController;
+
+use App\Http\Controllers\fifthyFormats\FasadController;
+
+use App\Http\Controllers\fifthyFormats\HeistController;
+
+use App\Http\Controllers\fifthyFormats\JawasisController;
+
+use App\Http\Controllers\fifthyFormats\MahajeratController;
+
+use App\Http\Controllers\fifthyFormats\MulkanoController;
+
+use App\Http\Controllers\fifthyFormats\SaeenFasadController;
+
+use App\Http\Controllers\fifthyFormats\SarafyanoController;
+
+use App\Http\Controllers\fifthyFormats\SoldierController;;
+use App\Http\Controllers\FinanceReportController;
+use App\Http\Controllers\IncomeOilController;
 use App\Http\Controllers\InformationCategoryController;
+use App\Http\Controllers\InformationController;
+use App\Http\Controllers\InformationDocumentController;
 use App\Http\Controllers\LetryFormatController;
 use App\Http\Controllers\MapPointController as ControllersMapPointController;
+use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\MeetingDocumentController;
+use App\Http\Controllers\OfficeEmployeeDocumentController;
+use App\Http\Controllers\OilAccountController;
+use App\Http\Controllers\OilReportController;
+use App\Http\Controllers\OilSummaryController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\PmtilesController;
+use App\Http\Controllers\RbacController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SecurityAssessmentController;
+use App\Models\OfficeEmployee;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -179,25 +172,25 @@ use App\Http\Controllers\MapPointController as ControllersMapPointController;
 | Adds numeric constraint on {id} so paths like "active" never bind to {id}
 |--------------------------------------------------------------------------
 */
-if (!function_exists('protectResource')) {
+if (! function_exists('protectResource')) {
     function protectResource(string $uri, string $module, string $controller): void
     {
         // index (GET /)
         Route::get($uri, [$controller, 'index']);
 
         // show (GET /{id})
-        Route::get($uri.'/{id}', [$controller, 'show'])
+        Route::get($uri . '/{id}', [$controller, 'show'])
             ->whereNumber('id');
 
         // store (POST /)
         Route::post($uri, [$controller, 'store']);
 
         // update (PUT/PATCH /{id})
-        Route::match(['put','patch'], $uri.'/{id}', [$controller, 'update'])
+        Route::match(['put', 'patch'], $uri . '/{id}', [$controller, 'update'])
             ->whereNumber('id');
 
         // destroy (DELETE /{id})
-        Route::delete($uri.'/{id}', [$controller, 'destroy'])
+        Route::delete($uri . '/{id}', [$controller, 'destroy'])
             ->whereNumber('id');
     }
 }
@@ -208,7 +201,7 @@ if (!function_exists('protectResource')) {
 |--------------------------------------------------------------------------
 */
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/tiles/{filename}', [PmtilesController::class, 'serve'])->where('filename', '.*');
 Route::view('/map-afg', 'map-afg');
@@ -238,16 +231,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ---------------------- Custom bindings ----------------------
     Route::bind('office_employee', function ($value) {
-        if (!ctype_digit((string) $value)) abort(404);
+        if (! ctype_digit((string) $value)) {
+            abort(404);
+        }
+
         return OfficeEmployee::findOrFail((int) $value);
     });
 
     // ---------------------- Users ----------------------
-    Route::get   ('users',           [UserController::class, 'index']);
-    Route::post  ('users',           [UserController::class, 'store']);
-    Route::get   ('users/{user}',    [UserController::class, 'show']);    // 👈 {user}
-    Route::match(['put','patch'], 'users/{user}', [UserController::class, 'update']); // 👈 {user}
-    Route::delete('users/{user}',    [UserController::class, 'destroy']); // 👈 {user}
+    Route::get('users', [UserController::class, 'index']);
+    Route::post('users', [UserController::class, 'store']);
+    Route::get('users/{user}', [UserController::class, 'show']);                       // 👈 {user}
+    Route::match(['put', 'patch'], 'users/{user}', [UserController::class, 'update']); // 👈 {user}
+    Route::delete('users/{user}', [UserController::class, 'destroy']);                 // 👈 {user}
 
     Route::get('profile', [ProfileController::class, 'show']);
     Route::put('profile', [ProfileController::class, 'update']);
@@ -255,8 +251,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // ---------- Office Employees ----------
     // Special activity routes BEFORE the generic resource to avoid ambiguity
     Route::get('office-employees/activity-counts', [AE::class, 'counts']);
-    Route::get('office-employees/active',         [AE::class, 'active']);
-    Route::get('office-employees/inactive',       [AE::class, 'inactive']);
+    Route::get('office-employees/active', [AE::class, 'active']);
+    Route::get('office-employees/inactive', [AE::class, 'inactive']);
 
     Route::get('officeemployees/date-options', [OfficeEmployeeController::class, 'dateOptions']);
     Route::get('/finances/print', [FinanceController::class, 'printView']);
@@ -274,7 +270,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/expense-oils/print', [ExpenseOilController::class, 'printView']);
     Route::get('/resources/{id}/fifty-six-format-counts', [ResourceController::class, 'fiftySixFormatCounts']);
     Route::get('/resources/print', [ResourceController::class, 'printView'])
-    ->name('resources.print');
+        ->name('resources.print');
     Route::get('/saeen-fasadas/print', [SaeenFasadController::class, 'printView']);
     Route::get('/fasads/print', [FasadController::class, 'printView']);
     Route::get('/jawasis/print', [JawasisController::class, 'printView']);
@@ -322,7 +318,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/done-lost-places/print', [DoneLostPlaceController::class, 'printView']);
     Route::get('/econemy-projects/print', [EconemyProjectController::class, 'printView']);
     Route::get('/criminal-capture-places/print', [CriminalCapturePlaceController::class, 'printView']);
-    Route::get('/pumps/print', [PumpController::class, 'printView']);Route::get('/shoras/print', [ShoraController::class, 'printView']);
+    Route::get('/pumps/print', [PumpController::class, 'printView']); Route::get('/shoras/print', [ShoraController::class, 'printView']);
     Route::get('/shoras/print', [ShoraController::class, 'printView']);
     Route::get('/government-places/print', [GovernmentPlaceController::class, 'printView']);
     Route::get('/super-markets/print', [SuperMarketController::class, 'printView']);
@@ -333,6 +329,110 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/wakilanos/print', [WakilanoController::class, 'printView']);
     Route::get('/badmashanos/print', [BadmashanoController::class, 'printView']);
 
+    // ---------------------- Security Assessments ----------------------
+
+    Route::get('/security-assessments/print', [
+        SecurityAssessmentController::class,
+        'printView',
+    ]);
+
+    Route::get('/security-assessments/export/excel', [
+        SecurityAssessmentController::class,
+        'exportExcel',
+    ]);
+
+    Route::get('/security-assessments/filter-options', [
+        SecurityAssessmentController::class,
+        'filterOptions',
+    ]);
+
+    // ---------------------- Meetings ----------------------
+
+    Route::get('/meetings/print', [
+        MeetingController::class,
+        'printView',
+    ]);
+
+    Route::get('/meetings/export/excel', [
+        MeetingController::class,
+        'exportExcel',
+    ]);
+
+    Route::get('/meetings/filter-options', [
+        MeetingController::class,
+        'filterOptions',
+    ]);
+
+    Route::get('/meetings/date-options', [
+        MeetingController::class,
+        'dateOptions',
+    ]);
+
+// Meeting documents
+    Route::get(
+        '/meetings/{meeting}/documents',
+        [
+            MeetingDocumentController::class,
+            'index',
+        ]
+    );
+
+    Route::post(
+        '/meetings/{meeting}/documents',
+        [
+            MeetingDocumentController::class,
+            'store',
+        ]
+    );
+
+    Route::delete(
+        '/meetings/{meeting}/documents/{document}',
+        [
+            MeetingDocumentController::class,
+            'destroy',
+        ]
+    );
+
+    Route::get(
+        '/meetings/{meeting}/documents/zip',
+        [
+            MeetingDocumentController::class,
+            'downloadAll',
+        ]
+    );
+
+// Main CRUD - KEEP AFTER custom meeting routes
+    Route::apiResource(
+        'meetings',
+        MeetingController::class
+    );
+
+    Route::apiResource(
+        'security-assessments',
+        SecurityAssessmentController::class
+    );
+
+    // ---------------------- Security Assessments ----------------------
+
+    Route::get('/security-assessments/print', [
+        SecurityAssessmentController::class,
+        'printView',
+    ]);
+
+    Route::get('/security-assessments/export/excel', [
+        SecurityAssessmentController::class,
+        'exportExcel',
+    ]);
+
+    Route::get('/security-assessments/filter-options', [
+        SecurityAssessmentController::class,
+        'filterOptions',
+    ]);
+
+    Route::apiResource(
+        'security-assessments',
+        SecurityAssessmentController::class
+    );
     // for pic
     Route::delete('/jawasis/{id}/picture', [JawasisController::class, 'deletePicture']);
     Route::delete('/wakilanos/{id}/picture', [WakilanoController::class, 'deletePicture']);
@@ -541,10 +641,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('captives/filter-options', [CaptiveController::class, 'filterOptions']);
     // informations (API) => module: informations_api
     protectResource('informations', 'informations_api', InformationController::class);
-    Route::get   ('informations/{information}/documents',               [InformationDocumentController::class, 'index']);
-    Route::post  ('informations/{information}/documents',               [InformationDocumentController::class, 'store']);
-    Route::delete('informations/{information}/documents/{document}',    [InformationDocumentController::class, 'destroy']);
-    Route::get   ('informations/{information}/documents/zip',           [InformationDocumentController::class, 'downloadAll']);
+    Route::get('informations/{information}/documents', [InformationDocumentController::class, 'index']);
+    Route::post('informations/{information}/documents', [InformationDocumentController::class, 'store']);
+    Route::delete('informations/{information}/documents/{document}', [InformationDocumentController::class, 'destroy']);
+    Route::get('informations/{information}/documents/zip', [InformationDocumentController::class, 'downloadAll']);
     Route::get('informations/date-options', [InformationController::class, 'dateOptions']);
     Route::get('informations/export/excel', [InformationController::class, 'exportExcel']);
     Route::get('/informations/filter-options', [InformationController::class, 'filterOptions']);
@@ -557,12 +657,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // captive-deliveries => module: captive_deliveries
     protectResource('captive-deliveries', 'captive_deliveries', CaptiveDeliveryController::class);
     Route::get('/captive-deliveries/export/excel', [CaptiveDeliveryController::class, 'exportExcel']);
-    Route::get   ('captive-deliveries/{captiveDelivery}/documents',              [CaptiveDeliveryDocumentController::class, 'index']);
-    Route::post  ('captive-deliveries/{captiveDelivery}/documents',              [CaptiveDeliveryDocumentController::class, 'store']);
-    Route::delete('captive-deliveries/{captiveDelivery}/documents/{document}',   [CaptiveDeliveryDocumentController::class, 'destroy']);
-    Route::get   ('captive-deliveries/{captiveDelivery}/documents/zip',          [CaptiveDeliveryDocumentController::class, 'downloadAll']);
+    Route::get('captive-deliveries/{captiveDelivery}/documents', [CaptiveDeliveryDocumentController::class, 'index']);
+    Route::post('captive-deliveries/{captiveDelivery}/documents', [CaptiveDeliveryDocumentController::class, 'store']);
+    Route::delete('captive-deliveries/{captiveDelivery}/documents/{document}', [CaptiveDeliveryDocumentController::class, 'destroy']);
+    Route::get('captive-deliveries/{captiveDelivery}/documents/zip', [CaptiveDeliveryDocumentController::class, 'downloadAll']);
 
-       // ---------------------- Fifty Formats (NO PREFIX, apiResource) ----------------------
+    // ---------------------- Fifty Formats (NO PREFIX, apiResource) ----------------------
 
     // Main Fifty Formats (10)
     Route::apiResource('fasads', FasadController::class);
@@ -589,8 +689,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Fifthy Format One (10)
     Route::apiResource('mawads', MawadController::class);
 
-
-
     Route::prefix('lost-mujremeens')->group(function () {
         Route::get('/', [LostMujremeenController::class, 'index']);
         Route::get('{lostMujremeen}', [LostMujremeenController::class, 'show']);
@@ -604,7 +702,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // ✅ ZIP download
         Route::get('{lostMujremeen}/documents-zip', [LostMujremeenController::class, 'downloadDocumentsZip']);
     });
-
 
     Route::apiResource('old-soldiers-homes', OldSoldiersHomesController::class);
     Route::apiResource('robbers', RobbersController::class);
@@ -675,11 +772,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('incomes', IncomeController::class);
     Route::apiResource('finances', FinanceController::class);
 
-
     // Oil
-    protectResource('oil-accounts', 'oil_accounts',  OilAccountController::class);
-    protectResource('income-oils',  'income_oils',   IncomeOilController::class);
-    protectResource('expense-oils', 'expense_oils',  ExpenseOilController::class);
+    protectResource('oil-accounts', 'oil_accounts', OilAccountController::class);
+    protectResource('income-oils', 'income_oils', IncomeOilController::class);
+    protectResource('expense-oils', 'expense_oils', ExpenseOilController::class);
 
     Route::get('/oil/summary', [OilSummaryController::class, 'index']);
 
@@ -691,87 +787,87 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('oil-reports', [OilReportController::class, 'index']);
 
     Route::prefix('finance-reports')->group(function () {
-        Route::get('income',   [FinanceReportController::class, 'incomeReport']);
-        Route::get('expense',  [FinanceReportController::class, 'expenseReport']);
+        Route::get('income', [FinanceReportController::class, 'incomeReport']);
+        Route::get('expense', [FinanceReportController::class, 'expenseReport']);
         Route::get('accounts', [FinanceReportController::class, 'accountsReport']);
     });
 
     // ---------------------- Dashboards (Sanctum only) ----------------------
     Route::prefix('dashboard/people')->group(function () {
         Route::get('cards', [PeopleDashboardController::class, 'cards']);
-        Route::get('charts/employees-by-zone',                   [PeopleDashboardController::class, 'employeesByZone']);
-        Route::get('charts/employees-with-events-by-zone',       [PeopleDashboardController::class, 'employeesWithEventsByZone']);
+        Route::get('charts/employees-by-zone', [PeopleDashboardController::class, 'employeesByZone']);
+        Route::get('charts/employees-with-events-by-zone', [PeopleDashboardController::class, 'employeesWithEventsByZone']);
         Route::get('charts/employees-with-informations-by-zone', [PeopleDashboardController::class, 'employeesWithInformationsByZone']);
-        Route::get('charts/resources-over-time',                 [PeopleDashboardController::class, 'resourcesOverTime']);
-        Route::get('charts/captive-deliveries-over-time',        [PeopleDashboardController::class, 'captiveDeliveriesOverTime']);
-        Route::get('tables/employee-activity',                   [PeopleDashboardController::class, 'employeeActivity']);
+        Route::get('charts/resources-over-time', [PeopleDashboardController::class, 'resourcesOverTime']);
+        Route::get('charts/captive-deliveries-over-time', [PeopleDashboardController::class, 'captiveDeliveriesOverTime']);
+        Route::get('tables/employee-activity', [PeopleDashboardController::class, 'employeeActivity']);
     });
     Route::post('/information/check-duplicate', [InformationController::class, 'checkDuplicate']);
     Route::prefix('dashboard/info-events')->group(function () {
-        Route::get('/cards',                         [InfoEventDashboardController::class, 'cards']);
-        Route::get('/charts/events-over-time',       [InfoEventDashboardController::class, 'eventsOverTime']);
-        Route::get('/charts/information-over-time',  [InfoEventDashboardController::class, 'informationOverTime']);
-        Route::get('/charts/employees-by-zone',      [InfoEventDashboardController::class, 'employeesByZone']);
+        Route::get('/cards', [InfoEventDashboardController::class, 'cards']);
+        Route::get('/charts/events-over-time', [InfoEventDashboardController::class, 'eventsOverTime']);
+        Route::get('/charts/information-over-time', [InfoEventDashboardController::class, 'informationOverTime']);
+        Route::get('/charts/employees-by-zone', [InfoEventDashboardController::class, 'employeesByZone']);
         Route::get('/tables/top-employees-by-resources', [InfoEventDashboardController::class, 'topEmployeesByResources']);
-        Route::get('/tables/recent-events',          [InfoEventDashboardController::class, 'recentEvents']);
-        Route::get('/tables/recent-information',     [InfoEventDashboardController::class, 'recentInformation']);
+        Route::get('/tables/recent-events', [InfoEventDashboardController::class, 'recentEvents']);
+        Route::get('/tables/recent-information', [InfoEventDashboardController::class, 'recentInformation']);
     });
 
     Route::prefix('dashboard/56-formats')->group(function () {
-        Route::get('/summary',    [FFD::class, 'summary']);
+        Route::get('/summary', [FFD::class, 'summary']);
         Route::get('/timeseries', [FFD::class, 'timeseries']);
-        Route::get('/top',        [FFD::class, 'topResources']);
-        Route::get('/recent',     [FFD::class, 'recent']);
-        Route::get('/combined',   [FFD::class, 'combined']);
+        Route::get('/top', [FFD::class, 'topResources']);
+        Route::get('/recent', [FFD::class, 'recent']);
+        Route::get('/combined', [FFD::class, 'combined']);
     });
 
     Route::prefix('dashboard/fifthyformatone')->group(function () {
-        Route::get('/summary',       [FifthyFormatOneDashboardController::class, 'summary']);
-        Route::get('/timeseries',    [FifthyFormatOneDashboardController::class, 'timeseries']);
+        Route::get('/summary', [FifthyFormatOneDashboardController::class, 'summary']);
+        Route::get('/timeseries', [FifthyFormatOneDashboardController::class, 'timeseries']);
         Route::get('/top-resources', [FifthyFormatOneDashboardController::class, 'topResources']);
-        Route::get('/recent',        [FifthyFormatOneDashboardController::class, 'recent']);
-        Route::get('/combined',      [FifthyFormatOneDashboardController::class, 'combined']);
+        Route::get('/recent', [FifthyFormatOneDashboardController::class, 'recent']);
+        Route::get('/combined', [FifthyFormatOneDashboardController::class, 'combined']);
     });
 
     Route::prefix('dashboard/fifthyformatstwo')->group(function () {
-        Route::get('summary',       [FifthyFormatsTwoDashboardController::class, 'summary']);
-        Route::get('timeseries',    [FifthyFormatsTwoDashboardController::class, 'timeseries']);
+        Route::get('summary', [FifthyFormatsTwoDashboardController::class, 'summary']);
+        Route::get('timeseries', [FifthyFormatsTwoDashboardController::class, 'timeseries']);
         Route::get('top-resources', [FifthyFormatsTwoDashboardController::class, 'topResources']);
-        Route::get('recent',        [FifthyFormatsTwoDashboardController::class, 'recent']);
-        Route::get('combined',      [FifthyFormatsTwoDashboardController::class, 'combined']);
-        Route::get('debug',         [FifthyFormatsTwoDashboardController::class, 'debug']);
-        Route::get('diag',          [FifthyFormatsTwoDashboardController::class, 'diag']);
+        Route::get('recent', [FifthyFormatsTwoDashboardController::class, 'recent']);
+        Route::get('combined', [FifthyFormatsTwoDashboardController::class, 'combined']);
+        Route::get('debug', [FifthyFormatsTwoDashboardController::class, 'debug']);
+        Route::get('diag', [FifthyFormatsTwoDashboardController::class, 'diag']);
     });
 
     Route::prefix('dashboard/ff3')->group(function () {
-        Route::get('/summary',    [FF3::class, 'summary']);
+        Route::get('/summary', [FF3::class, 'summary']);
         Route::get('/timeseries', [FF3::class, 'timeseries']);
-        Route::get('/top',        [FF3::class, 'topResources']);
-        Route::get('/zones',      [FF3::class, 'topZones']);
-        Route::get('/provinces',  [FF3::class, 'topProvinces']);
-        Route::get('/breakdown',  [FF3::class, 'breakdown']);
-        Route::get('/recent',     [FF3::class, 'recent']);
-        Route::get('/combined',   [FF3::class, 'combined']);
+        Route::get('/top', [FF3::class, 'topResources']);
+        Route::get('/zones', [FF3::class, 'topZones']);
+        Route::get('/provinces', [FF3::class, 'topProvinces']);
+        Route::get('/breakdown', [FF3::class, 'breakdown']);
+        Route::get('/recent', [FF3::class, 'recent']);
+        Route::get('/combined', [FF3::class, 'combined']);
     });
 
     Route::prefix('dashboard/ff4')->group(function () {
-        Route::get('combined',  [FF4::class, 'combined']);
+        Route::get('combined', [FF4::class, 'combined']);
         Route::get('breakdown', [FF4::class, 'breakdown']);
     });
 
     // RBAC helpers
-    Route::put ('roles/{role}/permissions', [RbacController::class, 'syncRolePermissions']);
+    Route::put('roles/{role}/permissions', [RbacController::class, 'syncRolePermissions']);
     Route::post('roles/{role}/permissions', [RbacController::class, 'syncRolePermissions']);
-    Route::get('rbac/roles',        [RbacController::class, 'roles']);
-    Route::get('rbac/permissions',  [RbacController::class, 'permissions']);
-    Route::get('/auth/me',          [AuthController::class, 'me']);
+    Route::get('rbac/roles', [RbacController::class, 'roles']);
+    Route::get('rbac/permissions', [RbacController::class, 'permissions']);
+    Route::get('/auth/me', [AuthController::class, 'me']);
 
     // Map points (for your PMTiles map)
     Route::apiResource('map-points', MapPointController::class)
         ->only(['index', 'store', 'destroy']);
 
-    // reports 
-        // ---------------------- Reports (56 formats) ----------------------
+    // reports
+    // ---------------------- Reports (56 formats) ----------------------
 
     Route::get('reports/fifty-formats', [ReportsFiftyFormatsReportController::class, 'index']);
 
@@ -783,7 +879,6 @@ Route::middleware('auth:sanctum')->group(function () {
         [OfficeEmployeeControllerReport::class, 'employeeRelation']
     );
 
-
     Route::prefix('events-report')->group(function () {
         Route::get('/', [EventControllerReport::class, 'index']);
         Route::get('/counts', [EventControllerReport::class, 'counts']);
@@ -793,7 +888,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('information-report/activity-report', [InformationReportController::class, 'activityReport']);
     Route::get('fifty-formats/counts', [FifthyFormatsCountController::class, 'index']);
-        // ---------------------- Employee Management Dashboard ----------------------
+    // ---------------------- Employee Management Dashboard ----------------------
     Route::prefix('dashboard/employee-management')->group(function () {
         // Cards: totals (employees, resources, active/inactive, info, events, captive, money, oil)
         Route::get('/cards', [EmployeeManagementDashboardController::class, 'cards']);
@@ -805,7 +900,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/formats-by-hawza', [EmployeeManagementDashboardController::class, 'formatsByHawza']);
     });
 
-        // ---------------------- Notifications ----------------------
+    // ---------------------- Notifications ----------------------
     Route::get('/notifications', [NotificationController::class, 'index'])
         ->name('notifications.index');
 
@@ -826,7 +921,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::delete('/notifications/clear', [NotificationController::class, 'clearAll']);
 
-
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/chat/users', [ChatController::class, 'users']);
         Route::get('/chat/conversations', [ChatController::class, 'conversations']);
@@ -843,46 +937,98 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/chat/ping', [ChatController::class, 'ping']);
 
-            // ✅ Calls (signaling)
-        Route::post('/chat/calls/start',  [ChatController::class, 'startCall']);
+        // ✅ Calls (signaling)
+        Route::post('/chat/calls/start', [ChatController::class, 'startCall']);
         Route::post('/chat/calls/signal', [ChatController::class, 'signalCall']);
-        Route::post('/chat/calls/end',    [ChatController::class, 'endCall']);
+        Route::post('/chat/calls/end', [ChatController::class, 'endCall']);
     });
 
-
-
-    // the resource for the active and inactive 
+    // the resource for the active and inactive
 
     Route::get('/resource-activity/counts', [ResourceActivityController::class, 'counts']);
     Route::get('/resource-activity', [ResourceActivityController::class, 'index']);
     Route::get('/resource-activity/{id}', [ResourceActivityController::class, 'show']);
     Route::get('resources/date-options', [ResourceController::class, 'dateOptions']);
     Route::get('/resources/export/excel', [ResourceController::class, 'exportExcel']);
+    Route::get('/apartments/export/excel', [ApartmentController::class, 'exportExcel']);
+    Route::get('/banks/export/excel', [BankController::class, 'exportExcel']);
+    Route::get('/car-sales-companies/export/excel', [CarSalesCompanyController::class, 'exportExcel']);
+    Route::get('/captives/export/excel', [CaptiveController::class, 'exportExcel']);
+    Route::get('/badmashanos/export/excel', [BadmashanoController::class, 'exportExcel']);
+    Route::get('/checkpoints/export/excel', [CheckpointController::class, 'exportExcel']);
+    Route::get('/clubs/export/excel', [ClubsController::class, 'exportExcel']);
+    Route::get('/companies/export/excel', [CompanyController::class, 'exportExcel']);
+    Route::get('/criminal-capture-places/export/excel', [CriminalCapturePlaceController::class, 'exportExcel']);
+    Route::get('/complexes/export/excel', [ComplexController::class, 'exportExcel']);
+    Route::get('/damage-places/export/excel', [DamagePlacesController::class, 'exportExcel']);
+    Route::get('/damage-rasan-places/export/excel', [DamageRasanPlacesController::class, 'exportExcel']);
+    Route::get('/deplomaticplaces/export/excel', [DeplomaticPlaceController::class, 'exportExcel']);
+    Route::get('/done-lost-places/export/excel', [DoneLostPlaceController::class, 'exportExcel']);
+    Route::get('/econemy-projects/export/excel', [EconemyProjectController::class, 'exportExcel']);
+    Route::get('/emarat-offices/export/excel', [EmaratOfficeController::class, 'exportExcel']);
+    Route::get('/entry-exits/export/excel', [EntryExitController::class, 'exportExcel']);
+    Route::get('/fasads/export/excel', [FasadController::class, 'exportExcel']);
+    Route::get('/heists/export/excel', [HeistController::class, 'exportExcel']);
+    Route::get('/government-places/export/excel', [GovernmentPlaceController::class, 'exportExcel']);
+    Route::get('/highways/export/excel', [HighwayController::class, 'exportExcel']);
+    Route::get('/hado-bus-stops/export/excel', [HadoBusStopController::class, 'exportExcel']);
+    Route::get('/hosppitals/export/excel', [HosppitalController::class, 'exportExcel']);
+    Route::get('/hostels/export/excel', [HostelController::class, 'exportExcel']);
+    Route::get('/hotels/export/excel', [HotelController::class, 'exportExcel']);
+    Route::get('/jawasis/export/excel', [JawasisController::class, 'exportExcel']);
+    Route::get('/lost-mujremeens/export/excel', [LostMujremeenController::class, 'exportExcel']);
+    Route::get('/luchakanos/export/excel', [LuchakanoController::class, 'exportExcel']);
+    Route::get('/madrasas/export/excel', [MadrasaController::class, 'exportExcel']);
+    Route::get('/mahajerats/export/excel', [MahajeratController::class, 'exportExcel']);
+    Route::get('/mashkok-homes/export/excel', [MashkokHomesController::class, 'exportExcel']);
+    Route::get('/mashkok-people/export/excel', [MashkokPeopleController::class, 'exportExcel']);
+    Route::get('/mashkok-shops/export/excel', [MashkokShopsController::class, 'exportExcel']);
+    Route::get('/masjids/export/excel', [MasjidController::class, 'exportExcel']);
+    Route::get('/mawads/export/excel', [MawadController::class, 'exportExcel']);
+    Route::get('/mujahedinos/export/excel', [MujahedinoController::class, 'exportExcel']);
+    Route::get('/mulkanos/export/excel', [MulkanoController::class, 'exportExcel']);
+    Route::get('/non-responsable-people/export/excel', [NonResponsablePeopleController::class, 'exportExcel']);
+    Route::get('/old-jahadis/export/excel', [OldJahadiController::class, 'exportExcel']);
+    Route::get('/old-soldiers-homes/export/excel', [OldSoldiersHomesController::class, 'exportExcel']);
+    Route::get('/parks/export/excel', [ParkController::class, 'exportExcel']);
+    Route::get('/parkings/export/excel', [ParkingController::class, 'exportExcel']);
+    Route::get('/pumps/export/excel', [PumpController::class, 'exportExcel']);
+    Route::get('/rahnoma-mamlats/export/excel', [RahnomaMamlatController::class, 'exportExcel']);
+    Route::get('/robbers/export/excel', [RobbersController::class, 'exportExcel']);
+    Route::get('/saeen-fasadas/export/excel', [SaeenFasadController::class, 'exportExcel']);
+    Route::get('/sarafyanos/export/excel', [SarafyanoController::class, 'exportExcel']);
+    Route::get('/soldiers/export/excel', [SoldierController::class, 'exportExcel']);
+    Route::get('/sarayanos/export/excel', [SarayanoController::class, 'exportExcel']);
+    Route::get('/tujarans/export/excel', [TujaranController::class, 'exportExcel']);
+    Route::get('/schools/export/excel', [SchoolController::class, 'exportExcel']);
+    Route::get('/work-shops/export/excel', [WorkShopController::class, 'exportExcel']);
+    Route::get('/transport-companies/export/excel', [TransportCompanyController::class, 'exportExcel']);
+    Route::get('/shoras/export/excel', [ShoraController::class, 'exportExcel']);
+    Route::get('/super-markets/export/excel', [SuperMarketController::class, 'exportExcel']);
+    Route::get('/universities/export/excel', [UniversityController::class, 'exportExcel']);
+    Route::get('/wakilanos/export/excel', [WakilanoController::class, 'exportExcel']);
     Route::get('/resources/filter-options', [ResourceController::class, 'filterOptions']);
     // daily report + monthly report + yearly report
 
     Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/reports/foul/daily', DailyFoulReportController::class);
-    Route::get('/reports/foul/monthly', MonthlyFoulReportController::class);
-    Route::get('/reports/foul/yearly', YearlyFoulReportController::class);
-    Route::get('/reports/foul/yearly/date-options', [YearlyFoulReportController::class, 'dateOptions']);
-    Route::get('/reports/foul/weekly', WeeklyFoulReportController::class);
-    Route::get('/reports/foul/quarterly', QuarterlyFoulReportController::class);
-    Route::get('/reports/foul/all-time', AllTimeFoulReportController::class);
+        Route::get('/reports/foul/daily', DailyFoulReportController::class);
+        Route::get('/reports/foul/monthly', MonthlyFoulReportController::class);
+        Route::get('/reports/foul/yearly', YearlyFoulReportController::class);
+        Route::get('/reports/foul/yearly/date-options', [YearlyFoulReportController::class, 'dateOptions']);
+        Route::get('/reports/foul/weekly', WeeklyFoulReportController::class);
+        Route::get('/reports/foul/quarterly', QuarterlyFoulReportController::class);
+        Route::get('/reports/foul/all-time', AllTimeFoulReportController::class);
     });
 
-
-    // dashboard 
+    // dashboard
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
     // Outgoing/Incoming CRUD
 
     Route::apiResource('outgoing-incomings', OutgoingIncomingController::class);
 
-
     // ✅ ZIP Download (ALL docs for one record)
     Route::get('/outgoing-incomings/{id}/documents-zip', [OutgoingIncomingController::class, 'downloadDocumentsZip']);
-
 
     // system settings
 
@@ -901,21 +1047,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('resource-activity-types', ResourceActivityTypeController::class);
         Route::apiResource('mawqaf-jahadis', MawqafJahadiController::class);
 
-        // khayrat report 
+        // khayrat report
         Route::apiResource('khayrat-reports', KhayratReportController::class);
         Route::apiResource('format-zones', FormatZoneController::class);
     });
     Route::apiResource('docs-types', DocsTypeController::class);
     Route::apiResource('marjas', MarjaController::class);
 
-
     Route::apiResource('jawasis', JawasisController::class);
     Route::post('jawasis/bulk-delete', [JawasisController::class, 'bulkDelete']);
     Route::delete('jawasis/document/{id}', [JawasisController::class, 'deleteDocument']);
     Route::get('jawasis/{id}/download-zip', [JawasisController::class, 'downloadZip']);
 
-
-    
     Route::prefix('report-notes')->group(function () {
         Route::get('/', [ReportNoteController::class, 'index']);
         Route::post('/', [ReportNoteController::class, 'store']);

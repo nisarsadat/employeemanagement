@@ -289,6 +289,20 @@
         to: { path: '/app/events' },
         perm: 'events.view',
       },
+     {
+  key: 'meetings',
+  title: t('جلسات'),
+  icon: 'mdi-calendar-account-outline',
+  to: { path: '/app/meetings' },
+  perm: 'meetings.view',
+},
+      {
+        key: 'security-assessments',
+        title: t('ارزیابی امنیتی'),
+        icon: 'mdi-shield-check-outline',
+        to: { path: '/app/security-assessments' },
+        perm: 'securityassessments.view',
+      },
       {
         key: 'captives',
         title: t('زندانی های تسلیم شده'),

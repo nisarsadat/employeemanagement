@@ -12,6 +12,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\CarSalesCompanyExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CarSalesCompanyController extends Controller
 {
@@ -542,5 +544,26 @@ public function deletePicture($id)
     $carSalesCompany = CarSalesCompany::findOrFail($id);
 
     return $this->removePictureFileAndClear($carSalesCompany);
-}  
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $cardFilter = trim((string) $request->get('card_filter', 'all'));
+
+    $fileName = 'car_sales_companies_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+    return Excel::download(
+        new CarSalesCompanyExport([
+            'search'       => $search,
+            'search_field' => $searchField,
+            'search_value' => $searchValue,
+            'card_filter'  => $cardFilter,
+            'resource_id'  => $request->get('resource_id'),
+        ]),
+        $fileName
+    );
+}
 }

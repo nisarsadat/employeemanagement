@@ -290,6 +290,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
       }
     },
 
+    /* ==================== MAWAD EXCEL EXPORT ==================== */
+    async DownloadMawadExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/mawads/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'mawads.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadMawadExcel error:', error); throw error; }
+    },
+
     /* ============================ Lost Mujremeens ============================ */
     async FetchLostMujremeensData(params = {}) {
       this.loading = true;
@@ -448,6 +464,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.error = e;
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
+    },
+
+    /* ==================== LOST MUJREMEEN EXCEL EXPORT ==================== */
+    async DownloadLostMujremeenExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/lost-mujremeens/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'lost_mujremeens.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadLostMujremeenExcel error:', error); throw error; }
     },
 
     /* ============================ Old Soldiers Homes ============================ */
@@ -614,6 +646,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
       }
     },
 
+    /* ==================== OLD SOLDIERS HOMES EXCEL EXPORT ==================== */
+    async DownloadOldSoldiersHomeExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/old-soldiers-homes/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'old_soldiers_homes.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadOldSoldiersHomeExcel error:', error); throw error; }
+    },
+
     /* ============================ Robbers ============================ */
     async FetchRobbersData(params = {}) {
       this.loading = true;
@@ -737,6 +785,23 @@ export const useMawadRepository = defineStore('MawadRepository', {
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
     },
+
+    /* ==================== ROBBERS EXCEL EXPORT ==================== */
+    async DownloadRobbersExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/robbers/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'robbers.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadRobbersExcel error:', error); throw error; }
+    },
+
     async OpenRobbersPrintView(payload = {}) {
       const {
         selected_columns,
@@ -942,6 +1007,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
       }
     },
 
+    /* ==================== NON RESPONSABLE PEOPLE EXCEL EXPORT ==================== */
+    async DownloadNonResponsablePeopleExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/non-responsable-people/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'non_responsable_people.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadNonResponsablePeopleExcel error:', error); throw error; }
+    },
+
     /* ============================ Mashkok Homes ============================ */
     async FetchMashkokHomesData(params = {}) {
       this.loading = true;
@@ -1104,6 +1185,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.error = e;
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
+    },
+
+    /* ==================== MASHKOK HOMES EXCEL EXPORT ==================== */
+    async DownloadMashkokHomeExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/mashkok-homes/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'mashkok_homes.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadMashkokHomeExcel error:', error); throw error; }
     },
 
     /* ============================ DamagePlacses ============================ */
@@ -1270,6 +1367,25 @@ export const useMawadRepository = defineStore('MawadRepository', {
       }
     },
 
+    /* ==================== DAMAGE PLACES EXCEL EXPORT ==================== */
+    async DownloadDamagePlacesExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, card_filter = 'all', resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/damage-places/export/excel', {
+          params: { search, search_field, search_value, card_filter, resource_id },
+          responseType: 'blob', onDownloadProgress,
+        });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'damage_places.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) fileName = match[1].replace(/['"]/g, ''); }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadDamagePlacesExcel error:', error); throw error; }
+    },
+
     /* ============================ Damage Rasan PLaces ============================ */
     async FetchDamageRasanPlacesData(params = {}) {
       this.loading = true;
@@ -1430,6 +1546,25 @@ export const useMawadRepository = defineStore('MawadRepository', {
       }
     },
 
+    /* ==================== DAMAGE RASAN PLACES EXCEL EXPORT ==================== */
+    async DownloadDamageRasanPlacesExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, card_filter = 'all', resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/damage-rasan-places/export/excel', {
+          params: { search, search_field, search_value, card_filter, resource_id },
+          responseType: 'blob', onDownloadProgress,
+        });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'damage_rasan_places.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) fileName = match[1].replace(/['"]/g, ''); }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadDamageRasanPlacesExcel error:', error); throw error; }
+    },
+
     /* ============================ Mashkok Shops ============================ */
     async FetchMashkokShopsData(params = {}) {
       this.loading = true;
@@ -1588,6 +1723,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.error = e;
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
+    },
+
+    /* ==================== MASHKOK SHOPS EXCEL EXPORT ==================== */
+    async DownloadMashkokShopExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/mashkok-shops/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'mashkok_shops.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadMashkokShopExcel error:', error); throw error; }
     },
 
     /* ============================ Luchakano ============================ */
@@ -1752,6 +1903,22 @@ export const useMawadRepository = defineStore('MawadRepository', {
         this.error = e;
         toast.error(errText(e, 'ریکارډ  حذف نشو'));
       }
+    },
+
+    /* ==================== LUCHARANO EXCEL EXPORT ==================== */
+    async DownloadLuchakanoExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/luchakanos/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'luchakanos.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadLuchakanoExcel error:', error); throw error; }
     },
 
     // ⬇️ Download ALL documents of Mashkok Home as ZIP

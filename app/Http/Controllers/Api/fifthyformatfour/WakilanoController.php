@@ -13,6 +13,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\WakilanoExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class WakilanoController extends Controller
 {
@@ -543,4 +545,10 @@ private function removePictureFileAndClear($model)
 
     return $this->removePictureFileAndClear($wakilano);
 }
+
+    public function exportExcel(Request $request)
+    {
+        $filters = $request->only(['search', 'search_field', 'search_value', 'resource_id']);
+        return Excel::download(new WakilanoExport($filters), 'wakilano_' . now()->format('Y_m_d_His') . '.xlsx');
+    }
 }

@@ -12,6 +12,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\TransportCompanyExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TransportCompanyController extends Controller
 {
@@ -620,4 +622,10 @@ public function deletePicture($id)
 
     return $this->removePictureFileAndClear($transportCompany);
 }  
+
+    public function exportExcel(Request $request)
+    {
+        $filters = $request->only(['search', 'search_field', 'search_value', 'resource_id']);
+        return Excel::download(new TransportCompanyExport($filters), 'transport_company_' . now()->format('Y_m_d_His') . '.xlsx');
+    }
 }

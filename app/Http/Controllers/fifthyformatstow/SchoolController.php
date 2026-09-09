@@ -12,6 +12,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\SchoolExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SchoolController extends Controller
 {
@@ -555,4 +557,10 @@ private function removePictureFileAndClear($model)
 
     return $this->removePictureFileAndClear($school);
 }
+
+    public function exportExcel(Request $request)
+    {
+        $filters = $request->only(['search', 'search_field', 'search_value', 'resource_id']);
+        return Excel::download(new SchoolExport($filters), 'school_' . now()->format('Y_m_d_His') . '.xlsx');
+    }
 }

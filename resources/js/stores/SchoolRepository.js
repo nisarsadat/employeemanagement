@@ -282,6 +282,19 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       }
     },
 
+    /* ============================ School Excel Download ============================ */
+    async DownloadSchoolExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/schools/export/excel', {
+          params: { search, search_field, search_value, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+        return response;
+      } catch (error) { console.error('DownloadSchoolExcel error:', error); throw error; }
+    },
+
     /* ============================ HadoBusStops ============================ */
     async FetchHadoBusStopsData(params = {}) {
       this.loading = true;
@@ -439,6 +452,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       }
     },
 
+    /* ==================== HADO BUS STOP EXCEL EXPORT ==================== */
+    async DownloadHadoBusStopExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/hado-bus-stops/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'hado_bus_stops.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadHadoBusStopExcel error:', error); throw error; }
+    },
+
     /* ============================ TransportCompanies ============================ */
     async FetchTransportCompaniesData(params = {}) {
       this.loading = true;
@@ -594,6 +623,19 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.error = e;
         toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
+    },
+
+    /* ============================ TransportCompany Excel Download ============================ */
+    async DownloadTransportCompanyExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/transport-companies/export/excel', {
+          params: { search, search_field, search_value, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+        return response;
+      } catch (error) { console.error('DownloadTransportCompanyExcel error:', error); throw error; }
     },
 
     /* ============================ CarSalesCompanies ============================ */
@@ -908,6 +950,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.error = e;
         toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
+    },
+
+    /* ==================== PARKING EXCEL EXPORT ==================== */
+    async DownloadParkingExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/parkings/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'parkings.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadParkingExcel error:', error); throw error; }
     },
 
     /* ============================ Banks ============================ */
@@ -1381,6 +1439,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
       }
     },
 
+    /* ==================== RAHNOMA MAMLAT EXCEL EXPORT ==================== */
+    async DownloadRahnomaMamlatExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/rahnoma-mamlats/export/excel', { params: { search, search_field, search_value, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'rahnoma_mamlats.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadRahnomaMamlatExcel error:', error); throw error; }
+    },
+
     /* ============================ Hosppitals ============================ */
     async FetchHosppitalsData(params = {}) {
       this.loading = true;
@@ -1536,6 +1610,22 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.error = e;
         toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
+    },
+
+    /* ==================== HOSPPITAL EXCEL EXPORT ==================== */
+    async DownloadHosppitalExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, card_filter = 'all', resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/hosppitals/export/excel', { params: { search, search_field, search_value, card_filter, resource_id }, responseType: 'blob', onDownloadProgress });
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url;
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'hosppitals.xlsx';
+        if (disposition) { const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/); if (match?.[1]) { fileName = match[1].replace(/['"]/g, ''); } }
+        link.setAttribute('download', fileName); document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
+        return response;
+      } catch (error) { console.error('DownloadHosppitalExcel error:', error); throw error; }
     },
 
     /* ============================ WorkShops ============================ */
@@ -1694,6 +1784,20 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         toast.error(errText(e, 'ریکارډ حذف نه شو'));
       }
     },
+
+    /* ============================ WorkShop Excel Download ============================ */
+    async DownloadWorkShopExcel(payload = {}) {
+      try {
+        const { search = '', search_field = null, search_value = null, resource_id = null, onDownloadProgress = null } = payload;
+        const response = await axios.get('/work-shops/export/excel', {
+          params: { search, search_field, search_value, resource_id },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+        return response;
+      } catch (error) { console.error('DownloadWorkShopExcel error:', error); throw error; }
+    },
+
     /* ============================ Delete Pictures ============================ */
 
     async DeleteSchoolPicture(id) {
@@ -1833,6 +1937,171 @@ export const useSchoolRepository = defineStore('SchoolRepository', {
         this.error = e;
         toast.error(errText(e, 'عکس حذف نه شو'));
         throw e;
+      }
+    },
+
+    /* ==================== EXCEL EXPORTS ==================== */
+
+    async DownloadApartmentExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          search_value = null,
+          card_filter = 'all',
+          resource_id = null,
+          fifty_six_format_id = null,
+          onDownloadProgress = null,
+        } = payload;
+
+        const response = await axios.get('/apartments/export/excel', {
+          params: {
+            search,
+            search_field,
+            search_value,
+            card_filter,
+            resource_id,
+            fifty_six_format_id,
+          },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'apartments.xlsx';
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) {
+            fileName = match[1].replace(/['"]/g, '');
+          }
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadApartmentExcel error:', error);
+        throw error;
+      }
+    },
+
+    async DownloadBankExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          search_value = null,
+          card_filter = 'all',
+          resource_id = null,
+          fifty_six_format_id = null,
+          onDownloadProgress = null,
+        } = payload;
+
+        const response = await axios.get('/banks/export/excel', {
+          params: {
+            search,
+            search_field,
+            search_value,
+            card_filter,
+            resource_id,
+            fifty_six_format_id,
+          },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'banks.xlsx';
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) {
+            fileName = match[1].replace(/['"]/g, '');
+          }
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadBankExcel error:', error);
+        throw error;
+      }
+    },
+
+    async DownloadCarSalesCompanyExcel(payload = {}) {
+      try {
+        const {
+          search = '',
+          search_field = null,
+          search_value = null,
+          card_filter = 'all',
+          resource_id = null,
+          onDownloadProgress = null,
+        } = payload;
+
+        const response = await axios.get('/car-sales-companies/export/excel', {
+          params: {
+            search,
+            search_field,
+            search_value,
+            card_filter,
+            resource_id,
+          },
+          responseType: 'blob',
+          onDownloadProgress,
+        });
+
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers['content-disposition'];
+        let fileName = 'car_sales_companies.xlsx';
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match?.[1]) {
+            fileName = match[1].replace(/['"]/g, '');
+          }
+        }
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return response;
+      } catch (error) {
+        console.error('DownloadCarSalesCompanyExcel error:', error);
+        throw error;
       }
     },
   },

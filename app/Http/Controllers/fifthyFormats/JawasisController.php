@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\JawasisExport;
 use App\Services\NotificationService;
 
 class JawasisController extends Controller
@@ -754,5 +756,14 @@ private function removePictureFileAndClear($model)
     $jawasi = Jawasis::findOrFail($id);
 
     return $this->removePictureFileAndClear($jawasi);
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $fileName = 'jawasis_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+    return Excel::download(new JawasisExport(['search' => $search, 'search_field' => $searchField, 'search_value' => $searchValue, 'resource_id' => $request->get('resource_id')]), $fileName);
 }
 }

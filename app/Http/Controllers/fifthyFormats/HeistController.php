@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use ZipArchive;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\HeistExport;
 use App\Services\NotificationService; // 🔔 notifications
 
 class HeistController extends Controller
@@ -689,5 +691,24 @@ public function deletePicture($id)
     $heist = Heist::findOrFail($id);
 
     return $this->removePictureFileAndClear($heist);
-}  
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+
+    $fileName = 'heists_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+    return Excel::download(
+        new HeistExport([
+            'search'       => $search,
+            'search_field' => $searchField,
+            'search_value' => $searchValue,
+            'resource_id'  => $request->get('resource_id'),
+        ]),
+        $fileName
+    );
+}
 }

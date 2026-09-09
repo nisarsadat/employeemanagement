@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\EntryExitExport;
 use App\Services\NotificationService; // 🔔 notifications
 
 class EntryExitController extends Controller
@@ -461,5 +463,24 @@ public function deletePicture($id)
     $entryExit = EntryExit::findOrFail($id);
 
     return $this->removePictureFileAndClear($entryExit);
-}  
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+
+    $fileName = 'entry_exits_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+    return Excel::download(
+        new EntryExitExport([
+            'search'       => $search,
+            'search_field' => $searchField,
+            'search_value' => $searchValue,
+            'resource_id'  => $request->get('resource_id'),
+        ]),
+        $fileName
+    );
+}
 }

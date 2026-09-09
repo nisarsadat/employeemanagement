@@ -528,5 +528,14 @@ public function deletePicture($id)
     $oldJahadi = OldJahadi::findOrFail($id);
 
     return $this->removePictureFileAndClear($oldJahadi);
-}  
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $fileName = 'old_jahadis_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+    return Excel::download(new \App\Exports\OldJahadiExport(['search' => $search, 'search_field' => $searchField, 'search_value' => $searchValue, 'resource_id' => $request->get('resource_id')]), $fileName);
+}
 }

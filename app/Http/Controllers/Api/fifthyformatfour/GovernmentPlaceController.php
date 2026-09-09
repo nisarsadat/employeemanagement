@@ -13,6 +13,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\GovernmentPlaceExport;
 
 class GovernmentPlaceController extends Controller
 {
@@ -516,5 +518,26 @@ private function removePictureFileAndClear($model)
     $governmentPlace = GovernmentPlace::findOrFail($id);
 
     return $this->removePictureFileAndClear($governmentPlace);
+}
+
+public function exportExcel(Request $request)
+{
+    $search = trim((string) $request->get('search', ''));
+    $searchField = $request->get('search_field');
+    $searchValue = $request->get('search_value');
+    $cardFilter = trim((string) $request->get('card_filter', 'all'));
+
+    $fileName = 'government_places_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+    return Excel::download(
+        new GovernmentPlaceExport([
+            'search'       => $search,
+            'search_field' => $searchField,
+            'search_value' => $searchValue,
+            'card_filter'  => $cardFilter,
+            'resource_id'  => $request->get('resource_id'),
+        ]),
+        $fileName
+    );
 }
 }

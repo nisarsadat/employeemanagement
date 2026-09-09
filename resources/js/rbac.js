@@ -182,6 +182,8 @@ const FIFTY_FORMATS = [
   { slug: 'parks', path: '/app/parks' },
   { slug: 'complexes', path: '/app/complexes' },
   { slug: 'deplomaticplaces', path: '/app/deplomaticplaces' },
+  { slug: 'meetings', path: '/app/meetings' },
+  { slug: 'securityassessments', path: '/app/security-assessments' },
 ].map((x) => ({ ...x, perm: `${x.slug}.view` }));
 
 // ✅ Final exported candidates
