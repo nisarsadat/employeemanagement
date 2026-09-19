@@ -922,6 +922,12 @@ class MeetingController extends Controller
 
             'to_date' =>
                 'nullable|date',
+
+            'locale' =>
+                'nullable|string',
+
+            'column_labels' =>
+                'nullable|array',
         ]);
 
         return Excel::download(
@@ -982,6 +988,18 @@ class MeetingController extends Controller
                     )
                     ?? $request->input(
                         'to_date'
+                    ),
+
+                locale:
+                    $request->input(
+                        'locale',
+                        'fa'
+                    ),
+
+                columnLabels:
+                    (array) $request->input(
+                        'column_labels',
+                        []
                     ),
             ),
             'meetings.xlsx'

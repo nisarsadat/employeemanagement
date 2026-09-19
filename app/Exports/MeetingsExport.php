@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\LocalizesExcelExport;
 use App\Models\Meeting;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,6 +22,8 @@ class MeetingsExport implements
     WithEvents,
     WithColumnWidths
 {
+    use LocalizesExcelExport;
+
     protected ?string $search;
     protected ?string $searchField;
     protected ?string $searchValue;
@@ -31,6 +34,8 @@ class MeetingsExport implements
     protected ?string $date;
     protected ?string $dateFrom;
     protected ?string $dateTo;
+    protected string $locale;
+    protected array $columnLabels;
 
     public function __construct(
         ?string $search = null,
@@ -42,7 +47,9 @@ class MeetingsExport implements
         ?string $dateField = 'start_date',
         ?string $date = null,
         ?string $dateFrom = null,
-        ?string $dateTo = null
+        ?string $dateTo = null,
+        ?string $locale = 'fa',
+        array $columnLabels = []
     ) {
         $this->search =
             trim(
@@ -102,6 +109,14 @@ class MeetingsExport implements
 
         $this->dateTo =
             $dateTo;
+
+        $this->locale =
+            $this->normalizeLocale(
+                $locale
+            );
+
+        $this->columnLabels =
+            $columnLabels;
     }
 
     private function searchableColumns(): array
@@ -360,29 +375,110 @@ class MeetingsExport implements
     public function headings(): array
     {
         return [
-            'آی دی',
-            'عنوان جلسه',
-            'ارگان',
-            'ولایت',
-            'ولسوالی',
-            'محل مشخص',
-            'کوردینات',
-            'تاریخ شروع',
-            'تاریخ ختم',
-            'مجموع زمان',
-            'اشتراک کننده گان',
-            'اشتراک کننده مسئول',
-            'تعداد کارمندان دفتر',
-            'نام مسئول',
-            'فعالیت های انجام شده',
-            'حالات مشکوک',
-            'مشکلات',
-            'تهیه کننده جلسه',
-            'شماره تماس تهیه کننده',
-            'مسئول امنیت جلسه',
-            'شماره تماس مسئول امنیت',
-            'تعداد منسوبین امنیتی',
-            'ملاحظات',
+            $this->headingFor('id', 'آی دی'),
+            $this->headingFor('meeting_title', 'عنوان جلسه'),
+            $this->headingFor('organ', 'ارگان'),
+            $this->headingFor('province', 'ولایت'),
+            $this->headingFor('district', 'ولسوالی'),
+            $this->headingFor('specific_place', 'محل مشخص'),
+            $this->headingFor('coordinates', 'کوردینات'),
+            $this->headingFor('start_date', 'تاریخ شروع'),
+            $this->headingFor('end_date', 'تاریخ ختم'),
+            $this->headingFor('total_time', 'مجموع زمان'),
+            $this->headingFor('participant', 'اشتراک کننده گان'),
+            $this->headingFor('boss_participant', 'اشتراک کننده مسئول'),
+            $this->headingFor('office_employee_count', 'تعداد کارمندان دفتر'),
+            $this->headingFor('leader_name', 'نام مسئول'),
+            $this->headingFor('done_actions', 'فعالیت های انجام شده'),
+            $this->headingFor('mashkok_situations', 'حالات مشکوک'),
+            $this->headingFor('problems', 'مشکلات'),
+            $this->headingFor('meeting_supplier', 'تهیه کننده جلسه'),
+            $this->headingFor('meeting_supplier_phone', 'شماره تماس تهیه کننده'),
+            $this->headingFor('meeting_amniyat_responsable', 'مسئول امنیت جلسه'),
+            $this->headingFor('meeting_amniyat_responsable_phone', 'شماره تماس مسئول امنیت'),
+            $this->headingFor('amniyat_mansobine_count', 'تعداد منسوبین امنیتی'),
+            $this->headingFor('note', 'ملاحظات'),
+        ];
+    }
+
+    private function defaultHeadingsByLocale(): array
+    {
+        return [
+            'fa' => [
+                'id' => 'آی دی',
+                'meeting_title' => 'عنوان جلسه',
+                'organ' => 'ارگان',
+                'province' => 'ولایت',
+                'district' => 'ولسوالی',
+                'specific_place' => 'محل مشخص',
+                'coordinates' => 'کوردینات',
+                'start_date' => 'تاریخ شروع',
+                'end_date' => 'تاریخ ختم',
+                'total_time' => 'مجموع زمان',
+                'participant' => 'اشتراک کننده گان',
+                'boss_participant' => 'اشتراک کننده مسئول',
+                'office_employee_count' => 'تعداد کارمندان دفتر',
+                'leader_name' => 'نام مسئول',
+                'done_actions' => 'فعالیت های انجام شده',
+                'mashkok_situations' => 'حالات مشکوک',
+                'problems' => 'مشکلات',
+                'meeting_supplier' => 'تهیه کننده جلسه',
+                'meeting_supplier_phone' => 'شماره تماس تهیه کننده',
+                'meeting_amniyat_responsable' => 'مسئول امنیت جلسه',
+                'meeting_amniyat_responsable_phone' => 'شماره تماس مسئول امنیت',
+                'amniyat_mansobine_count' => 'تعداد منسوبین امنیتی',
+                'note' => 'ملاحظات',
+            ],
+            'ps' => [
+                'id' => 'آی‌ډي',
+                'meeting_title' => 'مجلس / غونډې عنوان',
+                'organ' => 'دائرونکی ارګان',
+                'province' => 'ولایت',
+                'district' => 'ناحیه/ولسوالي',
+                'specific_place' => 'مشخص ځای',
+                'coordinates' => 'کوردینات',
+                'start_date' => 'د پیل نېټه',
+                'end_date' => 'د پای نېټه',
+                'total_time' => 'د دوام موده',
+                'participant' => 'ګډون کوونکو شمېر',
+                'boss_participant' => 'ګډون کوونکو مشرانو شمېر',
+                'office_employee_count' => 'د مدیریت خدمتي کارمندانو شمېر',
+                'leader_name' => 'د سیسټم نوم',
+                'done_actions' => 'ترسره کړې کړنې',
+                'mashkok_situations' => 'مشکوک وضعیتونه',
+                'problems' => 'ستونزې',
+                'meeting_supplier' => 'د غونډې تنظیمونکی اداري واحد',
+                'meeting_supplier_phone' => 'د غونډې د منتظم تیلیفون شمېر',
+                'meeting_amniyat_responsable' => 'د عمومي امنیت مسؤول',
+                'meeting_amniyat_responsable_phone' => 'د عمومي امنیت د مسؤول شمېره',
+                'amniyat_mansobine_count' => 'د امنیت تأمینونکو امنیتي منسوبینو شمېر',
+                'note' => 'کتنې',
+            ],
+            'en' => [
+                'id' => 'ID',
+                'meeting_title' => 'Meeting Title',
+                'organ' => 'Organization',
+                'province' => 'Province',
+                'district' => 'District',
+                'specific_place' => 'Specific location',
+                'coordinates' => 'Coordinates',
+                'start_date' => 'Start Date',
+                'end_date' => 'End Date',
+                'total_time' => 'Duration',
+                'participant' => 'Number of Participants',
+                'boss_participant' => 'Number of Participant Leaders',
+                'office_employee_count' => 'Number of Service Staff',
+                'leader_name' => 'System Name',
+                'done_actions' => 'Actions Taken',
+                'mashkok_situations' => 'Suspicious Situations',
+                'problems' => 'Problems',
+                'meeting_supplier' => 'Meeting Organizer Administrative Unit',
+                'meeting_supplier_phone' => 'Meeting Organizer Phone Number',
+                'meeting_amniyat_responsable' => 'General Security Responsible',
+                'meeting_amniyat_responsable_phone' => 'General Security Responsible Phone Number',
+                'amniyat_mansobine_count' => 'Number of Security Personnel',
+                'note' => 'Notes',
+            ],
         ];
     }
 
@@ -446,7 +542,7 @@ class MeetingsExport implements
 
                     $sheet
                         ->setRightToLeft(
-                            true
+                            $this->isRtl()
                         );
 
                     $sheet
@@ -497,8 +593,8 @@ class MeetingsExport implements
                         )
                         ->getAlignment()
                         ->setHorizontal(
-                            Alignment::
-                                HORIZONTAL_RIGHT
+                            $this
+                                ->horizontalAlignment()
                         )
                         ->setVertical(
                             Alignment::

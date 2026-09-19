@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\LocalizesExcelExport;
 use App\Models\SecurityAssessment;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
@@ -19,26 +20,34 @@ class SecurityAssessmentsExport implements
     WithEvents,
     WithColumnWidths
 {
+    use LocalizesExcelExport;
+
     protected ?string $search;
     protected ?string $searchField;
     protected ?string $searchValue;
+    protected string $stat;
     protected ?int $year;
     protected ?int $month;
     protected string $dateField;
     protected ?string $date;
     protected ?string $dateFrom;
     protected ?string $dateTo;
+    protected string $locale;
+    protected array $columnLabels;
 
     public function __construct(
         ?string $search = null,
         ?string $searchField = null,
         ?string $searchValue = null,
+        ?string $stat = 'all',
         ?int $year = null,
         ?int $month = null,
         ?string $dateField = 'created_at',
         ?string $date = null,
         ?string $dateFrom = null,
-        ?string $dateTo = null
+        ?string $dateTo = null,
+        ?string $locale = 'fa',
+        array $columnLabels = []
     ) {
         $this->search =
             trim(
@@ -54,6 +63,21 @@ class SecurityAssessmentsExport implements
             trim(
                 (string) $searchValue
             ) ?: null;
+
+        $this->stat =
+            in_array(
+                $stat,
+                [
+                    'all',
+                    'north',
+                    'south',
+                    'east',
+                    'west',
+                ],
+                true
+            )
+                ? $stat
+                : 'all';
 
         $this->year =
             $year;
@@ -81,6 +105,14 @@ class SecurityAssessmentsExport implements
 
         $this->dateTo =
             $dateTo;
+
+        $this->locale =
+            $this->normalizeLocale(
+                $locale
+            );
+
+        $this->columnLabels =
+            $columnLabels;
     }
 
     private function searchableColumns(): array
@@ -216,6 +248,16 @@ class SecurityAssessmentsExport implements
             );
         }
 
+        if (
+            $this->stat !==
+            'all'
+        ) {
+            $query->where(
+                'direction',
+                $this->stat
+            );
+        }
+
         if ($this->year) {
             $query->whereYear(
                 $this->dateField,
@@ -295,34 +337,130 @@ class SecurityAssessmentsExport implements
     public function headings(): array
     {
         return [
-            'آی دی',
-            'نام محل',
-            'نام مسؤول / مالک',
-            'ولایت',
-            'ولسوالی',
-            'محل مشخص',
-            'کوردینات',
-            'سمت',
-            'تعداد روزانه مراجعین',
-            'محلات آسیب‌رسان',
-            'محلات آسیب‌پذیر',
-            'خلأهای امنیتی',
-            'نقاط ضعف',
-            'حوادث امنیتی رخ‌داده',
-            'دروازه ورودی',
-            'دروازه خروجی',
-            'دروازه اضطراری',
-            'دروازه فرعی',
-            'وضعیت بررسی فزیکی',
-            'وضعیت بررسی تخنیکی',
-            'کمره‌های امنیتی',
-            'تعداد محافظین',
-            'تعداد برج‌های فعال',
-            'تعداد قرارگاه‌های فعال',
-            'نام مسؤول امنیتی',
-            'شماره مسؤول امنیتی',
-            'سایر مشکلات',
-            'ملاحظات',
+            $this->headingFor('id', 'آی دی'),
+            $this->headingFor('place_name', 'نام محل'),
+            $this->headingFor('responsible_owner_name', 'نام مسؤول / مالک'),
+            $this->headingFor('province', 'ولایت'),
+            $this->headingFor('district', 'ولسوالی'),
+            $this->headingFor('specific_place', 'محل مشخص'),
+            $this->headingFor('coordinates', 'کوردینات'),
+            $this->headingFor('direction', 'سمت'),
+            $this->headingFor('daily_visitors_count', 'تعداد روزانه مراجعین'),
+            $this->headingFor('risk_places', 'محلات آسیب‌رسان'),
+            $this->headingFor('vulnerable_places', 'محلات آسیب‌پذیر'),
+            $this->headingFor('security_gaps', 'خلأهای امنیتی'),
+            $this->headingFor('weak_points', 'نقاط ضعف'),
+            $this->headingFor('security_incidents', 'حوادث امنیتی رخ‌داده'),
+            $this->headingFor('entrance_gate', 'دروازه ورودی'),
+            $this->headingFor('exit_gate', 'دروازه خروجی'),
+            $this->headingFor('emergency_gate', 'دروازه اضطراری'),
+            $this->headingFor('secondary_gate', 'دروازه فرعی'),
+            $this->headingFor('physical_check_status', 'وضعیت بررسی فزیکی'),
+            $this->headingFor('technical_check_status', 'وضعیت بررسی تخنیکی'),
+            $this->headingFor('security_cameras', 'کمره‌های امنیتی'),
+            $this->headingFor('guards_count', 'تعداد محافظین'),
+            $this->headingFor('active_towers_count', 'تعداد برج‌های فعال'),
+            $this->headingFor('active_guard_posts_count', 'تعداد قرارگاه‌های فعال'),
+            $this->headingFor('security_responsible_name', 'نام مسؤول امنیتی'),
+            $this->headingFor('security_responsible_phone', 'شماره مسؤول امنیتی'),
+            $this->headingFor('other_problems', 'سایر مشکلات'),
+            $this->headingFor('note', 'ملاحظات'),
+        ];
+    }
+
+    private function defaultHeadingsByLocale(): array
+    {
+        return [
+            'fa' => [
+                'id' => 'آی دی',
+                'place_name' => 'نام محل',
+                'responsible_owner_name' => 'نام مسؤول / مالک',
+                'province' => 'ولایت',
+                'district' => 'ناحیه / ولسوالی',
+                'specific_place' => 'محل مشخص',
+                'coordinates' => 'کوردینات',
+                'direction' => 'سمت',
+                'daily_visitors_count' => 'تعداد روزانه مراجعین',
+                'risk_places' => 'محلات آسیب‌رسان',
+                'vulnerable_places' => 'محلات آسیب‌پذیر',
+                'security_gaps' => 'خلأهای امنیتی',
+                'weak_points' => 'نقاط ضعف',
+                'security_incidents' => 'حوادث امنیتی رخ‌داده',
+                'entrance_gate' => 'دروازه ورودی',
+                'exit_gate' => 'دروازه خروجی',
+                'emergency_gate' => 'دروازه اضطراری',
+                'secondary_gate' => 'دروازه فرعی',
+                'physical_check_status' => 'وضعیت بررسی فزیکی',
+                'technical_check_status' => 'وضعیت بررسی تخنیکی',
+                'security_cameras' => 'کمره‌های امنیتی',
+                'guards_count' => 'تعداد محافظین',
+                'active_towers_count' => 'تعداد برج‌های فعال',
+                'active_guard_posts_count' => 'تعداد قرارگاه‌های فعال',
+                'security_responsible_name' => 'نام مسؤول امنیتی',
+                'security_responsible_phone' => 'شماره مسؤول امنیتی',
+                'other_problems' => 'سایر مشکلات',
+                'note' => 'ملاحظات',
+            ],
+            'ps' => [
+                'id' => 'آی‌ډي',
+                'place_name' => 'د ځای نوم',
+                'responsible_owner_name' => 'د مسؤول / مالک نوم',
+                'province' => 'ولایت',
+                'district' => 'ناحیه / ولسوالي',
+                'specific_place' => 'مشخص ځای',
+                'coordinates' => 'کوردینات',
+                'direction' => 'سمت',
+                'daily_visitors_count' => 'د مراجعینو ورځنی تعداد',
+                'risk_places' => 'د زیان رسوونکو ځایونو',
+                'vulnerable_places' => 'د زیان منونکو ځایونو',
+                'security_gaps' => 'امنیتي خلاوې',
+                'weak_points' => 'د ضعف ټکي',
+                'security_incidents' => 'ترسره شوې امنیتي پېښې',
+                'entrance_gate' => 'دخولي دروازه',
+                'exit_gate' => 'خروجي دروازه',
+                'emergency_gate' => 'اضطراري دروازه',
+                'secondary_gate' => 'فرعي دروازه',
+                'physical_check_status' => 'د فزیکي چک وضعیت',
+                'technical_check_status' => 'د تخنیکي چک وضعیت',
+                'security_cameras' => 'امنیتي کمرې',
+                'guards_count' => 'د محافظینو شمېر',
+                'active_towers_count' => 'د فعاله ټاورونو شمېر',
+                'active_guard_posts_count' => 'د فعاله قراوولونو شمېر',
+                'security_responsible_name' => 'د امنیتي مسؤول نوم',
+                'security_responsible_phone' => 'د امنیتي مسؤول شمېره',
+                'other_problems' => 'نورې ستونزې',
+                'note' => 'ملاحظات',
+            ],
+            'en' => [
+                'id' => 'ID',
+                'place_name' => 'Place Name',
+                'responsible_owner_name' => 'Responsible / Owner Name',
+                'province' => 'Province',
+                'district' => 'District',
+                'specific_place' => 'Specific location',
+                'coordinates' => 'Coordinates',
+                'direction' => 'Direction',
+                'daily_visitors_count' => 'Daily Number of Visitors',
+                'risk_places' => 'Risk Locations',
+                'vulnerable_places' => 'Vulnerable Locations',
+                'security_gaps' => 'Security Gaps',
+                'weak_points' => 'Weak Points',
+                'security_incidents' => 'Security Incidents',
+                'entrance_gate' => 'Entrance Gate',
+                'exit_gate' => 'Exit Gate',
+                'emergency_gate' => 'Emergency Gate',
+                'secondary_gate' => 'Secondary Gate',
+                'physical_check_status' => 'Physical Check Status',
+                'technical_check_status' => 'Technical Check Status',
+                'security_cameras' => 'Security Cameras',
+                'guards_count' => 'Number of Guards',
+                'active_towers_count' => 'Number of Active Towers',
+                'active_guard_posts_count' => 'Number of Active Guard Posts',
+                'security_responsible_name' => 'Security Responsible Name',
+                'security_responsible_phone' => 'Security Responsible Phone Number',
+                'other_problems' => 'Other Problems',
+                'note' => 'Notes',
+            ],
         ];
     }
 
@@ -391,7 +529,7 @@ class SecurityAssessmentsExport implements
 
                     $sheet
                         ->setRightToLeft(
-                            true
+                            $this->isRtl()
                         );
 
                     $sheet
@@ -442,8 +580,8 @@ class SecurityAssessmentsExport implements
                         )
                         ->getAlignment()
                         ->setHorizontal(
-                            Alignment::
-                                HORIZONTAL_RIGHT
+                            $this
+                                ->horizontalAlignment()
                         )
                         ->setVertical(
                             Alignment::
@@ -472,12 +610,27 @@ class SecurityAssessmentsExport implements
     private function translateDirection(
         ?string $direction
     ): string {
-        return match ($direction) {
-            'north' => 'شمال',
-            'south' => 'جنوب',
-            'east' => 'شرق',
-            'west' => 'غرب',
-            default => '—',
-        };
+        $maps = [
+            'fa' => [
+                'north' => 'شمال',
+                'south' => 'جنوب',
+                'east' => 'شرق',
+                'west' => 'غرب',
+            ],
+            'ps' => [
+                'north' => 'شمال',
+                'south' => 'جنوب',
+                'east' => 'ختیځ',
+                'west' => 'لویدیځ',
+            ],
+            'en' => [
+                'north' => 'North',
+                'south' => 'South',
+                'east' => 'East',
+                'west' => 'West',
+            ],
+        ];
+
+        return $maps[$this->locale][$direction] ?? '—';
     }
 }

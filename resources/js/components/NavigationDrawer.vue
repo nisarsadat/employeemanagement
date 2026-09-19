@@ -467,78 +467,89 @@
 </script>
 
 <style scoped>
+  .blur-drawer :deep(.v-navigation-drawer__content) {
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
   .drawer-root {
     height: 100%;
     display: flex;
     flex-direction: column;
     min-height: 0; /* critical */
+    flex: 1 1 auto;
   }
 
-  /* IMPORTANT: allow it to shrink inside flex */
   .scrollable-content {
     flex: 1 1 auto;
     min-height: 0;
+    overflow-x: hidden;
     overflow-y: auto;
-  }
-  /* ✅ BEAUTIFUL SCROLLBAR (glass + modern) */
-  .scrollable-content {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    padding-bottom: 110px;
+    overscroll-behavior: contain;
+    padding: 8px 8px 10px;
 
-    /* Firefox */
+    /* iOS-style: shadows stay put, glass covers hide them at each end */
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.7), transparent) center top,
+      linear-gradient(transparent, rgba(255, 255, 255, 0.7)) center bottom,
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.14), transparent) center top,
+      linear-gradient(to top, rgba(0, 0, 0, 0.14), transparent) center bottom;
+    background-repeat: no-repeat;
+    background-size: 100% 28px, 100% 28px, 100% 14px, 100% 14px;
+    background-attachment: local, local, scroll, scroll;
+
     scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+    scrollbar-color: rgba(0, 0, 0, 0.22) transparent;
   }
 
-  /* Chrome / Edge / Safari */
   .scrollable-content::-webkit-scrollbar {
-    width: 18px;
+    width: 8px;
   }
 
   .scrollable-content::-webkit-scrollbar-track {
     background: transparent;
-    margin: 10px 0; /* top/bottom gap */
-    border-radius: 999px;
+    margin: 8px 0;
   }
 
   .scrollable-content::-webkit-scrollbar-thumb {
     border-radius: 999px;
-    background: linear-gradient(
-      180deg,
-      rgba(var(--v-theme-primary), 0.55),
-      rgba(var(--v-theme-primary), 0.25)
-    );
-    border: 3px solid rgba(255, 255, 255, 0.55); /* makes it look “floating” */
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+    background-color: rgba(0, 0, 0, 0.18);
+    border: 2px solid transparent;
+    background-clip: padding-box;
   }
 
   .scrollable-content::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(
-      180deg,
-      rgba(var(--v-theme-primary), 0.75),
-      rgba(var(--v-theme-primary), 0.35)
-    );
+    background-color: rgba(var(--v-theme-primary), 0.45);
+    border: 2px solid transparent;
+    background-clip: padding-box;
   }
 
-  /* Optional: subtle when not interacting */
   .scrollable-content::-webkit-scrollbar-thumb:active {
-    background: linear-gradient(
-      180deg,
-      rgba(var(--v-theme-primary), 0.9),
-      rgba(var(--v-theme-primary), 0.45)
-    );
+    background-color: rgba(var(--v-theme-primary), 0.6);
+    border: 2px solid transparent;
+    background-clip: padding-box;
   }
 
-  /* Dark mode tuning */
   .v-theme--dark .scrollable-content {
+    background:
+      linear-gradient(rgba(30, 30, 30, 0.75), transparent) center top,
+      linear-gradient(transparent, rgba(30, 30, 30, 0.75)) center bottom,
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.45), transparent) center top,
+      linear-gradient(to top, rgba(0, 0, 0, 0.45), transparent) center bottom;
+    background-repeat: no-repeat;
+    background-size: 100% 28px, 100% 28px, 100% 14px, 100% 14px;
+    background-attachment: local, local, scroll, scroll;
     scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
   }
 
   .v-theme--dark .scrollable-content::-webkit-scrollbar-thumb {
-    border: 3px solid rgba(0, 0, 0, 0.35);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    background-color: rgba(255, 255, 255, 0.22);
+  }
+
+  .v-theme--dark .scrollable-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(var(--v-theme-primary), 0.55);
   }
   .profile-fixed {
     flex: 0 0 auto;
@@ -717,6 +728,7 @@
     -webkit-backdrop-filter: blur(14px);
     border-right: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 4%;
+    overflow: hidden;
   }
 
   /* Dark mode support */

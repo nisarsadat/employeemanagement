@@ -630,6 +630,12 @@ class SecurityAssessmentController extends Controller
 
             'to_date' =>
                 'nullable|date',
+
+            'locale' =>
+                'nullable|string',
+
+            'column_labels' =>
+                'nullable|array',
         ]);
 
         return Excel::download(
@@ -647,6 +653,12 @@ class SecurityAssessmentController extends Controller
                 searchValue:
                     $request->input(
                         'search_value'
+                    ),
+
+                stat:
+                    $request->input(
+                        'stat',
+                        'all'
                     ),
 
                 year:
@@ -684,6 +696,18 @@ class SecurityAssessmentController extends Controller
                     )
                     ?? $request->input(
                         'to_date'
+                    ),
+
+                locale:
+                    $request->input(
+                        'locale',
+                        'fa'
+                    ),
+
+                columnLabels:
+                    (array) $request->input(
+                        'column_labels',
+                        []
                     ),
             ),
             'security-assessments.xlsx'

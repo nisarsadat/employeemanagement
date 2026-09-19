@@ -1222,6 +1222,21 @@ function handlePerPageChange(
   fetchAll();
 }
 
+function excelColumnLabels() {
+  const labels = {
+    id: t('ID'),
+  };
+
+  headersFT.value.forEach((header) => {
+    if (header?.key) {
+      labels[header.key] =
+        header.title ?? header.key;
+    }
+  });
+
+  return labels;
+}
+
 async function downloadExcel() {
   try {
     await repo
@@ -1242,6 +1257,12 @@ async function downloadExcel() {
 
         date_field:
           'start_date',
+
+        locale:
+          locale.value,
+
+        column_labels:
+          excelColumnLabels(),
       });
   } catch (error) {
     console.error(error);

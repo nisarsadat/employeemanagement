@@ -486,6 +486,14 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
             from_date: params.from_date ?? undefined,
 
             to_date: params.to_date ?? undefined,
+
+            locale: params.locale ?? undefined,
+
+            column_labels: params.column_labels ?? undefined,
+          },
+
+          paramsSerializer: {
+            indexes: false,
           },
 
           responseType: 'blob',
@@ -812,6 +820,14 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
             from_date: params.from_date ?? undefined,
 
             to_date: params.to_date ?? undefined,
+
+            locale: params.locale ?? undefined,
+
+            column_labels: params.column_labels ?? undefined,
+          },
+
+          paramsSerializer: {
+            indexes: false,
           },
 
           responseType: 'blob',
@@ -2289,19 +2305,19 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
             د ریاست عمومی استخبارات<br />
             د استخباراتو لوی ریاست<br />
             ریاست استخبارات ۶۹<br />
-            مدیریت ۳۳۳
+            پنځم مدیریت
           </div>
 
           <div class="header-center">
             <img src="${logo}" alt="logo" />
-            <div>۳۳۳</div>
+            <div>پنځم مدیریت</div>
           </div>
 
           <div class="header-block">
             د ریاست عمومی استخبارات<br />
             د استخباراتو لوی ریاست<br />
             د استخباراتو ۶۹ ریاست<br />
-            مدیریت ۳۳۳
+            پنځم مدیریت
           </div>
         </div>
 
@@ -2502,19 +2518,19 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         د ریاست عمومی استخبارات<br/>
         د استخباراتو لوی ریاست<br/>
         ریاست استخبارات ۶۹<br/>
-        مدیریت ۳۳۳
+        پنځم مدیریت
       </div>
 
       <div class="header-center">
         <img src="${logo}" alt="logo" />
-        <div>۳۳۳</div>
+        <div>پنځم مدیریت</div>
       </div>
 
       <div class="header-block">
         د ریاست عمومی استخبارات<br/>
         د استخباراتو لوی ریاست<br/>
         د استخباراتو ۶۹ ریاست<br/>
-        مدیریت ۳۳۳
+        پنځم مدیریت
       </div>
     </div>
 

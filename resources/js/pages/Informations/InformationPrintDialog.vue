@@ -176,7 +176,7 @@
     return v && String(v).trim() ? String(v) : '—';
   });
 
-  const systemName = ref('۳۳۳ مدیریت');
+  const systemName = computed(() => t('۳۳۳ مدیریت'));
   const systemId = ref('');
   const printedAt = ref('');
 

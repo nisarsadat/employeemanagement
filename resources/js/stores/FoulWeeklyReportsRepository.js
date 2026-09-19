@@ -315,7 +315,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
       const b = import.meta?.env?.VITE_SYSTEM_NAME;
       if (typeof b === 'string' && b.trim()) return b.trim();
     } catch {}
-    return 'د ۳۳۳ مدیریت';
+    return 'د پنځم مدیریت';
   }
 
   const BISMILLAH = 'بسم الله الرحمن الرحیم';

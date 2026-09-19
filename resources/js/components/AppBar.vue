@@ -8,7 +8,13 @@
     border
   >
     <div class="appbar-left">
-      <v-btn @click="toggleDrawerVisible" variant="plain" class="logo-btn" :ripple="false">
+      <v-btn
+        :to="{ name: 'Dashboard' }"
+        variant="plain"
+        class="logo-btn"
+        :ripple="false"
+        :aria-label="t('داشبورد')"
+      >
         <v-img src="/logo.jpeg" width="44" height="44" contain />
       </v-btn>
 
@@ -153,14 +159,12 @@ import { ref, defineProps, defineEmits, watch, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useTheme, useDisplay } from 'vuetify';
 import { useRouter, useRoute } from 'vue-router';
-import { useEmployeOfficeRepository } from '@/stores/EmployeeRepository';
 import { useCalendar } from '../../composables/useCalendar';
 import { useLoginRepository } from '@/stores/LoginRepository';
 import NotificationMenu from './NotificationBell.vue';
 import ChatMenu from './chat/ChatMenu.vue';
 import { runPageRefresh } from '@/composables/usePageRefresh';
 
-const repo = useEmployeOfficeRepository();
 const login = useLoginRepository();
 const router = useRouter();
 const route = useRoute();
@@ -271,9 +275,6 @@ const changeLanguage = (lang) => {
   applyGlobalDir(lang);
 };
 
-const toggleDrawerVisible = () => {
-  repo.toggleDrawerVisible?.();
-};
 
 watch(locale, (lang) => {
   applyGlobalDir(lang);
@@ -406,6 +407,7 @@ watch(locale, (lang) => {
   height: 44px !important;
   background: transparent !important;
   box-shadow: none !important;
+  cursor: pointer;
 }
 
 /* make NotificationMenu and ChatMenu same as other buttons */

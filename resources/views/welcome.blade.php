@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>333</title>
+  <title>پنځم مدیریت</title>
   @vite(['resources/css/app.css','resources/js/app.js'])
 </head>
 <body>
