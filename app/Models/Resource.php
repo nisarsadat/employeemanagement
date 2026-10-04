@@ -405,9 +405,20 @@ public function fiftySixFormatsTotalCount(): int
     {
         return $this->hasMany(KhayratReport::class);
     }
+    /**
+     * Number of days used as the activity window.
+     */
+    public const ACTIVITY_WINDOW_DAYS = 30;
+
+    /**
+     * Minimum khayrat reports inside the activity window required for a
+     * resource to count as active.
+     */
+    public const MIN_KHAYRAT_REPORTS_FOR_ACTIVE = 40;
+
     public function syncActivityFromRecentRecords(): void
     {
-        $since = now()->subDays(30)->toDateString();
+        $since = now()->subDays(self::ACTIVITY_WINDOW_DAYS)->toDateString();
 
         $isActive =
             $this->events()
@@ -423,7 +434,7 @@ public function fiftySixFormatsTotalCount(): int
             $this->khayratReports()
                 ->whereNotNull('saved_date')
                 ->whereDate('saved_date', '>=', $since)
-                ->exists();
+                ->count() >= self::MIN_KHAYRAT_REPORTS_FOR_ACTIVE;
 
         $newActivity = $isActive ? 'فعال' : 'غیر فعال';
 

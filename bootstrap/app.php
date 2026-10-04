@@ -34,6 +34,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // optional global exception handling
     })
     ->withSchedule(function (Schedule $schedule) {
-        $schedule->command('office-employees:refresh-activity --mode=month')->dailyAt('01:30');
+        $schedule->command('office-employees:refresh-activity')->dailyAt('01:30');
     })
     ->create();

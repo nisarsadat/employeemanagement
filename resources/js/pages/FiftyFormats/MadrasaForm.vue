@@ -227,7 +227,7 @@
                   />
                 </v-col>
                 <v-col cols="12" md="3">
-                  <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
+                  <FormatZoneAutocomplete v-model="form.zone" :label="t('آمریت')" :disabled="saving" />
                 </v-col>
 
                 <v-col cols="12" md="3">
@@ -355,6 +355,16 @@
                 {{ t('پاک کردن فرم') }}
               </v-btn>
 
+              <v-btn
+                color="primary"
+                variant="tonal"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-printer"
+                @click="printForm"
+              >
+                {{ t('چاپ') }}
+              </v-btn>
+
               <!-- ✅ Simple Export (NO image / NO app headers) - works even for blank -->
               <v-btn
                 color="red"
@@ -416,6 +426,7 @@
   /* ✅ Picture (ONLY addition in script imports) */
   import PicturePicker from '@/components/form/PicturePicker.vue';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
+  import { printBlankForm } from '@/utils/printBlankForm';
 
   const repo = useBadmashanoRepository();
   const route = useRoute();
@@ -689,7 +700,7 @@ function onResourceCleared() {
       { label: t('تعداد شاگردان (اناث)'), value: v(form.value.female_students_quantity) },
 
       { label: t('ولایت'), value: v(form.value.province) },
-      { label: t('زون'), value: v(form.value.zone) },
+      { label: t('آمریت'), value: v(form.value.zone) },
       { label: t('ولسوالی'), value: v(form.value.district) },
       { label: t('قریه/ناحیه'), value: v(form.value.village) },
       { label: t('موقعیت مشخص'), value: v(form.value.specific_place) },
@@ -722,8 +733,9 @@ function onResourceCleared() {
       </tbody>
     </table>
     <div class="sig">
-      <div>امضاء / مهر مسئول: ____________________</div>
-      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+      <div>${t('امضا مسئول')}: ____________________</div>
+      <div>${t('امضا ثبت کننده')}: ____________________</div>
+      <div>${t('تاریخ')}: ____________________</div>
     </div>
   `;
   }
@@ -760,6 +772,11 @@ function onResourceCleared() {
 </body>
 </html>
 `;
+  }
+
+  /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+  function printForm(e) {
+    printBlankForm(e, { onError: showErrorMessage });
   }
 
   function downloadPdf() {

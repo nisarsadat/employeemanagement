@@ -133,7 +133,7 @@ class BankExport implements FromQuery, WithHeadings, WithMapping, WithEvents, Wi
             'د مسؤل وظیفه',
             'د مسؤل شمېره',
             'ولایت',
-            'زون',
+            'آمریت',
             'ولسوالۍ',
             'کلی',
             'مشخص ځای',

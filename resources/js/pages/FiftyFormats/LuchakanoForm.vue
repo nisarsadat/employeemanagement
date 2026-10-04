@@ -166,7 +166,7 @@
             <v-col cols="12" md="3">
               <FormatZoneAutocomplete
                 v-model="form.now_zone"
-                :label="t('زون فعلی')"
+                :label="t('آمریت فعلی')"
                 :disabled="saving"
               />
             </v-col>
@@ -362,6 +362,16 @@
               </v-btn>
 
               <v-btn
+                color="primary"
+                variant="tonal"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-printer"
+                @click="printForm"
+              >
+                {{ t('چاپ') }}
+              </v-btn>
+
+              <v-btn
                 color="red"
                 variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
@@ -444,6 +454,7 @@
   import { useMawadRepository } from '@/stores/MawadRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
+  import { printBlankForm } from '@/utils/printBlankForm';
 
   const repo = useMawadRepository();
   const route = useRoute();
@@ -770,7 +781,7 @@
       { label: t('قریه/ناحیه اصلی'), value: v(form.value.main_village) },
 
       { label: t('ولایت فعلی'), value: v(form.value.now_province) },
-      { label: t('زون فعلی'), value: v(form.value.now_zone) },
+      { label: t('آمریت فعلی'), value: v(form.value.now_zone) },
       { label: t('ولسوالی فعلی'), value: v(form.value.now_district) },
       { label: t('قریه/ناحیه فعلی'), value: v(form.value.now_village) },
 
@@ -829,6 +840,11 @@
   ${bodyHtml}
 </body>
 </html>`;
+  }
+
+  /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+  function printForm(e) {
+    printBlankForm(e, { onError: showErrorMessage });
   }
 
   function downloadPdf() {

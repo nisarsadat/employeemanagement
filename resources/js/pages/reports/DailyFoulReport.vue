@@ -224,6 +224,8 @@
           </v-card-text>
         </v-card>
       </v-col>
+
+      <FoulReportActivity variant="cards" :report="report" :loading="repo.loading" :is-rtl="isRtl" />
     </v-row>
 
     <!-- TABLES -->
@@ -428,6 +430,8 @@
         </v-col>
       </v-row>
     </v-row>
+
+    <FoulReportActivity variant="tables" :report="report" :loading="repo.loading" :is-rtl="isRtl" />
   </v-container>
 </template>
 
@@ -435,6 +439,7 @@
   import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import ReportNotesPeriodTable from './ReportNotesPeriodTable.vue';
+  import FoulReportActivity from './FoulReportActivity.vue';
   import { useReportNoteRepository } from '@/stores/ReportNoteRepository'; // already exists (optional)
 
   import AppBar from '@/components/AppBar.vue';
@@ -544,7 +549,9 @@
       (r.resources?.total ?? 0) === 0 &&
       (r.informations?.total ?? 0) === 0 &&
       (r.events?.total ?? 0) === 0 &&
-      (r.formats?.length ?? 0) === 0
+      (r.formats?.length ?? 0) === 0 &&
+      (r.meetings?.total ?? 0) === 0 &&
+      (r.security_assessments?.total ?? 0) === 0
     );
   });
 
@@ -559,7 +566,7 @@
   ]);
 
   const eventHeaders = computed(() => [
-    { title: t('زون'), key: 'zone', width: '20%' },
+    { title: t('آمریت'), key: 'zone', width: '20%' },
     { title: t('حوزه'), key: 'hawza', width: '20%' },
     { title: t('نوع رویداد'), key: 'event_specific_type', width: '20%' },
     { title: t('کشته'), key: 'killed', align: 'center', width: '13%' },

@@ -92,8 +92,8 @@
     },
     {
       key: 'zones',
-      title: t('زون'),
-      // subtitle: t('مدیریت زون‌ها'),
+      title: t('آمریت'),
+      // subtitle: t('مدیریت آمریت‌ها'),
       icon: 'mdi-map-outline',
       to: { path: '/app/settings/zones/zones' },
       permission: 'zones.view',
@@ -173,8 +173,8 @@
     },
     {
       key: 'formatzone',
-      title: t('فارمت زون'),
-      // subtitle: t('مدیریت فارمت زون‌ها'),
+      title: t('فارمت آمریت'),
+      // subtitle: t('مدیریت فارمت آمریت‌ها'),
       icon: 'mdi-map-marker-multiple-outline',
       to: { path: '/app/formatzone' },
       permission: 'formatzone.view',

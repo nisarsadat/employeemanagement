@@ -5,12 +5,13 @@ import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
 import { buildListParams, applyPaginatedResponse } from '@/utils/listHelpers';
+import { signatureFooterHtml } from '@/utils/printSignature.js';
 // === ZONE <-> HAWZA mapping (from your picture) ===
 const ZONE_HAWZA_MAP = {
-  'لومړی زون': ['حوزه ۳', 'حوزه ۷', 'حوزه ۶', 'حوزه ۸', 'حوزه ۱۸'],
-  'دوهم زون': ['حوزه ۸', 'بګرامی ولسوالی', 'حوزه ۱۲', 'حوزه ۱۹', 'حوزه ۲۱'],
-  'دریم زون': ['حوزه ۱', 'حوزه ۲', 'حوزه ۱۶', 'حوزه ۹', 'حوزه ۱۰'],
-  'څلورم زون': ['حوزه ۵', 'حوزه ۱۱', 'حوزه ۱۵', 'حوزه ۴', 'حوزه ۱۷'],
+  'لومړی آمریت': ['حوزه ۳', 'حوزه ۷', 'حوزه ۶', 'حوزه ۸', 'حوزه ۱۸'],
+  'دوهم آمریت': ['حوزه ۸', 'بګرامی ولسوالی', 'حوزه ۱۲', 'حوزه ۱۹', 'حوزه ۲۱'],
+  'دریم آمریت': ['حوزه ۱', 'حوزه ۲', 'حوزه ۱۶', 'حوزه ۹', 'حوزه ۱۰'],
+  'څلورم آمریت': ['حوزه ۵', 'حوزه ۱۱', 'حوزه ۱۵', 'حوزه ۴', 'حوزه ۱۷'],
 };
 // Build reverse map: Hawza -> Zone
 const HAWZA_ZONE_MAP = Object.entries(ZONE_HAWZA_MAP).reduce((acc, [zone, list]) => {
@@ -68,10 +69,10 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
 
     securityAssessmentCardCounts: {
       total: 0,
-      north: 0,
-      south: 0,
-      east: 0,
-      west: 0,
+      ministries: 0,
+      independent_directorates: 0,
+      diplomatic_centers: 0,
+      other: 0,
     },
     // Events
 
@@ -651,10 +652,10 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
 
         this.securityAssessmentCardCounts = {
           total: Number(response?.data?.card_counts?.total ?? 0),
-          north: Number(response?.data?.card_counts?.north ?? 0),
-          south: Number(response?.data?.card_counts?.south ?? 0),
-          east: Number(response?.data?.card_counts?.east ?? 0),
-          west: Number(response?.data?.card_counts?.west ?? 0),
+          ministries: Number(response?.data?.card_counts?.ministries ?? 0),
+          independent_directorates: Number(response?.data?.card_counts?.independent_directorates ?? 0),
+          diplomatic_centers: Number(response?.data?.card_counts?.diplomatic_centers ?? 0),
+          other: Number(response?.data?.card_counts?.other ?? 0),
         };
 
         return response;
@@ -667,10 +668,10 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
 
         this.securityAssessmentCardCounts = {
           total: 0,
-          north: 0,
-          south: 0,
-          east: 0,
-          west: 0,
+          ministries: 0,
+          independent_directorates: 0,
+          diplomatic_centers: 0,
+          other: 0,
         };
 
         throw error;
@@ -953,6 +954,42 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         toast.error('د دفتر کارمند اخیستل نا ممکن دی');
       } finally {
         this.loading = false;
+      }
+    },
+
+    /**
+     * Lightweight list of office employees for multi-select dropdowns
+     * (ترسره کوونکي). Returns [{ title, value }].
+     */
+    async FetchOfficeEmployeeOptions() {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.get('/office-employees', {
+          params: { perPage: 'all' },
+        });
+
+        const rows = data?.data ?? data ?? [];
+
+        return (Array.isArray(rows) ? rows : []).map((employee) => {
+          const fullName = [employee.name, employee.father_name]
+            .filter(Boolean)
+            .join(' ')
+            .trim();
+
+          const label =
+            fullName || employee.nick_name || String(employee.id);
+
+          return {
+            title: employee.code_number
+              ? `${label} (${employee.code_number})`
+              : label,
+            value: employee.id,
+          };
+        });
+      } catch (e) {
+        console.error('FetchOfficeEmployeeOptions error', e);
+        return [];
       }
     },
 
@@ -2572,7 +2609,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
 
     <tr>
       <!-- Place sub headers (6 columns total) -->
-      <th colspan="2">زون</th>
+      <th colspan="2">آمریت</th>
       <th colspan="2">حوزه</th>
       <th colspan="2">محل مشخص</th>
 
@@ -2608,6 +2645,8 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
   <div style="margin-top:12px; font-weight:bold; border-top:4px solid #000; padding-top:10px;">
     پاملرنه: د دې سند افشا کول جرم بلل کېږي.
   </div>
+
+  ${signatureFooterHtml({ escape: esc })}
 </body>
 </html>`;
     },

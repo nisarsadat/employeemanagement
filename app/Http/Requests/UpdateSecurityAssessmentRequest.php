@@ -50,9 +50,24 @@ class UpdateSecurityAssessmentRequest extends FormRequest
                 'max:255',
             ],
 
-            'direction' => [
-                'required',
-                'in:north,south,east,west',
+            'north' => [
+                'nullable',
+                'string',
+            ],
+
+            'south' => [
+                'nullable',
+                'string',
+            ],
+
+            'east' => [
+                'nullable',
+                'string',
+            ],
+
+            'west' => [
+                'nullable',
+                'string',
             ],
 
             'daily_visitors_count' => [
@@ -172,6 +187,17 @@ class UpdateSecurityAssessmentRequest extends FormRequest
                 'required',
                 'string',
             ],
+
+            // ✅ ترسره کوونکي (one or more office employees)
+            'office_employee_ids' => [
+                'nullable',
+                'array',
+            ],
+
+            'office_employee_ids.*' => [
+                'integer',
+                'exists:office_employees,id',
+            ],
         ];
     }
 
@@ -179,9 +205,6 @@ class UpdateSecurityAssessmentRequest extends FormRequest
     {
         return [
             'required' => 'این فیلد الزامی است.',
-
-            'direction.in' =>
-                'سمت انتخاب شده معتبر نیست.',
 
             'daily_visitors_count.integer' =>
                 'تعداد روزانه مراجعین باید عدد باشد.',

@@ -30,8 +30,8 @@ class ZoneController extends Controller
         $data = $request->validate([
             'name' => ['required',  'unique:zones,name'],
         ], [
-            'name.required' => 'د زون نوم ضروري دی.',
-            'name.unique'   => 'دا د زون نوم مخکې نه ثبت شوی دی.',
+            'name.required' => 'د آمریت نوم ضروري دی.',
+            'name.unique'   => 'دا د آمریت نوم مخکې نه ثبت شوی دی.',
         ]);
 
         return response()->json([
@@ -51,8 +51,8 @@ class ZoneController extends Controller
         $data = $request->validate([
             'name' => ['required',  'unique:zones,name,' . $zone->id],
         ], [
-            'name.required' => 'د زون نوم ضروري دی.',
-            'name.unique'   => 'دا د زون نوم مخکې نه ثبت شوی دی.',
+            'name.required' => 'د آمریت نوم ضروري دی.',
+            'name.unique'   => 'دا د آمریت نوم مخکې نه ثبت شوی دی.',
         ]);
 
         $zone->update($data);

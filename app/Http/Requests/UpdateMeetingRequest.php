@@ -162,6 +162,17 @@ class UpdateMeetingRequest extends FormRequest
                 'integer',
                 'exists:meeting_documents,id',
             ],
+
+            // ✅ ترسره کوونکي (one or more office employees)
+            'office_employee_ids' => [
+                'nullable',
+                'array',
+            ],
+
+            'office_employee_ids.*' => [
+                'integer',
+                'exists:office_employees,id',
+            ],
         ];
     }
 

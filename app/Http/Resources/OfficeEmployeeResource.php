@@ -10,14 +10,20 @@ class OfficeEmployeeResource extends JsonResource
 {
     public function toArray($request): array
     {
-        // ✅ computed activity based on active resources count (>= 100)
-        $activeResourcesCount = (int) ($this->resources_active_count
-            ?? ($this->relationLoaded('resources') ? $this->resources->where('activity', OfficeEmployee::ACTIVE)->count() : 0)
-        );
-
-        $computedActivity = $activeResourcesCount >= 100
-            ? OfficeEmployee::ACTIVE
-            : OfficeEmployee::INACTIVE;
+        // ✅ Activity: administrative job type OR at least one active resource.
+        if ($this->isEdariEmployee()) {
+            $computedActivity = OfficeEmployee::ACTIVE;
+        } elseif ($this->resources_active_count !== null) {
+            $computedActivity = (int) $this->resources_active_count > 0
+                ? OfficeEmployee::ACTIVE
+                : OfficeEmployee::INACTIVE;
+        } elseif ($this->relationLoaded('resources')) {
+            $computedActivity = $this->resources->where('activity', OfficeEmployee::ACTIVE)->isNotEmpty()
+                ? OfficeEmployee::ACTIVE
+                : OfficeEmployee::INACTIVE;
+        } else {
+            $computedActivity = $this->activity ?: OfficeEmployee::INACTIVE;
+        }
 
         return [
             'id' => $this->id,
@@ -81,7 +87,7 @@ class OfficeEmployeeResource extends JsonResource
             // 🔹 Status & Education
             'madani_halat'  => $this->madani_halat,
 
-            // ✅ IMPORTANT: activity now follows your new rule (>=100 active resources)
+            // ✅ IMPORTANT: activity follows the new rule (edari OR any active resource)
             'activity'      => $computedActivity,
 
             'relegy_study'  => $this->relegy_study,

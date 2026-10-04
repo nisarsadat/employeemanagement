@@ -163,103 +163,109 @@ class OfficeEmployee extends Model
         return $this->hasMany(Finance::class, 'office_employee_id', 'id');
     }
 
+    /**
+     * ✅ Security assessments this employee performed (ترسره شوی ارزونې).
+     */
+    public function securityAssessments()
+    {
+        return $this->belongsToMany(
+            SecurityAssessment::class,
+            'security_assessment_office_employee'
+        )->withTimestamps();
+    }
+
+    /**
+     * ✅ Meetings this employee performed (ترسره شوی غونډې).
+     */
+    public function meetings()
+    {
+        return $this->belongsToMany(
+            Meeting::class,
+            'meeting_office_employee'
+        )->withTimestamps();
+    }
+
     /* =========================================================
-     | ACTIVITY SCOPES (NEW LOGIC)
-     | ACTIVE if has >= 100 active resources
-     | INACTIVE if has < 100 active resources
+     | ACTIVITY RULE
+     | ACTIVE if job_type is administrative (اداری / اداري)
+     |        OR the employee has at least one active resource.
+     | INACTIVE otherwise.
      ========================================================= */
 
-    // public function scopeActive(Builder $q): Builder
-    // {
-    //     return $q->whereHas(
-    //         'resources',
-    //         fn ($rq) => $rq->where('activity', self::ACTIVE),
-    //         '>=',
-    //         100
-    //     );
-    // }
+    public const ADMIN_JOB_TYPES = ['اداری', 'اداري'];
 
-    // public function scopeInactive(Builder $q): Builder
-    // {
-    //     return $q->whereHas(
-    //         'resources',
-    //         fn ($rq) => $rq->where('activity', self::ACTIVE),
-    //         '<',
-    //         100
-    //     );
-    // }
-    /* =========================================================
- | ACTIVITY SCOPES (TEMPORARY)
- | FOR NOW: use direct activity column only
- ========================================================= */
+    public const ACTIVE = 'فعال';
+    public const INACTIVE = 'غیر فعال';
 
-public function scopeActive(Builder $q): Builder
-{
-    return $q->where(function ($query) {
-        $query->whereIn('job_type', ['اداری', 'اداري'])
-            ->orWhereHas('resources', function ($r) {
-                $r->where('activity', self::ACTIVE)
-                  ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
-            }, '>=', 100);
-    });
-}
-
-public function scopeInactive(Builder $q): Builder
-{
-    return $q
-        ->where(function ($query) {
-            $query->whereNull('job_type')
-                ->orWhereNotIn('job_type', ['اداری', 'اداري']);
-        })
-        ->where(function ($query) {
-            $query->whereDoesntHave('resources', function ($r) {
-                $r->where('activity', self::ACTIVE)
-                  ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
-            })
-            ->orWhereHas('resources', function ($r) {
-                $r->where('activity', self::ACTIVE)
-                  ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString());
-            }, '<', 100);
+    public function scopeActive(Builder $q): Builder
+    {
+        return $q->where(function ($query) {
+            $query->whereIn('job_type', self::ADMIN_JOB_TYPES)
+                ->orWhereHas('resources', fn ($r) => $r->where('activity', self::ACTIVE));
         });
-}
+    }
+
+    public function scopeInactive(Builder $q): Builder
+    {
+        return $q
+            ->where(function ($query) {
+                $query->whereNull('job_type')
+                    ->orWhereNotIn('job_type', self::ADMIN_JOB_TYPES);
+            })
+            ->whereDoesntHave('resources', fn ($r) => $r->where('activity', self::ACTIVE));
+    }
+
     public function khayratReports()
     {
         return $this->hasMany(KhayratReport::class, 'office_employee_id', 'id');
     }
 
-    public const ACTIVE = 'فعال';
-public const INACTIVE = 'غیر فعال';
+    public function isEdariEmployee(): bool
+    {
+        return in_array($this->job_type, self::ADMIN_JOB_TYPES, true);
+    }
 
-public function isEdariEmployee(): bool
-{
-    return in_array($this->job_type, ['اداری', 'اداري'], true);
-}
+    /**
+     * Whether any related resource is currently active.
+     */
+    public function hasActiveResource(): bool
+    {
+        return $this->resources()->where('activity', self::ACTIVE)->exists();
+    }
 
-public function syncActivityFromResources(): void
-{
-    if ($this->isEdariEmployee()) {
-        if ($this->activity !== self::ACTIVE) {
-            $this->update([
-                'activity' => self::ACTIVE,
-            ]);
+    /**
+     * Recompute and persist this employee's activity from its resources.
+     */
+    public function syncActivityFromResources(): void
+    {
+        $newActivity = ($this->isEdariEmployee() || $this->hasActiveResource())
+            ? self::ACTIVE
+            : self::INACTIVE;
+
+        if ($this->activity !== $newActivity) {
+            $this->update(['activity' => $newActivity]);
         }
-
-        return;
     }
 
-    $activeResourcesCount = $this->resources()
-        ->where('activity', self::ACTIVE)
-        ->whereDate('resource_saved_date', '>=', now()->subDays(30)->toDateString())
-        ->count();
+    /**
+     * Recalculate activity for every employee in chunks.
+     * Returns the number of employees whose status changed.
+     */
+    public static function refreshAllActivity(int $chunk = 200): int
+    {
+        $changed = 0;
 
-    $newActivity = $activeResourcesCount >= 100
-        ? self::ACTIVE
-        : self::INACTIVE;
+        static::query()->chunkById($chunk, function ($employees) use (&$changed) {
+            foreach ($employees as $employee) {
+                $before = $employee->activity;
+                $employee->syncActivityFromResources();
 
-    if ($this->activity !== $newActivity) {
-        $this->update([
-            'activity' => $newActivity,
-        ]);
+                if ($before !== $employee->activity) {
+                    $changed++;
+                }
+            }
+        });
+
+        return $changed;
     }
-}
 }

@@ -769,7 +769,7 @@
     { title: t('کی جرم را انجام داده؟'), key: 'criminal' },
     { title: t('تاریخ واقعه'), key: 'event_date' },
     { title: t('ساعت واقعه'), key: 'event_hour' },
-    { title: t('زون'), key: 'event_zone' },
+    { title: t('آمریت'), key: 'event_zone' },
     { title: t('حوزه'), key: 'event_hawza' },
     { title: t('محل مشخص'), key: 'event_specific_place' },
     { title: t('کوردینات'), key: 'coordinates' },

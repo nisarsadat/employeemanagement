@@ -409,7 +409,7 @@ class ResourcesExport implements FromQuery, WithHeadings, WithMapping, WithEvent
             'پخوانۍ دنده',
             'اوسنۍ دنده',
             'د کار ځای',
-            'زون',
+            'آمریت',
             'حوزه',
             'مشخص ځای',
             'مختصات',

@@ -215,6 +215,8 @@
           </v-card-text>
         </v-card>
       </v-col>
+
+      <FoulReportActivity variant="cards" :report="report" :loading="repo.loading" :is-rtl="isRtl" />
     </v-row>
 
     <!-- TABLES -->
@@ -388,12 +390,15 @@
         </v-card>
       </v-col>
     </v-row>
+
+    <FoulReportActivity variant="tables" :report="report" :loading="repo.loading" :is-rtl="isRtl" />
   </v-container>
 </template>
 
 <script setup>
   import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
+  import FoulReportActivity from './FoulReportActivity.vue';
 
   import AppBar from '@/components/AppBar.vue';
   import { useFoulAllTimeReportsRepository } from '@/stores/FoulAllTimeReportsRepository';
@@ -479,7 +484,9 @@
       (r.resources?.total ?? 0) === 0 &&
       (r.informations?.total ?? 0) === 0 &&
       (r.events?.total ?? 0) === 0 &&
-      (r.formats?.length ?? 0) === 0
+      (r.formats?.length ?? 0) === 0 &&
+      (r.meetings?.total ?? 0) === 0 &&
+      (r.security_assessments?.total ?? 0) === 0
     );
   });
 

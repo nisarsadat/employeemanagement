@@ -141,7 +141,7 @@ class DeplomaticPlaceExport implements FromQuery, WithHeadings, WithMapping, Wit
             'د مسؤل هېواد',
             'د مسؤل شمېره',
             'ولایت',
-            'زون',
+            'آمریت',
             'ولسوالۍ',
             'کلی',
             'مشخص ځای',

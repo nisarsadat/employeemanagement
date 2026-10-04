@@ -156,7 +156,7 @@
               />
             </v-col>
             <v-col cols="12" md="3">
-              <FormatZoneAutocomplete v-model="form.zone" :label="t('زون')" :disabled="saving" />
+              <FormatZoneAutocomplete v-model="form.zone" :label="t('آمریت')" :disabled="saving" />
             </v-col>
 
             <v-col cols="12" md="3">
@@ -277,6 +277,16 @@
               </v-btn>
 
               <v-btn
+                color="primary"
+                variant="tonal"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-printer"
+                @click="printForm"
+              >
+                {{ t('چاپ') }}
+              </v-btn>
+
+              <v-btn
                 color="red"
                 variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
@@ -331,6 +341,7 @@
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
   // ✅ added for picture (same as Mahajerat)
   import PicturePicker from '@/components/form/PicturePicker.vue';
+  import { printBlankForm } from '@/utils/printBlankForm';
 
   const repo = useSchoolRepository();
   const route = useRoute();
@@ -583,7 +594,7 @@
       { label: t('شماره مسئول'), value: v(form.value.responsible_phone) },
 
       { label: t('ولایت'), value: v(form.value.province) },
-      { label: t('زون'), value: v(form.value.zone) },
+      { label: t('آمریت'), value: v(form.value.zone) },
       { label: t('ولسوالی'), value: v(form.value.district) },
       { label: t('قریه'), value: v(form.value.village) },
       { label: t('موقعیت مشخص'), value: v(form.value.specific_place) },
@@ -619,8 +630,9 @@
       </tbody>
     </table>
     <div class="sig">
-      <div>امضاء / مهر مسؤول: ____________________</div>
-      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+      <div>${t('امضا مسئول')}: ____________________</div>
+      <div>${t('امضا ثبت کننده')}: ____________________</div>
+      <div>${t('تاریخ')}: ____________________</div>
     </div>
   `;
   }
@@ -697,6 +709,11 @@
 </body>
 </html>
 `;
+  }
+
+  /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+  function printForm(e) {
+    printBlankForm(e, { onError: showErrorMessage });
   }
 
   function downloadPdf() {

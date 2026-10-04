@@ -10,7 +10,7 @@ class ActiveEmployeesCard implements DashboardMetric
 {
     public function calculate(CarbonInterface $from, CarbonInterface $to, array $filters = []): array
     {
-        $q = OfficeEmployee::query()->where('activity', OfficeEmployee::ACTIVE);
+        $q = OfficeEmployee::query()->active();
 
         if (!empty($filters['zone']))  $q->where('zone',  $filters['zone']);
         if (!empty($filters['hawza'])) $q->where('hawza', $filters['hawza']);

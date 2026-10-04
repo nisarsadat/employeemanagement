@@ -256,7 +256,7 @@ export const useEventsReportRepository = defineStore('eventsReport', {
         metaParts.push(`اساس ولایت: ${filtros.province_addr}`)
       }
       if (filtros.zone) {
-        metaParts.push(`زون: ${filtros.zone}`)
+        metaParts.push(`آمریت: ${filtros.zone}`)
       }
       if (filtros.hawza) {
         metaParts.push(`حوزه: ${filtros.hawza}`)
@@ -280,7 +280,7 @@ export const useEventsReportRepository = defineStore('eventsReport', {
           له دې ډلي څخه په <strong>${totalCriminal}</strong> پیښو کې مجرم یا تورن کس ذکر شوی،
           په <strong>${totalJani}</strong> پیښو کې د انساني تلفاتو او
           په <strong>${totalMali}</strong> پیښو کې د مالي تلفاتو راپور ورکړل شوی دی.
-          دا راپور د ولایتونو او زونونو په کچه د ثبت شویو پیښو عمومي انځور وړاندې کوي.
+          دا راپور د ولایتونو او آمریتونو په کچه د ثبت شویو پیښو عمومي انځور وړاندې کوي.
         </p>
       `
       sectionsHtml.push(globalParagraph)
@@ -328,7 +328,7 @@ export const useEventsReportRepository = defineStore('eventsReport', {
           const hour = ev.event_hour || ''
           const type = ev.event_type || 'نامعلوم ډول'
           const stype = ev.event_specific_type || ''
-          const zone = ev.event_zone || 'نامعلوم زون'
+          const zone = ev.event_zone || 'نامعلوم آمریت'
           const hawza = ev.event_hawza || 'نامعلوم حوزه'
           const target = ev.target_person || ''
           const criminal = ev.criminal || ''
@@ -368,7 +368,7 @@ export const useEventsReportRepository = defineStore('eventsReport', {
             <p>
               <strong>${evIndex}.</strong>
               پیښه د نېټې په <strong>${date}</strong> ${hour ? `او ساعت ${hour}` : ''} کې
-              په ولایت <strong>${prov}</strong>، زون «${zone}» او حوزه «${hawza}» کې ثبت شوې ده.
+              په ولایت <strong>${prov}</strong>، آمریت «${zone}» او حوزه «${hawza}» کې ثبت شوې ده.
               د پیښې ډول: <strong>${typePart}</strong>${targetPart}${crimPart}${janiPart}${maliPart}${placePart}.
               ${daysSentence}
               ${empSentence}

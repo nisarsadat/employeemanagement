@@ -54,7 +54,7 @@ export const MODULE_PASHTO = {
   // settings pages
   'settings-provinces': 'د ولایتونو تنظیمات',
   'settings-districts': 'د ولسوالیو تنظیمات',
-  'settings-zones': 'د زونونو تنظیمات',
+  'settings-zones': 'د آمریتونو تنظیمات',
   'settings-hawzas': 'د حوزو تنظیمات',
 
   'event-types': 'د پېښو ډولونه تنظیمات',
@@ -64,7 +64,7 @@ export const MODULE_PASHTO = {
   organs: 'ارګانونه تنظیمات',
   'jobs-type': 'د دندو ډولونه تنظیمات',
   'resource-activity-types': 'د سرچینو د فعالیت ډولونه تنظیمات',
-  formatzone: 'د فارمیټ زون تنظمات',
+  formatzone: 'د فارمیټ آمریت تنظمات',
   settings: 'تنظیمات',
   mawqafjahadi: 'جهادي موقف تنظیمات',
   docstypesindex: 'د اسنادو ډولونه تنظیمات',
@@ -75,7 +75,7 @@ export const MODULE_PASHTO = {
   // ✅ Missing slugs (from UI screenshot)
   districts: 'ولسوالۍ تنظیمات',
   provinces: 'ولایتونه تنظیمات',
-  zones: 'زونونه تنظیمات',
+  zones: 'آمریتونه تنظیمات',
   hawzas: 'حوزې تنظیمات',
   jobs: 'دندې تنظیمات',
 

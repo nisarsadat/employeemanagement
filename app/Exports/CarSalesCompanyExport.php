@@ -117,7 +117,7 @@ class CarSalesCompanyExport implements FromQuery, WithHeadings, WithMapping, Wit
             'د مسؤل وظیفه',
             'د مسؤل شمېره',
             'ولایت',
-            'زون',
+            'آمریت',
             'ولسوالۍ',
             'کلی',
             'مشخص ځای',

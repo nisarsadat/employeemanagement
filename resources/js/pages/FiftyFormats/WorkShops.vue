@@ -63,27 +63,23 @@
           </v-btn>
         </v-col>
 
-        <!-- Create Button -->
+        <!-- Create + Excel Buttons -->
         <v-col cols="12" sm="12" md="8" lg="8" class="pl-sm-2">
-          <v-btn
-            color="primary"
-            variant="flat"
-            size="large"
-            class="text-none mx-4"
-            rounded="lg"
-            block
-            prepend-icon="mdi-plus"
-            @click="goCreate"
-          >
-            {{ t('جدید') }}
-          </v-btn>
-        </v-col>
-
-        <!-- Excel Button -->
-        <v-col cols="12" sm="12" md="4" lg="4">
-          <v-btn color="success" variant="flat" class="text-none" rounded="lg" size="large" block prepend-icon="mdi-microsoft-excel" :loading="excelDownloading" :disabled="excelDownloading" @click="downloadWorkShopExcel">
-            {{ t('اکسل') }}
-          </v-btn>
+          <div class="d-flex ga-2 align-center">
+            <v-btn
+              color="primary"
+              variant="flat"
+              class="text-none flex-grow-1"
+              rounded="lg"
+              prepend-icon="mdi-plus"
+              @click="goCreate"
+            >
+              {{ t('جدید') }}
+            </v-btn>
+            <v-btn color="success" variant="flat" class="text-none flex-grow-1" rounded="lg" prepend-icon="mdi-microsoft-excel" :loading="excelDownloading" :disabled="excelDownloading" @click="downloadWorkShopExcel">
+              {{ t('اکسل') }}
+            </v-btn>
+          </div>
         </v-col>
 
         <v-col cols="12" sm="10">
@@ -515,7 +511,7 @@
     { title: t('شماره مسئول'), key: 'responsible_phone' },
 
     { title: t('ولایت'), key: 'province' },
-    { title: t('زون'), key: 'zone' },
+    { title: t('آمریت'), key: 'zone' },
     { title: t('ولسوالی'), key: 'district' },
     { title: t('قریه'), key: 'village' },
 

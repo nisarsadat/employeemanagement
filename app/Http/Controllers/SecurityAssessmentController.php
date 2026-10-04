@@ -24,7 +24,10 @@ class SecurityAssessmentController extends Controller
             'district',
             'specific_place',
             'coordinates',
-            'direction',
+            'north',
+            'south',
+            'east',
+            'west',
             'daily_visitors_count',
             'risk_places',
             'vulnerable_places',
@@ -63,7 +66,8 @@ class SecurityAssessmentController extends Controller
 
     private function baseListQuery(): Builder
     {
-        return SecurityAssessment::query();
+        return SecurityAssessment::query()
+            ->with('officeEmployees:id,name,code_number');
     }
 
     private function applySearch(
@@ -140,26 +144,6 @@ class SecurityAssessmentController extends Controller
         return [
             'total' =>
                 (clone $base)->count(),
-
-            'north' =>
-                (clone $base)
-                    ->where('direction', 'north')
-                    ->count(),
-
-            'south' =>
-                (clone $base)
-                    ->where('direction', 'south')
-                    ->count(),
-
-            'east' =>
-                (clone $base)
-                    ->where('direction', 'east')
-                    ->count(),
-
-            'west' =>
-                (clone $base)
-                    ->where('direction', 'west')
-                    ->count(),
         ];
     }
 
@@ -180,9 +164,6 @@ class SecurityAssessmentController extends Controller
 
             'search_value' =>
                 'nullable|string',
-
-            'stat' =>
-                'nullable|string|in:all,north,south,east,west',
 
             'year' =>
                 'nullable|integer|min:1900|max:2500',
@@ -218,12 +199,6 @@ class SecurityAssessmentController extends Controller
         $searchValue =
             $request->input('search_value');
 
-        $stat =
-            $request->input(
-                'stat',
-                'all'
-            );
-
         $page =
             (int) $request->input(
                 'page',
@@ -244,13 +219,6 @@ class SecurityAssessmentController extends Controller
             $searchField,
             $searchValue
         );
-
-        if ($stat !== 'all') {
-            $query->where(
-                'direction',
-                $stat
-            );
-        }
 
         if (is_numeric($request->input('year'))) {
             $query->whereYear(
@@ -430,8 +398,21 @@ class SecurityAssessmentController extends Controller
             $data =
                 $request->validated();
 
+            $employeeIds =
+                $data['office_employee_ids']
+                ?? [];
+
+            unset(
+                $data['office_employee_ids']
+            );
+
             $assessment =
                 SecurityAssessment::create($data);
+
+            // ✅ ترسره کوونکي
+            $assessment
+                ->officeEmployees()
+                ->sync($employeeIds);
 
             NotificationService::recordForAllUsers(
                 actor: $request->user(),
@@ -484,6 +465,15 @@ class SecurityAssessmentController extends Controller
             $data =
                 $request->validated();
 
+            // Empty selection = clear all (the form always sets the full list).
+            $employeeIds =
+                $data['office_employee_ids']
+                ?? [];
+
+            unset(
+                $data['office_employee_ids']
+            );
+
             $assessment->fill($data);
 
             $dirty =
@@ -506,6 +496,11 @@ class SecurityAssessmentController extends Controller
             }
 
             $assessment->save();
+
+            // ✅ ترسره کوونکي
+            $assessment
+                ->officeEmployees()
+                ->sync($employeeIds);
 
             NotificationService::recordForAllUsers(
                 actor: $request->user(),
@@ -603,9 +598,6 @@ class SecurityAssessmentController extends Controller
 
             'search_value' =>
                 'nullable|string',
-
-            'stat' =>
-                'nullable|string|in:all,north,south,east,west',
 
             'year' =>
                 'nullable|integer',
@@ -730,19 +722,6 @@ class SecurityAssessmentController extends Controller
                 'search_value'
             )
         );
-
-        $stat =
-            $request->input(
-                'stat',
-                'all'
-            );
-
-        if ($stat !== 'all') {
-            $query->where(
-                'direction',
-                $stat
-            );
-        }
 
         if (is_numeric($request->input('year'))) {
             $query->whereYear(

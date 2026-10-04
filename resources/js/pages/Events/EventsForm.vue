@@ -233,7 +233,7 @@
                 </span>
               </div>
               <!-- <span class="section-subtitle text-caption">
-                {{ t('تاریخ، ساعت، زون، حوزه، محل مشخص و کوردینات را درج کنید.') }}
+                {{ t('تاریخ، ساعت، آمریت، حوزه، محل مشخص و کوردینات را درج کنید.') }}
               </span> -->
             </div>
             <v-divider />
@@ -257,7 +257,7 @@
                 <ZoneHawzaSelect
                   v-model:zone="form.event_zone"
                   v-model:hawza="form.event_hawza"
-                  :zoneLabel="t('زون')"
+                  :zoneLabel="t('آمریت')"
                   :hawzaLabel="t('حوزه')"
                   :disabled="saving"
                   :zoneError="hasError('event_zone')"
@@ -540,6 +540,16 @@
           <!-- ACTIONS -->
           <div class="form-actions d-flex justify-end gap-2 flex-wrap">
             <v-btn
+              color="primary"
+              variant="outlined"
+              class="text-none"
+              prepend-icon="mdi-printer"
+              @click="printForm"
+            >
+              {{ t('چاپ') }}
+            </v-btn>
+
+            <v-btn
               type="submit"
               color="primary"
               class="text-none"
@@ -598,6 +608,7 @@
   import { useFinanceRepository } from '@/stores/FinanceRepository';
   import OrganSelect from '@/components/OrganSelect.vue';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
+  import { printBlankForm } from '@/utils/printBlankForm';
   const financeRepo = useFinanceRepository();
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
@@ -632,6 +643,11 @@
   const clearBackendErrors = () => (backendErrors.value = {});
   const hasError = (field) => !!backendErrors.value?.[field];
   const getErrorMessages = (field) => backendErrors.value?.[field] ?? [];
+
+  /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+  function printForm(e) {
+    printBlankForm(e, { onError: showErrorMessage });
+  }
 
   function showErrorMessage(msg) {
     errorMessage.value = msg;

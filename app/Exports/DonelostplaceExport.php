@@ -133,7 +133,7 @@ class DonelostplaceExport implements FromQuery, WithHeadings, WithMapping, WithE
             'اوسنی ولسوالۍ',
             'اوسنی کلي',
             'ولایت',
-            'زون',
+            'آمریت',
             'ولسوالۍ',
             'کلی',
             'مشخص ځای',

@@ -348,6 +348,42 @@
                   "
                 />
               </v-col>
+
+              <!-- ✅ ترسره کوونکي (one or more office employees) -->
+              <v-col
+                cols="12"
+                md="6"
+              >
+                <v-select
+                  v-model="
+                    form.office_employee_ids
+                  "
+                  :items="
+                    employeeOptions
+                  "
+                  item-title="title"
+                  item-value="value"
+                  :label="
+                    t('ترسره کوونکي')
+                  "
+                  multiple
+                  chips
+                  closable-chips
+                  clearable
+                  density="compact"
+                  variant="outlined"
+                  :error="
+                    hasError(
+                      'office_employee_ids'
+                    )
+                  "
+                  :error-messages="
+                    getErrorMessages(
+                      'office_employee_ids'
+                    )
+                  "
+                />
+              </v-col>
             </v-row>
           </v-sheet>
 
@@ -1142,6 +1178,16 @@
             class="form-actions d-flex justify-end ga-2 flex-wrap"
           >
             <v-btn
+              color="primary"
+              variant="outlined"
+              class="text-none"
+              prepend-icon="mdi-printer"
+              @click="printForm"
+            >
+              {{ t('چاپ') }}
+            </v-btn>
+
+            <v-btn
               type="submit"
               color="primary"
               class="text-none"
@@ -1264,6 +1310,7 @@ import OrganSelect
 import {
   useDatabaseRepository,
 } from '@/stores/DatabaseRepository';
+import { printBlankForm } from '@/utils/printBlankForm';
 
 const repo =
   useDatabaseRepository();
@@ -1338,6 +1385,11 @@ const successMessage =
 /* =========================================================
    MESSAGES
 ========================================================= */
+
+/* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+function printForm(e) {
+  printBlankForm(e, { onError: showErrorMessage });
+}
 
 function showErrorMessage(
   message
@@ -1452,6 +1504,9 @@ const blankForm =
 
     note: '',
 
+    // ✅ ترسره کوونکي
+    office_employee_ids: [],
+
     existingDocs: [],
 
     _newDocs: [],
@@ -1464,6 +1519,10 @@ const form =
   ref(
     blankForm()
   );
+
+/* ✅ ترسره کوونکي dropdown options */
+const employeeOptions =
+  ref([]);
 
 /* =========================================================
    RULES
@@ -1776,6 +1835,15 @@ function mapFromApi(
     item.note ??
     '';
 
+  mapped.office_employee_ids =
+    Array.isArray(
+      item.office_employee_ids
+    )
+      ? item.office_employee_ids.map(
+          Number
+        )
+      : [];
+
   mapped.existingDocs =
     Array.isArray(
       item.documents
@@ -1879,6 +1947,21 @@ function buildCreateFormData() {
             key
           )
       ) {
+        return;
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach((entry) => {
+          if (entry === undefined || entry === null) {
+            return;
+          }
+
+          formData.append(
+            `${key}[]`,
+            String(entry)
+          );
+        });
+
         return;
       }
 
@@ -2468,6 +2551,9 @@ const steps =
 
 onMounted(
   async () => {
+    employeeOptions.value =
+      await repo.FetchOfficeEmployeeOptions();
+
     await loadForEdit();
   }
 );

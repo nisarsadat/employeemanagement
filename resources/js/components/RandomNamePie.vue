@@ -26,7 +26,7 @@ echarts.use([
 const props = defineProps({
   title: { type: String, default: '' },
   subtitle: { type: String, default: '' },
-  labels: { type: Array, default: () => [] },   // e.g. ['زون A','زون B', ...]
+  labels: { type: Array, default: () => [] },   // e.g. ['آمریت A','آمریت B', ...]
   values: { type: Array, default: () => [] },   // e.g. [10, 5, 2, ...] (same length)
   height: { type: String, default: '360px' },
   rtl: { type: Boolean, default: false },
@@ -51,7 +51,7 @@ function buildOption() {
     },
     tooltip: {
       trigger: 'item',
-      // Example: "زون A : 12 (34%)"
+      // Example: "آمریت A : 12 (34%)"
       formatter: ({ name, value, percent }) => `${name} : ${value} (${percent}%)`,
     },
     legend: {

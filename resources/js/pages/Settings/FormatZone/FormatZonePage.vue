@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar :title="t('فارمت زون حوزه')" :subtitle="t('مدیریت فارمت زون حوزه')">
+    <AppBar :title="t('فارمت آمریت حوزه')" :subtitle="t('مدیریت فارمت آمریت حوزه')">
       <template #actions>
         <v-btn icon></v-btn>
       </template>
@@ -141,7 +141,7 @@ const editId = ref(null);
 const deleteDialog = ref(false);
 const deleteTarget = ref(null);
 
-const headersFT = computed(() => [{ title: t('نام فارمت زون'), key: 'name', align: 'center' }]);
+const headersFT = computed(() => [{ title: t('نام فارمت آمریت'), key: 'name', align: 'center' }]);
 
 const rowsFT = computed(() => repo.FormatZones || []);
 

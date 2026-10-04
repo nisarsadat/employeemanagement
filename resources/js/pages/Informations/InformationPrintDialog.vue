@@ -134,6 +134,28 @@
       <div class="print-notes">
         <div class="print-note">{{ t('اشد محرم') }}</div>
       </div>
+
+      <!-- ✅ Signature block (inline styles so it survives the PDF/Word copy) -->
+      <div
+        style="
+          display: flex;
+          gap: 24px;
+          justify-content: space-between;
+          margin-top: 22px;
+          font-size: 11px;
+          direction: rtl;
+        "
+      >
+        <div style="flex: 1 1 0; border-top: 1px solid #444; padding-top: 6px; text-align: center;">
+          {{ t('امضا مسئول') }}
+        </div>
+        <div style="flex: 1 1 0; border-top: 1px solid #444; padding-top: 6px; text-align: center;">
+          {{ t('امضا ثبت کننده') }}
+        </div>
+        <div style="flex: 1 1 0; border-top: 1px solid #444; padding-top: 6px; text-align: center;">
+          {{ t('تاریخ') }}
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -458,9 +480,6 @@
       width: 44px;
       height: 44px;
       object-fit: contain;
-      border-radius: 10px;
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      background: #fff;
       flex: 0 0 auto;
     }
 
@@ -1054,9 +1073,6 @@
     width: 44px;
     height: 44px;
     object-fit: contain;
-    border-radius: 10px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    background: #fff;
   }
 
   .brand-text {

@@ -254,7 +254,7 @@
             <v-col cols="12" md="6">
               <FormatZoneAutocomplete
                 v-model="form.now_zone"
-                :label="t('زون فعلی')"
+                :label="t('آمریت فعلی')"
                 :disabled="saving"
               />
             </v-col>
@@ -534,6 +534,16 @@
                 </div>
 
                 <div class="d-flex ga-2">
+                  <v-btn
+                    color="primary"
+                    variant="tonal"
+                    class="text-none rounded-pill secondary-action-btn"
+                    prepend-icon="mdi-printer"
+                    @click="printForm"
+                  >
+                    {{ t('چاپ') }}
+                  </v-btn>
+
                   <v-btn color="red" variant="outlined" class="text-none" @click="downloadPdf">
                     {{ t('PDF') }}
                   </v-btn>
@@ -583,6 +593,7 @@
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
+  import { printBlankForm } from '@/utils/printBlankForm';
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
   watch(locale, (l) => (isRtl.value = l === 'fa'));
@@ -910,7 +921,7 @@
       { label: 'قریه/ناحیه اصلی', value: form.value.main_village },
 
       { label: 'ولایت فعلی', value: form.value.now_province },
-      { label: 'زون فعلی', value: form.value.now_zone },
+      { label: 'آمریت فعلی', value: form.value.now_zone },
       { label: 'ولسوالی فعلی', value: form.value.now_district },
       { label: 'قریه/ناحیه فعلی', value: form.value.now_village },
       { label: 'موقعیت مشخص فعلی', value: form.value.now_specific_place },
@@ -956,8 +967,9 @@
       <tbody>${rows}</tbody>
     </table>
     <div class="sig">
-      <div>امضاء / مهر مسئول: ____________________</div>
-      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+      <div>${t('امضا مسئول')}: ____________________</div>
+      <div>${t('امضا ثبت کننده')}: ____________________</div>
+      <div>${t('تاریخ')}: ____________________</div>
     </div>
   `;
   }
@@ -990,6 +1002,11 @@
 </body>
 </html>
 `;
+  }
+
+  /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+  function printForm(e) {
+    printBlankForm(e, { onError: showErrorMessage });
   }
 
   function downloadPdf() {

@@ -302,7 +302,7 @@
                 <ZoneHawzaSelect
                   v-model:zone="draft.event_zone"
                   v-model:hawza="draft.event_hawza"
-                  :zoneLabel="t('زون')"
+                  :zoneLabel="t('آمریت')"
                   :hawzaLabel="t('حوزه')"
                   :disabled="submitting"
                   :mdZone="6"
@@ -884,7 +884,7 @@
       { key: 'event_date', label: t('تاریخ واقعه'), value: formatReviewDate(draft.event_date) },
       { key: 'event_hour', label: t('ساعت واقعه'), value: displayValue(draft.event_hour) },
 
-      { key: 'event_zone', label: t('زون'), value: displayValue(draft.event_zone) },
+      { key: 'event_zone', label: t('آمریت'), value: displayValue(draft.event_zone) },
       { key: 'event_hawza', label: t('حوزه'), value: displayValue(draft.event_hawza) },
       {
         key: 'event_specific_place',

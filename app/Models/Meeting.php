@@ -45,4 +45,15 @@ class Meeting extends Model
     {
         return $this->hasMany(MeetingDocument::class);
     }
+
+    /**
+     * ✅ ترسره کوونکي — office employees who performed this meeting.
+     */
+    public function officeEmployees()
+    {
+        return $this->belongsToMany(
+            OfficeEmployee::class,
+            'meeting_office_employee'
+        )->withTimestamps();
+    }
 }

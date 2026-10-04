@@ -42,8 +42,8 @@ class FormatZoneController extends Controller
         $data = $request->validate([
             'name' => ['required', 'unique:format_zones,name'],
         ], [
-            'name.required' => 'د فارمت زون نوم ضروري دی.',
-            'name.unique'   => 'دا د فارمت زون نوم له مخکې نه موجود دی.',
+            'name.required' => 'د فارمت آمریت نوم ضروري دی.',
+            'name.unique'   => 'دا د فارمت آمریت نوم له مخکې نه موجود دی.',
         ]);
 
         try {
@@ -52,7 +52,7 @@ class FormatZoneController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'فارمت زون',
+                    module: 'فارمت آمریت',
                     action: 'created',
                     title: 'نوی ریکارډ ثبت شو',
                     message: 'نوم: ' . $item->name,
@@ -67,9 +67,9 @@ class FormatZoneController extends Controller
         } catch (QueryException $e) {
             if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
                 return response()->json([
-                    'message' => 'دا د فارمت زون نوم له مخکې نه موجود دی.',
+                    'message' => 'دا د فارمت آمریت نوم له مخکې نه موجود دی.',
                     'errors'  => [
-                        'name' => ['دا د فارمت زون نوم له مخکې نه موجود دی.'],
+                        'name' => ['دا د فارمت آمریت نوم له مخکې نه موجود دی.'],
                     ],
                 ], 422);
             }
@@ -90,8 +90,8 @@ class FormatZoneController extends Controller
         $data = $request->validate([
             'name' => ['required', 'unique:format_zones,name,' . $formatZone->id],
         ], [
-            'name.required' => 'د فارمت زون نوم ضروري دی.',
-            'name.unique'   => 'دا د فارمت زون نوم له مخکې نه موجود دی.',
+            'name.required' => 'د فارمت آمریت نوم ضروري دی.',
+            'name.unique'   => 'دا د فارمت آمریت نوم له مخکې نه موجود دی.',
         ]);
 
         try {
@@ -102,7 +102,7 @@ class FormatZoneController extends Controller
 
                 NotificationService::record(
                     $user,
-                    module: 'فارمت زون',
+                    module: 'فارمت آمریت',
                     action: 'updated',
                     title: 'ریکارډ اصلاح شو',
                     message: 'نوم: ' . $formatZone->name,
@@ -119,9 +119,9 @@ class FormatZoneController extends Controller
         } catch (QueryException $e) {
             if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
                 return response()->json([
-                    'message' => 'دا د فارمت زون نوم له مخکې نه موجود دی.',
+                    'message' => 'دا د فارمت آمریت نوم له مخکې نه موجود دی.',
                     'errors'  => [
-                        'name' => ['دا د فارمت زون نوم له مخکې نه موجود دی.'],
+                        'name' => ['دا د فارمت آمریت نوم له مخکې نه موجود دی.'],
                     ],
                 ], 422);
             }
@@ -139,7 +139,7 @@ class FormatZoneController extends Controller
 
         NotificationService::record(
             $user,
-            module: 'فارمت زون',
+            module: 'فارمت آمریت',
             action: 'deleted',
             title: 'ریکارډ حذف شو',
             message: 'نوم: ' . $name,

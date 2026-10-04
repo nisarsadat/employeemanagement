@@ -16,7 +16,10 @@ class SecurityAssessment extends Model
         'district',
         'specific_place',
         'coordinates',
-        'direction',
+        'north',
+        'south',
+        'east',
+        'west',
         'daily_visitors_count',
         'risk_places',
         'vulnerable_places',
@@ -45,4 +48,15 @@ class SecurityAssessment extends Model
         'active_towers_count' => 'integer',
         'active_guard_posts_count' => 'integer',
     ];
+
+    /**
+     * ✅ ترسره کوونکي — office employees who performed this assessment.
+     */
+    public function officeEmployees()
+    {
+        return $this->belongsToMany(
+            OfficeEmployee::class,
+            'security_assessment_office_employee'
+        )->withTimestamps();
+    }
 }

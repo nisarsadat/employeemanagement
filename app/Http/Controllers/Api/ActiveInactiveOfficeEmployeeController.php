@@ -29,7 +29,7 @@ class ActiveInactiveOfficeEmployeeController extends Controller
         $search       = trim((string) $request->input('search', ''));
 
         $query = OfficeEmployee::query()
-            ->active()            // ✅ now means: >= 100 active resources
+            ->active()            // ✅ administrative job type OR any active resource
             ->search($search)
             ->with([
                 'resource:id,name,code_number,phone_number',
@@ -65,7 +65,7 @@ class ActiveInactiveOfficeEmployeeController extends Controller
         $search       = trim((string) $request->input('search', ''));
 
         $query = OfficeEmployee::query()
-            ->inactive()          // ✅ now means: < 100 active resources
+            ->inactive()          // ✅ neither administrative nor any active resource
             ->search($search)
             ->with([
                 'resource:id,name,code_number,phone_number',

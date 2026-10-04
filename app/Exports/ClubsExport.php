@@ -121,7 +121,7 @@ class ClubsExport implements FromQuery, WithHeadings, WithMapping, WithEvents, W
             'وظیفه',
             'شماره تماس',
             'ولایت',
-            'زون',
+            'آمریت',
             'ولسوالۍ',
             'مشخص ځای',
             'مختصات',

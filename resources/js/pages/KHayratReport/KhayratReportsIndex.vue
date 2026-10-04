@@ -261,7 +261,7 @@
   const headersFT = computed(() => [
     { title: t('منبع'), key: 'resource_display', align: 'center' },
     { title: t('کارمند'), key: 'office_employee_display', align: 'center' },
-    { title: t('زون'), key: 'zone', align: 'center' },
+    { title: t('آمریت'), key: 'zone', align: 'center' },
     { title: t('حوزه'), key: 'hawza', align: 'center' },
     { title: t('محل مشخص'), key: 'specefic_place', align: 'center' },
     { title: t('تاریخ ثبت'), key: 'saved_date', align: 'center' },

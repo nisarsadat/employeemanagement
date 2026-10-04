@@ -719,7 +719,7 @@
     { title: t('قسم'), key: 'qisem' },
     { title: t('بست'), key: 'bast' },
     { title: t('رتبه/سطح'), key: 'level' },
-    { title: t('زون'), key: 'zone' },
+    { title: t('آمریت'), key: 'zone' },
     { title: t('حوزه'), key: 'hawza' },
     { title: t('سابقه جهاد'), key: 'history_jahad' },
     { title: t('دلګی مشر'), key: 'dilgay_mesher' },

@@ -897,6 +897,16 @@
           <!-- ACTIONS -->
           <div class="form-actions d-flex justify-end gap-2 flex-wrap">
             <v-btn
+              color="primary"
+              variant="outlined"
+              class="text-none"
+              prepend-icon="mdi-printer"
+              @click="printForm"
+            >
+              {{ t('چاپ') }}
+            </v-btn>
+
+            <v-btn
               type="submit"
               color="primary"
               class="text-none"
@@ -961,6 +971,7 @@
 
   import { useDatabaseRepository } from '../../stores/DatabaseRepository';
   import { useLoginRepository } from '../../stores/LoginRepository';
+  import { printBlankForm } from '@/utils/printBlankForm';
 
   const repo = useDatabaseRepository();
   const auth = useLoginRepository();
@@ -991,6 +1002,11 @@
   const errorMessage = ref('');
   const showSuccess = ref(false);
   const successMessage = ref('');
+
+  /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+  function printForm(e) {
+    printBlankForm(e, { onError: showErrorMessage });
+  }
 
   function showErrorMessage(message) {
     errorMessage.value = message;

@@ -731,6 +731,17 @@
           <!-- ACTIONS -->
           <!-- ACTIONS -->
           <div class="form-actions d-flex justify-end gap-2 flex-wrap">
+            <!-- ✅ PRINT (blank A4 form, same design, localized) -->
+            <v-btn
+              color="primary"
+              variant="outlined"
+              class="text-none"
+              prepend-icon="mdi-printer"
+              @click="printForm"
+            >
+              {{ t('چاپ') }}
+            </v-btn>
+
             <v-btn
               type="submit"
               color="primary"
@@ -834,6 +845,8 @@
   import ZoneHawzaPicker from '@/components/ZoneHawzaSelect.vue';
   import { useLookupsRepository } from '../../stores/LookupsRepository';
   import { useCalendar } from '../../../composables/useCalendar';
+  import { reportFontFaceCss, reportFontForLang, whenPrintFontsReady } from '@/utils/reportFonts.js';
+  import { signatureFooterHtml } from '@/utils/printSignature.js';
   const lookups = useLookupsRepository();
 
   const repo = useDatabaseRepository();
@@ -848,9 +861,10 @@
     return formatDisplay(String(value).slice(0, 10), locale.value);
   }
   /* ===== Direction ===== */
-  const isRtl = ref(locale.value === 'fa');
+  const RTL_LANGUAGES = ['fa', 'ps'];
+  const isRtl = ref(RTL_LANGUAGES.includes(locale.value));
   watch(locale, (newLocale) => {
-    isRtl.value = newLocale === 'fa';
+    isRtl.value = RTL_LANGUAGES.includes(newLocale);
   });
 
   /* ===== ROUTE / MODE ===== */
@@ -1297,7 +1311,7 @@
       { label: t('نمبر سرک'), value: v(form.value.now_street_number) },
       { label: t('نمبر خانه'), value: v(form.value.now_home_number) },
 
-      { label: t('زون'), value: v(form.value.zone) },
+      { label: t('آمریت'), value: v(form.value.zone) },
       { label: t('حوزه'), value: v(form.value.hawza) },
       { label: t('محل مشخص تدارک'), value: v(form.value.specefic_place) },
       { label: t('کوردینات تدارک'), value: v(form.value.coordinates) },
@@ -1406,10 +1420,331 @@
         <div class="doc-wrap">
           <div class="doc-title">${esc(title)}</div>
           ${buildSimpleTableHtml(rows)}
+          ${signatureFooterHtml({ escape: esc })}
         </div>
       </body>
     </html>
   `;
+  }
+
+  /* =========================
+     PRINT BLANK FORM (SAME DESIGN · ONE A4 PAGE)
+     - keeps the on-screen layout/sections exactly as the design
+     - every field (including date) is printed empty
+     - follows the active locale + direction
+  ========================= */
+
+  function printField(label, opts = {}) {
+    const span = opts.span ? ` style="grid-column: span ${opts.span};"` : '';
+
+    return `
+      <div class="pf-field"${span}>
+        <div class="pf-label">${esc(label)}</div>
+        <div class="pf-box"></div>
+      </div>
+    `;
+  }
+
+  function printFormSections() {
+    return [
+      {
+        title: t('معرفت و معلومات تماس منبع'),
+        subtitle: t('نام، نام پدر، کود نمبر، سن و شماره تماس منبع'),
+        cols: 4,
+        fields: [
+          printField(t('نام *')),
+          printField(t('نام پدر')),
+          printField(t('نام پدرکلان')),
+          printField(t('نام مستعار')),
+          printField(t('کود نمبر')),
+          printField(t('تذکره نمبر')),
+          printField(t('عمر')),
+          printField(t('گروپ خون')),
+          printField(t('شماره تماس')),
+          printField(t('شماره تماس ۱')),
+          printField(t('شماره تماس ۲')),
+          printField(t('زبان')),
+          printField(t('قوم/ملیت')),
+          printField(t('مهارت‌های خاص')),
+          printField(t('۵۶ فارمټ')),
+        ],
+      },
+      {
+        title: t('آدرس اصلی و فعلی منبع'),
+        subtitle: t('آدرس اصلی (زادگاه) و آدرس فعلی منبع را وارد کنید.'),
+        cols: 3,
+        fields: [
+          printField(t('ولایت اصلی *')),
+          printField(t('ولسوالی اصلی *')),
+          printField(t('قریه/گذر اصلی *')),
+          printField(t('ولایت فعلی')),
+          printField(t('ولسوالی فعلی')),
+          printField(t('قریه/گذر فعلی')),
+          printField(t('محل مشخص فعلی')),
+          printField(t('نمبر سرک')),
+          printField(t('نمبر خانه')),
+        ],
+      },
+      {
+        title: t('وظایف، وضعیت و نوع فعالیت منبع'),
+        subtitle: t('وظایف، فعالیت، حالت مدنی، نوع فعالیت منبع و کارمند مربوطه را درج کنید.'),
+        cols: 4,
+        fields: [
+          printField(t('وظیفه سابقه')),
+          printField(t('وظیفه فعلی')),
+          printField(t('محل وظیفه')),
+          printField(t('آمریت')),
+          printField(t('حوزه')),
+          printField(t('محل مشخص تدارک')),
+          printField(t('کوردینات تدارک')),
+          printField(t('حالت مدنی')),
+          printField(t('سطح علمی')),
+          printField(t('دیپارتمنت/ فاکولته')),
+          printField(t('نوع فعالیت منبع')),
+          printField(t('پوشش منبع')),
+          printField(t('کارمند مربوطه')),
+          printField(t('رزیدنت مربوطه')),
+          printField(t('دوره آموزش ')),
+        ],
+      },
+      {
+        title: t('تاریخ و نوت'),
+        cols: 4,
+        fields: [
+          printField(t('تاریخ ثبت منبع *')),
+          printField(t('پروجکت مربوطه')),
+        ],
+      },
+      {
+        title: t('ملاحظات'),
+        cols: 1,
+        grow: 3,
+        fields: [printField(t('نوت'))],
+      },
+    ];
+  }
+
+  function buildPrintFormHtml() {
+    const title = isEdit.value ? t('فرم اصلاح معلومات منبع') : t('فرم ثبت منبع جدید');
+    const subtitle = t(
+      'لطفاً تمام خانه‌های ضروری را با دقت خانه پری کنید. خانه‌های ستاره‌دار اجباری است.'
+    );
+    // The language drives both the writing direction and the font family
+    // (the same font the report PDF exports use).
+    const lang = locale.value === 'en' ? 'en' : locale.value === 'ps' ? 'ps' : 'fa';
+    const dir = lang === 'en' ? 'ltr' : 'rtl';
+    const fontFamily = reportFontForLang(lang);
+
+    const sections = printFormSections()
+      .map((s) => {
+        // Grow each section in proportion to its row count so the blank form fills the A4 page.
+        const rows = Math.max(1, Math.ceil(s.fields.length / s.cols));
+        const grow = Math.max(rows, s.grow || 0);
+
+        return `
+        <section class="pf-section" style="flex-grow: ${grow};">
+          <div class="pf-head">
+            <span class="pf-head-title">${esc(s.title)}</span>
+            ${s.subtitle ? `<span class="pf-head-sub">${esc(s.subtitle)}</span>` : ''}
+          </div>
+          <div class="pf-grid" style="grid-template-columns: repeat(${s.cols}, 1fr);">
+            ${s.fields.join('')}
+          </div>
+        </section>`;
+      })
+      .join('');
+
+    return `<!DOCTYPE html>
+<html lang="${lang}" dir="${dir}">
+  <head>
+    <meta charset="UTF-8" />
+    <title>${esc(title)}</title>
+    <style>
+      @page {
+        size: A4 portrait;
+        margin: 8mm 9mm;
+      }
+
+      ${reportFontFaceCss()}
+
+      :root {
+        --app-font: ${fontFamily};
+        --v-font-family: var(--app-font);
+      }
+
+      * {
+        box-sizing: border-box;
+        font-family: var(--app-font) !important;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: var(--app-font) !important;
+        direction: ${dir};
+        color: #111;
+        background: #fff;
+        font-size: 10px;
+        line-height: 1.3;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .pf-page {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        /* one full A4 page (297mm) minus the 8mm page margins, with a 5mm safety buffer */
+        min-height: 276mm;
+      }
+
+      .pf-title-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #1976d2;
+        border-radius: 10px;
+        background: #f5f9ff;
+        padding: 6px 10px;
+        margin-bottom: 6px;
+      }
+
+      .pf-title-badge {
+        flex: 0 0 auto;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #1976d2;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .pf-title {
+        font-size: 13.5px;
+        font-weight: 700;
+      }
+
+      .pf-subtitle {
+        font-size: 9px;
+        color: #6b6b6b;
+        margin-top: 1px;
+      }
+
+      .pf-section {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #dcdcdc;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 4px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      .pf-section:last-child {
+        margin-bottom: 0;
+      }
+
+      .pf-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 2px 8px;
+        background: #f4f6fa;
+        border-bottom: 1px solid #dcdcdc;
+        padding: 3px 8px;
+      }
+
+      .pf-head-title {
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .pf-head-sub {
+        font-size: 9px;
+        color: #777;
+      }
+
+      .pf-grid {
+        display: grid;
+        grid-auto-rows: 1fr;
+        flex: 1 1 auto;
+        gap: 3px 6px;
+        padding: 4px 8px 5px;
+      }
+
+      .pf-field {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+
+      .pf-label {
+        font-size: 9.5px;
+        font-weight: 700;
+        color: #444;
+        margin-bottom: 1px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .pf-box {
+        flex: 1 1 auto;
+        min-height: 16px;
+        border: 1px solid #9e9e9e;
+        border-radius: 3px;
+        background: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pf-page">
+      <div class="pf-title-bar">
+        <div class="pf-title-badge">R</div>
+        <div>
+          <div class="pf-title">${esc(title)}</div>
+          <div class="pf-subtitle">${esc(subtitle)}</div>
+        </div>
+      </div>
+      ${sections}
+    </div>
+  </body>
+</html>
+`;
+  }
+
+  function printForm() {
+    const html = buildPrintFormHtml();
+    const win = window.open('', '_blank');
+
+    if (!win) {
+      showErrorMessage(t('باز کردن صفحه چاپ ممکن نشد'));
+      return;
+    }
+
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+
+    win.focus();
+
+    whenPrintFontsReady(win, () => {
+      try {
+        win.print();
+      } catch (e) {
+        console.error(e);
+      }
+    });
   }
 
   function downloadPdf() {

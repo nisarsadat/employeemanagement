@@ -1,5 +1,6 @@
 // stores/FoulAllTimeReportsRepository.js
 import { defineStore } from 'pinia';
+import { foulActivitySections } from '@/utils/foulActivityPrint';
 import { ref } from 'vue';
 import axios from '@/axios';
 import { toast } from 'vue3-toastify';
@@ -856,6 +857,7 @@ function baseExportCss() {
 
             ${infoSection}
             ${formatsSection}
+            ${foulActivitySections(report, escapeHtml)}
             ${eventsSection}
           </div>
         </body>

@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
-    <AppBar :title="t('زون‌ها')" :subtitle="t('مدیریت زون‌ها')">
+    <AppBar :title="t('آمریت‌ها')" :subtitle="t('مدیریت آمریت‌ها')">
       <template #actions>
         <v-btn icon></v-btn>
       </template>
@@ -12,7 +12,7 @@
         <v-col cols="12" sm="8" md="9" lg="10">
           <v-text-field
             v-model.trim="search"
-            :label="t('جستجو در زون‌ها...')"
+            :label="t('جستجو در آمریت‌ها...')"
             density="comfortable"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -66,7 +66,7 @@
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
           <!-- Edit -->
-          <v-tooltip :text="t('ویرایش زون')" location="top">
+          <v-tooltip :text="t('ویرایش آمریت')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 size="small"
@@ -80,7 +80,7 @@
           </v-tooltip>
 
           <!-- Delete -->
-          <v-tooltip :text="t('حذف زون')" location="top">
+          <v-tooltip :text="t('حذف آمریت')" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
                 size="small"
@@ -154,7 +154,7 @@ const search = ref('');
 const rows = ref([]);
 
 const headersFT = computed(() => [
-  { title: t('نام زون'), key: 'name' },
+  { title: t('نام آمریت'), key: 'name' },
   { title: t('تعداد حوزه‌ها'), key: 'hawzas_count' },
 ]);
 
@@ -214,7 +214,7 @@ async function handleDeleteConfirmed(target) {
     await fetchAll();
   } catch (e) {
     console.error(e);
-    showErrorMessage(t('خطا در حذف زون'));
+    showErrorMessage(t('خطا در حذف آمریت'));
   } finally {
     deleteDialog.value = false;
     deleteTarget.value = null;
@@ -232,7 +232,7 @@ async function fetchAll() {
     rows.value = res?.data || [];
   } catch (e) {
     console.error(e);
-    showErrorMessage(t('خطا در دریافت زون‌ها'));
+    showErrorMessage(t('خطا در دریافت آمریت‌ها'));
   }
 }
 

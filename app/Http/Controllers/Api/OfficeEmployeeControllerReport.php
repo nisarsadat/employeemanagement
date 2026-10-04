@@ -56,9 +56,9 @@ class OfficeEmployeeControllerReport extends Controller
                 $inactiveVals = ['inactive', OfficeEmployee::INACTIVE]; // 'inactive' | 'غیر فعال'
 
                 if (in_array($status, $activeVals, true)) {
-                    $q->where('activity', OfficeEmployee::ACTIVE);
+                    $q->active();
                 } elseif (in_array($status, $inactiveVals, true)) {
-                    $q->where('activity', OfficeEmployee::INACTIVE);
+                    $q->inactive();
                 }
             })
             ->orderByDesc('id');
@@ -231,7 +231,7 @@ class OfficeEmployeeControllerReport extends Controller
     public function inactive(Request $request)
     {
         $query = OfficeEmployee::query()
-            ->where('activity', 'غیر فعال')
+            ->inactive()
             ->with(['documents'])
             ->withCount(['events', 'resources', 'informations', 'documents'])
             ->orderByDesc('id');
@@ -390,9 +390,9 @@ class OfficeEmployeeControllerReport extends Controller
             // 🎛 status
             ->when($status && strtolower($status) !== 'all', function ($q) use ($status, $activeVals, $inactiveVals) {
                 if (in_array($status, $activeVals, true)) {
-                    $q->where('activity', OfficeEmployee::ACTIVE);
+                    $q->active();
                 } elseif (in_array($status, $inactiveVals, true)) {
-                    $q->where('activity', OfficeEmployee::INACTIVE);
+                    $q->inactive();
                 }
             })
             // 🎛 grouping key / identity province

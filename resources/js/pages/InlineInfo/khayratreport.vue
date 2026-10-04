@@ -16,7 +16,11 @@
 
     <v-col cols="12" md="12" class="d-flex justify-center" :dir="isRtl ? 'rtl' : 'ltr'">
       <v-alert type="info" variant="tonal" density="compact" rounded="lg" class="w-120">
-        {{ t('هر منبع فقط ماهانه یک عدد راپور خیریت میتواند دشته باشد!') }}
+        {{
+          t(
+            'برای هر منبع بعد از ۵ ساعت می‌توان راپور جدید خیریت ثبت کرد!'
+          )
+        }}
       </v-alert>
     </v-col>
 
@@ -110,7 +114,7 @@
             <!-- Zone/Hawza -->
             <v-col cols="12">
               <v-card-item>
-                <v-card-subtitle class="field-label">{{ t('زون / حوزه') }}</v-card-subtitle>
+                <v-card-subtitle class="field-label">{{ t('آمریت / حوزه') }}</v-card-subtitle>
               </v-card-item>
               <v-card-text>
                 <ZoneHawzaPicker

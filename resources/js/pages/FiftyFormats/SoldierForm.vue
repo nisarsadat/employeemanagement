@@ -175,7 +175,7 @@
             <v-col cols="12" md="6">
               <FormatZoneAutocomplete
                 v-model="form.now_zone"
-                :label="t('زون فعلی')"
+                :label="t('آمریت فعلی')"
                 :disabled="saving"
               />
             </v-col>
@@ -345,6 +345,16 @@
           <v-row class="mt-4">
             <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <!-- ✅ Export buttons beside submit (works even blank) -->
+              <v-btn
+                color="primary"
+                variant="tonal"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-printer"
+                @click="printForm"
+              >
+                {{ t('چاپ') }}
+              </v-btn>
+
               <v-tooltip :text="t('PDF ساده (بدون عکس)')" location="top">
                 <template #activator="{ props }">
                   <v-btn
@@ -426,6 +436,7 @@
   import { useFasadRepository } from '@/stores/FasadRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
+  import { printBlankForm } from '@/utils/printBlankForm';
 
   const { t, locale } = useI18n();
   const isRtl = ref(locale.value === 'fa');
@@ -771,7 +782,7 @@ function onResourceCleared() {
       [t('قریه/ناحیه اصلی'), form.value.main_village],
 
       [t('ولایت فعلی'), form.value.now_province],
-      [t('زون فعلی'), form.value.now_zone],
+      [t('آمریت فعلی'), form.value.now_zone],
       [t('ولسوالی فعلی'), form.value.now_district],
       [t('قریه/ناحیه فعلی'), form.value.now_village],
 
@@ -837,6 +848,11 @@ function onResourceCleared() {
 </body>
 </html>
   `.trim();
+  }
+
+  /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+  function printForm(e) {
+    printBlankForm(e, { onError: showErrorMessage });
   }
 
   function downloadPdf() {

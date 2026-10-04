@@ -134,15 +134,15 @@
         <v-card
           class="stat-card"
           rounded="xl"
-          @click="applyDocsTypeFilter(DOCS_TYPES.R069_APPROVED)"
+          @click="applyDocsTypeFilter(DOCS_TYPES.R030_APPROVED)"
         >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-indigo fontfamily">
-                {{ r069ApprovedCount }}
+                {{ r030ApprovedCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('د ۰۶۹ ریاست له لوري احکام شوي وړاندیزونه ') }}
+                {{ t('د ۰۳۰ ریاست له لوري احکام شوي وړاندیزونه ') }}
               </div>
             </div>
             <v-avatar color="indigo" variant="tonal" size="48">
@@ -156,15 +156,15 @@
         <v-card
           class="stat-card"
           rounded="xl"
-          @click="applyDocsTypeFilter(DOCS_TYPES.R069_REJECTED)"
+          @click="applyDocsTypeFilter(DOCS_TYPES.R030_REJECTED)"
         >
           <v-card-text class="pa-4 d-flex align-center justify-space-between">
             <div>
               <div class="text-h5 font-weight-bold text-green fontfamily">
-                {{ r069RejectedCount }}
+                {{ r030RejectedCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('د ۰۶۹ ریاست له لوري رد  شوي وړاندیزونه ') }}
+                {{ t('د ۰۳۰ ریاست له لوري رد  شوي وړاندیزونه ') }}
               </div>
             </div>
             <v-avatar color="green" variant="tonal" size="48">
@@ -409,8 +409,8 @@
   /* Docs type cards */
   const DOCS_TYPES = Object.freeze({
     AMIR: 'د امیر المومنین شیخ صاحب فرامین',
-    R069_APPROVED: 'د ۰۶۹ ریاست له لوري احکام شوي وړاندیزونه',
-    R069_REJECTED: 'د ۰۶۹ ریاست له لوري رد  شوي وړاندیزونه',
+    R030_APPROVED: 'د ۰۳۰ ریاست له لوري احکام شوي وړاندیزونه',
+    R030_REJECTED: 'د ۰۳۰ ریاست له لوري رد  شوي وړاندیزونه',
     LOY_APPROVED: 'د لوي ریاست  له لوري احکام   شوي وړاندیزونه',
   });
 
@@ -421,11 +421,11 @@
   const amirCount = computed(
     () => rowsFT.value.filter((r) => isDocsType(r, DOCS_TYPES.AMIR)).length
   );
-  const r069ApprovedCount = computed(
-    () => rowsFT.value.filter((r) => isDocsType(r, DOCS_TYPES.R069_APPROVED)).length
+  const r030ApprovedCount = computed(
+    () => rowsFT.value.filter((r) => isDocsType(r, DOCS_TYPES.R030_APPROVED)).length
   );
-  const r069RejectedCount = computed(
-    () => rowsFT.value.filter((r) => isDocsType(r, DOCS_TYPES.R069_REJECTED)).length
+  const r030RejectedCount = computed(
+    () => rowsFT.value.filter((r) => isDocsType(r, DOCS_TYPES.R030_REJECTED)).length
   );
   const loyApprovedCount = computed(
     () => rowsFT.value.filter((r) => isDocsType(r, DOCS_TYPES.LOY_APPROVED)).length

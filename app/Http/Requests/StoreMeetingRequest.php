@@ -152,6 +152,17 @@ class StoreMeetingRequest extends FormRequest
                 'file',
                 'max:20480',
             ],
+
+            // ✅ ترسره کوونکي (one or more office employees)
+            'office_employee_ids' => [
+                'nullable',
+                'array',
+            ],
+
+            'office_employee_ids.*' => [
+                'integer',
+                'exists:office_employees,id',
+            ],
         ];
     }
 

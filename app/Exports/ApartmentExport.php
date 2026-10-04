@@ -131,7 +131,7 @@ class ApartmentExport implements FromQuery, WithHeadings, WithMapping, WithEvent
             'د مسؤل وظیفه',
             'د مسؤل شمېره',
             'ولایت',
-            'زون',
+            'آمریت',
             'ولسوالۍ',
             'کلی',
             'مشخص ځای',

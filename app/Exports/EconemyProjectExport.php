@@ -123,7 +123,7 @@ class EconemyProjectExport implements FromQuery, WithHeadings, WithMapping, With
             'د مسؤل موقف',
             'د مسؤل شمېره',
             'ولایت',
-            'زون',
+            'آمریت',
             'ولسوالۍ',
             'کلی',
             'مشخص ځای',

@@ -78,36 +78,9 @@ class DashboardController extends Controller
             ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->count();
 
-       
-            $employeeActivityFrom = now()->subDays(30)->startOfDay();
-            $employeeActivityTo   = now()->endOfDay();
-
-            $employeesActive = OfficeEmployee::query()
-    ->where(function ($q) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
-        $q->whereIn('job_type', ['اداری', 'اداري'])
-            ->orWhereHas('resources', function ($r) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
-                $r->where('activity', 'فعال')
-                  ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
-            }, '>=', 100);
-    })
-    ->count();
-
-$employeesInactive = OfficeEmployee::query()
-    ->where(function ($q) {
-        $q->whereNull('job_type')
-          ->orWhereNotIn('job_type', ['اداری', 'اداري']);
-    })
-    ->where(function ($q) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
-        $q->whereDoesntHave('resources', function ($r) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
-            $r->where('activity', 'فعال')
-              ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
-        })
-        ->orWhereHas('resources', function ($r) use ($resourceDateCol, $employeeActivityFrom, $employeeActivityTo) {
-            $r->where('activity', 'فعال')
-              ->whereBetween($resourceDateCol, [$employeeActivityFrom, $employeeActivityTo]);
-        }, '<', 100);
-    })
-    ->count();
+        /* Activity rule: administrative job type OR any active resource. */
+        $employeesActive = OfficeEmployee::query()->active()->count();
+        $employeesInactive = OfficeEmployee::query()->inactive()->count();
 
         /* -------------------------------------------------
         | ✅ EMPLOYEES BY JOB TYPE (chips) - MAIN period
@@ -154,6 +127,9 @@ $employeesInactive = OfficeEmployee::query()
             ->withCount([
                 'resources as resources_count' => fn ($q) => $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),           
                 'informations as informations_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
+
+                // ✅ 1 active resource = 1 point
+                'resources as active_resources_count' => fn ($q) => $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo)->where('activity', 'فعال'),
                 'events as events_count' => fn ($q) => $this->applyDateRange($q, 'created_at', $financeFrom, $financeTo),
             ])
             ->orderByDesc('events_count')
@@ -170,6 +146,12 @@ $employeesInactive = OfficeEmployee::query()
             $events     = (int) $e->events_count;
             $resources  = (int) $e->resources_count;
             $infos      = (int) $e->informations_count;
+            $activeResources = (int) $e->active_resources_count;
+
+            // ✅ امتیاز: 1 active resource = 1, 1 info = 1, 2 events = 1
+            $score = $activeResources
+                + $infos
+                + intdiv($events, 2);
 
           return [
             'id'                 => $e->id,
@@ -179,28 +161,28 @@ $employeesInactive = OfficeEmployee::query()
             'code_number'        => $e->code_number,
             'events_count'       => $events,
             'resources_count'    => $resources,
+            'active_resources_count' => $activeResources,
             'informations_count' => $infos,
-            'total'              => $events + $resources + $infos,
+            'total'              => $score,
+            'score'              => $score,
         ];
         });
 
         $employeesSortedOld = $employeesScoredOld->sortByDesc('total')->values();
         $maxTotalOld = (int) ($employeesSortedOld->max('total') ?? 0);
 
-        $gradeOf = function (int $total, int $maxTotal) {
-            if ($maxTotal <= 0) return 'نامعلوم';
-            $p = ($total / $maxTotal) * 100;
-
-            if ($p >= 80) return 'عالی';
-            if ($p >= 60) return 'خوب';
-            if ($p >= 40) return 'متوسط';
-            if ($p >= 20) return 'کم';
+        /* ✅ درجه‌بندی by the points — fixed bands */
+        $gradeOf = function (int $points) {
+            if ($points >= 100) return 'عالی';
+            if ($points >= 50)  return 'خوب';
+            if ($points >= 20)  return 'متوسط';
+            if ($points >= 1)   return 'کم';
             return 'خیلی کم';
         };
 
-        $employeesRankedOld = $employeesSortedOld->map(function ($row, $idx) use ($gradeOf, $maxTotalOld) {
+        $employeesRankedOld = $employeesSortedOld->map(function ($row, $idx) use ($gradeOf) {
             $row['rank']  = $idx + 1;
-            $row['grade'] = $gradeOf((int) $row['total'], $maxTotalOld);
+            $row['grade'] = $gradeOf((int) $row['total']);
             return $row;
         })->values();
 
@@ -214,6 +196,11 @@ $employeesInactive = OfficeEmployee::query()
             'resources as resources_count' => fn ($q) =>
                 $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),
 
+            // ✅ 1 active resource = 1 point
+            'resources as active_resources_count' => fn ($q) =>
+                $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo)
+                    ->where('activity', 'فعال'),
+
             'informations as informations_count' => fn ($q) =>
                 $this->applyDateRange($q, $informationDateCol, $financeFrom, $financeTo),
 
@@ -222,6 +209,13 @@ $employeesInactive = OfficeEmployee::query()
 
             'khayratReports as khayrat_reports_count' => fn ($q) =>
                 $this->applyDateRange($q, $khayratDateCol, $financeFrom, $financeTo),
+
+            // ✅ ترسره شوی ارزونې / ترسره شوی غونډې
+            'securityAssessments as security_assessments_count' => fn ($q) =>
+                $this->applyDateRange($q, 'security_assessments.created_at', $financeFrom, $financeTo),
+
+            'meetings as meetings_count' => fn ($q) =>
+                $this->applyDateRange($q, 'meetings.created_at', $financeFrom, $financeTo),
         ])
         ->orderByDesc('events_count')
         ->orderByDesc('resources_count')
@@ -246,6 +240,15 @@ $employeesInactive = OfficeEmployee::query()
             $resources = (int) $e->resources_count;
             $infos     = (int) $e->informations_count;
             $khayrat   = (int) $e->khayrat_reports_count;
+            $assessments = (int) $e->security_assessments_count;
+            $meetingsPerformed = (int) $e->meetings_count;
+            $activeResources = (int) $e->active_resources_count;
+
+            // ✅ امتیاز: 1 active resource = 1, 1 info = 1, 2 events = 1, 20 khayrat = 1
+            $score = $activeResources
+                + $infos
+                + intdiv($events, 2)
+                + intdiv($khayrat, 20);
 
             return [
             'id'                    => $e->id,
@@ -257,16 +260,88 @@ $employeesInactive = OfficeEmployee::query()
             'resources_count'       => $resources,
             'informations_count'    => $infos,
             'khayrat_reports_count' => $khayrat,
-            'total'                 => $events + $resources + $infos + $khayrat,
+            'security_assessments_count' => $assessments,
+            'meetings_count'        => $meetingsPerformed,
+            'active_resources_count' => $activeResources,
+            'total'                 => $score,
+            'score'                 => $score,
         ];
         });
 
         $employeesSortedNew = $employeesScoredNew->sortByDesc('total')->values();
         $maxTotalNew = (int) ($employeesSortedNew->max('total') ?? 0);
 
-        $employeesRankedNew = $employeesSortedNew->map(function ($row, $idx) use ($gradeOf, $maxTotalNew) {
+        $employeesRankedNew = $employeesSortedNew->map(function ($row, $idx) use ($gradeOf) {
             $row['rank']  = $idx + 1;
-            $row['grade'] = $gradeOf((int) $row['total'], $maxTotalNew);
+            $row['grade'] = $gradeOf((int) $row['total']);
+            return $row;
+        })->values();
+
+        /* -------------------------------------------------
+        | ✅ RESOURCES TABLE - same point rule as employees, FINANCE period
+        | 1 information = 1, 2 events = 1, 20 khayrat reports = 1
+        |-------------------------------------------------*/
+        $resourcesForRanking = Resource::query()
+            ->select('id', 'name', 'nick_name', 'code_number', 'picture', 'activity')
+            ->withCount([
+                'informations as informations_count' => fn ($q) =>
+                    $this->applyDateRange($q, $informationDateCol, $financeFrom, $financeTo),
+
+                'events as events_count' => fn ($q) =>
+                    $this->applyDateRange($q, $eventDateCol, $financeFrom, $financeTo),
+
+                'khayratReports as khayrat_reports_count' => fn ($q) =>
+                    $this->applyDateRange($q, $khayratDateCol, $financeFrom, $financeTo),
+            ])
+            ->get();
+
+        $resourcesWithActivity = $resourcesForRanking
+            ->filter(function ($r) {
+                return (
+                    (int) $r->events_count +
+                    (int) $r->informations_count +
+                    (int) $r->khayrat_reports_count
+                ) > 0;
+            })
+            ->values();
+
+        $resourcesScored = $resourcesWithActivity->map(function ($r) {
+            $events = (int) $r->events_count;
+            $infos  = (int) $r->informations_count;
+            $khayrat = (int) $r->khayrat_reports_count;
+
+            $score = $infos
+                + intdiv($events, 2)
+                + intdiv($khayrat, 20);
+
+            $picture = null;
+            if ($r->picture) {
+                $picture = str_starts_with((string) $r->picture, 'http')
+                    ? $r->picture
+                    : url($r->picture);
+            }
+
+            return [
+                'id'                    => $r->id,
+                'name'                  => $r->name,
+                'nick_name'             => $r->nick_name,
+                'code_number'           => $r->code_number,
+                'picture'               => $picture,
+                'activity'              => $r->activity,
+                'events_count'          => $events,
+                'informations_count'    => $infos,
+                'khayrat_reports_count' => $khayrat,
+                'total'                 => $score,
+                'score'                 => $score,
+            ];
+        });
+
+        $resourcesSorted = $resourcesScored->sortByDesc('total')->values();
+        $maxResourceScore = (int) ($resourcesSorted->max('total') ?? 0);
+
+        $resourcesRanked = $resourcesSorted->map(function ($row, $idx) use ($gradeOf) {
+            $row['rank']  = $idx + 1;
+            $row['grade'] = $gradeOf((int) $row['total']);
             return $row;
         })->values();
 
@@ -605,7 +680,8 @@ $informationsBySyasiType = (clone $informationBase)
                 'active'   => $resourcesActive,
                 'inactive' => $resourcesInactive,
                 'resources_by_hawza' => $resourcesByHawza,
-
+                'max_total'   => $maxResourceScore,
+                'flat_sorted' => $resourcesRanked,
             ],
 
             'resources_monthly_counts' => $resourcesMonthlyCounts,

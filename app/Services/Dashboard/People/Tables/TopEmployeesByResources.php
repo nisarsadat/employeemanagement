@@ -33,7 +33,7 @@ class TopEmployeesByResources implements DashboardMetric
         return [
             'id'      => 'top_employees_by_resources',
             'title'   => ['fa' => 'کارمندان با بیشترین منبع', 'en' => 'Top Employees by Resources'],
-            'headers' => ['اسم', 'زون', 'حوزه', 'شمیر منابع'],
+            'headers' => ['اسم', 'آمریت', 'حوزه', 'شمیر منابع'],
             'rows'    => $rows->map(fn($r) => [$r->name, $r->zone, $r->hawza, (int)$r->res_count])->toArray(),
             'total'   => $rows->count(),
         ];

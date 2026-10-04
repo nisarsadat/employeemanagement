@@ -54,6 +54,21 @@ class MeetingResource extends JsonResource
 
             'note' => $this->note,
 
+            // ✅ ترسره کوونکي
+            'office_employee_ids' => $this->whenLoaded(
+                'officeEmployees',
+                fn () => $this->officeEmployees->pluck('id')->values()
+            ),
+
+            'office_employees' => $this->whenLoaded(
+                'officeEmployees',
+                fn () => $this->officeEmployees->map(fn ($employee) => [
+                    'id' => $employee->id,
+                    'name' => $employee->name,
+                    'code_number' => $employee->code_number,
+                ])->values()
+            ),
+
             'documents' => $this->whenLoaded(
                 'documents',
                 function () {

@@ -76,6 +76,7 @@ use App\Models\fifthyformatsthree\Mujahedino;
 use App\Models\fifthyformatsthree\OldJahadi;
 use App\Models\fifthyformatsthree\Sarayano;
 use App\Models\fifthyformatsthree\Tujaran;
+use App\Services\Reports\FoulActivityRows;
 
 class DailyFoulReportController extends Controller
 {
@@ -156,6 +157,10 @@ class DailyFoulReportController extends Controller
 
         // 4) 56-format totals (only those with data)
         $formats = $this->formatCounts($date);
+        $activity = FoulActivityRows::between(
+            $date->copy()->startOfDay(),
+            $date->copy()->addDay()->startOfDay()
+        );
 
         return response()->json([
             'meta' => [
@@ -178,6 +183,8 @@ class DailyFoulReportController extends Controller
             ],
 
             'formats' => $formats,
+            'meetings' => $activity['meetings'],
+            'security_assessments' => $activity['security_assessments'],
         ]);
     }
 

@@ -753,6 +753,20 @@
                   </div>
                 </template>
 
+                <!-- ✅ ترسره شوی ارزونې -->
+                <template #item.security_assessments_count="{ item }">
+                  <div class="metric-chip">
+                    <span class="font-weight-bold">{{ num(item.security_assessments_count || 0) }}</span>
+                  </div>
+                </template>
+
+                <!-- ✅ ترسره شوی غونډې -->
+                <template #item.meetings_count="{ item }">
+                  <div class="metric-chip">
+                    <span class="font-weight-bold">{{ num(item.meetings_count || 0) }}</span>
+                  </div>
+                </template>
+
                 <!-- Score -->
                 <!-- ✅ Score Bar column -->
                 <template #item.score_bar="{ item }">
@@ -871,6 +885,321 @@
             @zone-click="onZoneClick"
           />
         </v-col>
+
+        <v-col cols="12">
+          <v-card rounded="xl" class="mb-4 fancy-card">
+            <div class="table-header pa-4">
+              <div class="d-flex align-center justify-space-between flex-wrap gap-3">
+                <div>
+                  <div class="d-flex align-center gap-2">
+                    <v-avatar size="34" class="bg-soft-primary">
+                      <v-icon color="teal">mdi-database</v-icon>
+                    </v-avatar>
+                    <div>
+                      <div class="text-h6 font-weight-black">{{ t('درجه‌بندی منابع') }}</div>
+                      <div class="text-caption text-medium-emphasis">
+                        {{ t('بر اساس امتیاز (اطلاعات + رویداد + گزارش‌های خیرات)') }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="d-flex align-center gap-4 mt-3">
+                    <v-chip size="small" variant="tonal" color="teal">
+                      <v-icon start size="16">mdi-database</v-icon>
+                      {{ filteredResources.length }} {{ t('منبع') }}
+                    </v-chip>
+
+                    <v-chip size="small" variant="tonal" color="amber">
+                      <v-icon start size="16">mdi-crown</v-icon>
+                      {{ t('بهترین') }}: {{ getTopResourceName }}
+                    </v-chip>
+                  </div>
+                </div>
+
+                <div class="d-flex align-center flex-wrap gap-2">
+                  <v-text-field
+                    v-model.trim="resourceSearch"
+                    density="compact"
+                    variant="outlined"
+                    rounded="xl"
+                    hide-details
+                    :placeholder="t('جستجوی منبع...')"
+                    clearable
+                    class="search-field"
+                    @update:model-value="resourceCurrentPage = 1"
+                  >
+                    <template #prepend-inner>
+                      <v-icon size="20" color="teal">mdi-magnify</v-icon>
+                    </template>
+                  </v-text-field>
+
+                  <v-menu
+                    location="bottom"
+                    transition="scale-transition"
+                    :close-on-content-click="false"
+                  >
+                    <template #activator="{ props }">
+                      <v-btn
+                        v-bind="props"
+                        variant="outlined"
+                        rounded="xl"
+                        class="sort-field"
+                        prepend-icon="mdi-sort"
+                      >
+                        {{ t('مرتب‌سازی') }}
+                        <v-chip class="ml-2" size="x-small" variant="tonal" color="teal">
+                          {{ resourceSortKeys.length }}
+                        </v-chip>
+                        <v-icon end size="18">mdi-chevron-down</v-icon>
+                      </v-btn>
+                    </template>
+
+                    <v-card rounded="xl" class="dash-filter-menu">
+                      <v-card-title class="py-3 d-flex align-center justify-space-between">
+                        <div class="d-flex align-center gap-2">
+                          <v-icon color="teal">mdi-sort</v-icon>
+                          <span class="text-subtitle-2 font-weight-bold">{{
+                            t('مرتب‌سازی چندگانه')
+                          }}</span>
+                        </div>
+
+                        <v-btn
+                          size="small"
+                          variant="text"
+                          color="error"
+                          @click="resourceSortKeys = ['score_desc']"
+                        >
+                          {{ t('ریست') }}
+                        </v-btn>
+                      </v-card-title>
+
+                      <v-divider />
+
+                      <v-card-text class="py-2">
+                        <v-list-item
+                          v-for="opt in resourceSortOptions"
+                          :key="opt.value"
+                          class="px-0"
+                          @click="toggleResourceSort(opt.value)"
+                        >
+                          <template #prepend>
+                            <v-checkbox
+                              :model-value="resourceSortKeys.includes(opt.value)"
+                              density="compact"
+                              hide-details
+                              @click.stop
+                              @update:model-value="toggleResourceSort(opt.value)"
+                            />
+                          </template>
+
+                          <v-list-item-title class="text-body-2">
+                            {{ opt.title }}
+                          </v-list-item-title>
+                        </v-list-item>
+
+                        <div class="mt-3 d-flex flex-wrap ga-2">
+                          <v-chip
+                            v-for="k in resourceSortKeys"
+                            :key="k"
+                            size="x-small"
+                            variant="tonal"
+                            color="teal"
+                            closable
+                            @click:close="removeResourceSort(k)"
+                          >
+                            {{ resourceSortOptions.find((x) => x.value === k)?.title || k }}
+                          </v-chip>
+                        </div>
+                      </v-card-text>
+                    </v-card>
+                  </v-menu>
+
+                  <v-btn
+                    :loading="repo.loading"
+                    variant="tonal"
+                    rounded="xl"
+                    :disabled="repo.loading"
+                    class="refresh-btn"
+                    @click="refreshData"
+                  >
+                    <v-icon>mdi-refresh</v-icon>
+                  </v-btn>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-shell table-scroll-wrap">
+              <v-data-table
+                :items="pagedResources"
+                :headers="resourceHeaders"
+                :loading="repo.loading"
+                class="employees-table cool-table"
+                item-key="id"
+                fixed-header
+                height="350"
+                :items-per-page="resourceItemsPerPage"
+                hide-default-footer
+              >
+                <template #item.rank="{ item }">
+                  <div class="rank-cell">
+                    <div class="rank-badge">
+                      {{ item.rank }}
+                    </div>
+                  </div>
+                </template>
+
+                <template #item.nick_name="{ item }">
+                  <div class="employee-cell" @click="goResourceDetails(item)">
+                    <v-avatar
+                      size="40"
+                      class="avatar-glow mr-3 employee-photo-avatar"
+                      @click.stop="openResourceImage(item)"
+                    >
+                      <v-img
+                        v-if="getEmployeePhotoUrl(item)"
+                        :src="getEmployeePhotoUrl(item)"
+                        cover
+                        eager
+                      />
+                      <span v-else class="text-white text-body-2 font-weight-bold">
+                        {{ getInitials((item.raw ?? item).nick_name || (item.raw ?? item).name) }}
+                      </span>
+                    </v-avatar>
+
+                    <div class="min-w-0">
+                      <div class="employee-name text-body-2 font-weight-bold text-truncate">
+                        {{ item.nick_name || item.name || '—' }}
+                      </div>
+
+                      <div class="d-flex align-center gap-2 mt-1">
+                        <v-chip size="x-small" variant="tonal" color="teal">
+                          {{ t('کود') }}: {{ item.code_number || '—' }}
+                        </v-chip>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+
+                <template #item.informations_count="{ item }">
+                  <v-btn
+                    size="small"
+                    variant="tonal"
+                    color="primary"
+                    class="text-none"
+                    @click.stop="goResourceInformations(item)"
+                  >
+                    <v-icon start size="16">mdi-file-document-multiple</v-icon>
+                    {{ num(item.informations_count) }}
+                  </v-btn>
+                </template>
+
+                <template #item.events_count="{ item }">
+                  <v-btn
+                    size="small"
+                    variant="tonal"
+                    color="deep-purple"
+                    class="text-none"
+                    @click.stop="goResourceEvents(item)"
+                  >
+                    <v-icon start size="16">mdi-calendar-alert</v-icon>
+                    {{ num(item.events_count) }}
+                  </v-btn>
+                </template>
+
+                <template #item.khayrat_reports_count="{ item }">
+                  <div class="metric-chip">
+                    <span class="font-weight-bold">{{ num(item.khayrat_reports_count || 0) }}</span>
+                  </div>
+                </template>
+
+                <template #item.score_bar="{ item }">
+                  <div class="score-bar-cell">
+                    <v-progress-linear
+                      :model-value="getScorePercentage(item.score)"
+                      height="10"
+                      rounded
+                      :color="getScoreColor(item.score)"
+                      bg-color="rgba(0,0,0,0.06)"
+                      class="score-bar"
+                    />
+                  </div>
+                </template>
+
+                <template #item.score_value="{ item }">
+                  <div class="score-value-cell">
+                    <div class="score-number">{{ num(item.score) }}</div>
+                    <div class="score-label text-caption text-medium-emphasis">
+                      {{ getScoreLabel(item.score) }}
+                    </div>
+                  </div>
+                </template>
+
+                <template #item.actions="{ item }">
+                  <div class="d-flex align-center justify-center gap-1">
+                    <v-btn
+                      icon
+                      size="small"
+                      variant="text"
+                      color="primary"
+                      @click.stop="goResourceDetails(item)"
+                    >
+                      <v-icon size="20">mdi-eye</v-icon>
+                    </v-btn>
+                  </div>
+                </template>
+
+                <template #no-data>
+                  <div class="empty-table pa-10 text-center">
+                    <v-icon size="72" color="grey-lighten-2" class="mb-4">mdi-database-search</v-icon>
+                    <div class="text-h6 text-medium-emphasis mb-2">{{ t('منبعی یافت نشد') }}</div>
+                    <div class="text-caption text-medium-emphasis">
+                      {{ t('هیچ منبعی مطابق با جستجوی شما وجود ندارد') }}
+                    </div>
+                  </div>
+                </template>
+
+                <template #loading>
+                  <div class="loading-table pa-10 text-center">
+                    <v-progress-circular indeterminate color="primary" size="54" class="mb-4" />
+                    <div class="text-h6 text-medium-emphasis">{{ t('در حال بارگذاری...') }}</div>
+                  </div>
+                </template>
+              </v-data-table>
+            </div>
+
+            <div class="table-footer pa-3">
+              <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('نمایش') }} {{ resourcePageFrom }}-{{ resourcePageTo }} {{ t('از') }}
+                  {{ filteredResources.length }}
+                  {{ t('منبع') }}
+                  •
+                  {{ t('صفحه') }} {{ resourceCurrentPage }} {{ t('از') }} {{ resourcePageCount }}
+                </div>
+                <div class="d-flex align-center ga-2">
+                  <span class="text-caption text-medium-emphasis">{{ t('تعداد در صفحه') }}</span>
+                  <v-select
+                    v-model="resourceItemsPerPage"
+                    :items="[5, 10, 20, 50, 100]"
+                    density="compact"
+                    variant="outlined"
+                    hide-details
+                    style="max-width: 110px"
+                    @update:model-value="resourceCurrentPage = 1"
+                  />
+                </div>
+                <v-pagination
+                  v-model="resourceCurrentPage"
+                  :length="resourcePageCount"
+                  :total-visible="6"
+                  rounded="circle"
+                  density="compact"
+                />
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+
         <v-col cols="12" lg="12">
           <MonthlyAmountBarChart
             :loading="repo.loading"
@@ -911,7 +1240,7 @@
   <v-dialog v-model="imagePreviewDialog" max-width="900">
     <v-card rounded="xl">
       <v-toolbar color="primary" density="comfortable">
-        <v-toolbar-title>{{ t('پیش نمایش عکس کارمند') }}</v-toolbar-title>
+        <v-toolbar-title>{{ imagePreviewTitle }}</v-toolbar-title>
         <v-spacer />
         <v-btn icon="mdi-close" variant="text" @click="imagePreviewDialog = false" />
       </v-toolbar>
@@ -953,6 +1282,10 @@
   const search = ref('');
   const currentPage = ref(1);
   const sortKeys = ref(['score_desc']);
+  const resourceSearch = ref('');
+  const resourceCurrentPage = ref(1);
+  const resourceItemsPerPage = ref(10);
+  const resourceSortKeys = ref(['score_desc']);
 
   const period = ref('all'); // main filter
   const financePeriod = ref('monthly'); // affects money + oil + employee table
@@ -965,6 +1298,7 @@
   const employeeDialogLoading = ref(false);
   const imagePreviewDialog = ref(false);
   const imagePreviewUrl = ref(null);
+  const imagePreviewTitle = ref('');
   function closeEmployeeDialog() {
     employeeDialog.value = false;
     employeeDialogLoading.value = false;
@@ -989,6 +1323,7 @@
     const url = getEmployeePhotoUrl(item);
     if (!url) return;
 
+    imagePreviewTitle.value = t('پیش نمایش عکس کارمند');
     imagePreviewUrl.value = url;
     imagePreviewDialog.value = true;
   }
@@ -1159,6 +1494,44 @@
       office_employee_id: String(id),
     });
   }
+
+  function goResourceInformations(payload) {
+    const row = payload?.raw ?? payload;
+    const id = row?.id;
+    if (!id) return;
+
+    pushDashboard('/app/informations', {
+      resource_id: String(id),
+      source: 'dashboard',
+    });
+  }
+
+  function goResourceEvents(payload) {
+    const row = payload?.raw ?? payload;
+    const id = row?.id;
+    if (!id) return;
+
+    pushDashboard('/app/events', {
+      resource_id: String(id),
+      source: 'dashboard',
+    });
+  }
+
+  function goResourceDetails(payload) {
+    const row = payload?.raw ?? payload;
+    const id = row?.id;
+    if (!id) return;
+
+    pushDashboard(`/app/resourcesform/${id}`);
+  }
+
+  function openResourceImage(item) {
+    const url = getEmployeePhotoUrl(item);
+    if (!url) return;
+    imagePreviewTitle.value = t('پیش نمایش عکس منبع');
+    imagePreviewUrl.value = url;
+    imagePreviewDialog.value = true;
+  }
   function getEventTypeColor(type) {
     const colors = {
       سیاسي: 'blue',
@@ -1186,6 +1559,7 @@
       finance_period: financePeriod.value,
     });
     currentPage.value = 1;
+    resourceCurrentPage.value = 1;
   }
 
   async function onPeriodChanged() {
@@ -1300,6 +1674,20 @@
       sortable: false,
       align: 'center',
     },
+    {
+      title: t('ترسره شوی ارزونې'),
+      key: 'security_assessments_count',
+      width: 120,
+      sortable: false,
+      align: 'center',
+    },
+    {
+      title: t('ترسره شوی غونډې'),
+      key: 'meetings_count',
+      width: 120,
+      sortable: false,
+      align: 'center',
+    },
     { title: t('نمودار امتیاز'), key: 'score_bar', width: 150, sortable: false, align: 'center' },
     { title: t('مجموعه فعالیت'), key: 'score_value', width: 120, sortable: false, align: 'center' },
     { title: t('د معلواتو لیدنه'), key: 'actions', width: 70, sortable: false, align: 'center' },
@@ -1365,12 +1753,14 @@
     }
   }
 
+  /* ✅ درجه‌بندی by the points — same fixed bands as the backend */
   function getScoreLabel(score) {
-    const percentage = getScorePercentage(score);
-    if (percentage >= 80) return t('عالی');
-    if (percentage >= 60) return t('ښه');
-    if (percentage >= 40) return t('متوسط');
-    return t('');
+    const s = Number(score) || 0;
+    if (s >= 100) return t('عالی');
+    if (s >= 50) return t('خوب');
+    if (s >= 20) return t('متوسط');
+    if (s >= 1) return t('کم');
+    return t('خیلی کم');
   }
 
   /* ===========================
@@ -1436,11 +1826,12 @@
     if (item?.score != null && Number.isFinite(Number(item.score))) return Number(item.score);
 
     const events = Number(item?.events_count) || 0;
-    const resources = Number(item?.resources_count) || 0;
+    const activeResources = Number(item?.active_resources_count) || 0;
     const informations = Number(item?.informations_count) || 0;
     const khayrat = Number(item?.khayrat_reports_count) || 0;
 
-    return events + resources + informations + khayrat;
+    // ✅ same weighting as the backend: 2 events = 1pt, 20 khayrat = 1pt
+    return activeResources + informations + Math.floor(events / 2) + Math.floor(khayrat / 20);
   }
   function cmpByKey(a, b, key) {
     if (key === 'score_desc') return employeeScoreNumber(b) - employeeScoreNumber(a);
@@ -1498,24 +1889,17 @@
     return sorted.map((x, i) => ({ ...x, rank: i + 1, score: employeeScoreNumber(x) }));
   });
 
-  const maxEmployeeScore = computed(() => {
-    const arr = filteredEmployees.value;
-    if (!arr.length) return 100;
-    const m = Math.max(...arr.map((e) => employeeScoreNumber(e)));
-    return Math.max(m, 100);
-  });
-
+  /* progress bar measured against the عالی threshold (100 points) */
   function getScorePercentage(score) {
     const s = Number(score) || 0;
-    const maxScore = maxEmployeeScore.value || 100;
-    return Math.min((s / maxScore) * 100, 100);
+    return Math.min((s / 100) * 100, 100);
   }
 
   function getScoreColor(score) {
-    const percentage = getScorePercentage(score);
-    if (percentage >= 80) return 'success';
-    if (percentage >= 60) return 'primary';
-    if (percentage >= 40) return 'warning';
+    const s = Number(score) || 0;
+    if (s >= 100) return 'success';
+    if (s >= 50) return 'primary';
+    if (s >= 20) return 'warning';
     return 'error';
   }
 
@@ -1539,6 +1923,150 @@
 
   const pageTo = computed(() =>
     Math.min(pageFrom.value + itemsPerPage.value - 1, filteredEmployees.value.length)
+  );
+
+  /* ===========================
+  Resources ranking (same point rule as employees)
+  1 information = 1, 2 events = 1, 20 khayrat = 1
+  =========================== */
+  const resourceSortOptions = computed(() => [
+    { title: t('فعالیت (زیاد → کم)'), value: 'score_desc' },
+    { title: t('فعالیت (کم → زیاد)'), value: 'score_asc' },
+    { title: t('پیښې (زیاد → کم)'), value: 'events_desc' },
+    { title: t('اطلاعات (زیاد → کم)'), value: 'informations_desc' },
+    { title: t('خیریت راپور (زیاد → کم)'), value: 'khayrat_desc' },
+    { title: t('نام (A → Z)'), value: 'name_asc' },
+  ]);
+
+  const resourceHeaders = computed(() => [
+    { title: t('رتبه'), key: 'rank', width: 90, sortable: false, align: 'center' },
+    { title: t('منبع'), key: 'nick_name', sortable: false },
+    {
+      title: t('اطلاعات'),
+      key: 'informations_count',
+      width: 110,
+      sortable: false,
+      align: 'center',
+    },
+    { title: t('رویدادها'), key: 'events_count', width: 110, sortable: false, align: 'center' },
+    {
+      title: t('گزارش‌های خیرات'),
+      key: 'khayrat_reports_count',
+      width: 130,
+      sortable: false,
+      align: 'center',
+    },
+    { title: t('نمودار امتیاز'), key: 'score_bar', width: 150, sortable: false, align: 'center' },
+    { title: t('مجموعه فعالیت'), key: 'score_value', width: 120, sortable: false, align: 'center' },
+    { title: t('د معلواتو لیدنه'), key: 'actions', width: 70, sortable: false, align: 'center' },
+  ]);
+
+  function toggleResourceSort(key) {
+    const arr = [...(resourceSortKeys.value || [])];
+    const i = arr.indexOf(key);
+    if (i >= 0) arr.splice(i, 1);
+    else arr.push(key);
+    if (!arr.length) arr.push('score_desc');
+    resourceSortKeys.value = arr;
+    resourceCurrentPage.value = 1;
+  }
+
+  function removeResourceSort(key) {
+    const arr = [...(resourceSortKeys.value || [])].filter((x) => x !== key);
+    if (!arr.length) arr.push('score_desc');
+    resourceSortKeys.value = arr;
+    resourceCurrentPage.value = 1;
+  }
+
+  const baseResources = computed(() => {
+    const list = Array.isArray(repo.resources?.flat_sorted) ? repo.resources.flat_sorted : [];
+    return [...list].map((x) => ({ ...x, score: Number(x.score || x.total || 0) }));
+  });
+
+  function resourceScoreNumber(item) {
+    if (item?.score != null && Number.isFinite(Number(item.score))) return Number(item.score);
+
+    const events = Number(item?.events_count) || 0;
+    const informations = Number(item?.informations_count) || 0;
+    const khayrat = Number(item?.khayrat_reports_count) || 0;
+
+    return informations + Math.floor(events / 2) + Math.floor(khayrat / 20);
+  }
+
+  function cmpResourceByKey(a, b, key) {
+    if (key === 'score_desc') return resourceScoreNumber(b) - resourceScoreNumber(a);
+    if (key === 'score_asc') return resourceScoreNumber(a) - resourceScoreNumber(b);
+    if (key === 'events_desc')
+      return (Number(b?.events_count) || 0) - (Number(a?.events_count) || 0);
+    if (key === 'informations_desc')
+      return (Number(b?.informations_count) || 0) - (Number(a?.informations_count) || 0);
+    if (key === 'khayrat_desc')
+      return (Number(b?.khayrat_reports_count) || 0) - (Number(a?.khayrat_reports_count) || 0);
+    if (key === 'name_asc')
+      return String(a?.nick_name || a?.name || '').localeCompare(
+        String(b?.nick_name || b?.name || ''),
+        undefined,
+        { sensitivity: 'base', numeric: true }
+      );
+    return 0;
+  }
+
+  const filteredResources = computed(() => {
+    const q = resourceSearch.value?.trim()?.toLowerCase();
+    const arr = baseResources.value;
+    const filtered = !q
+      ? arr
+      : arr.filter((r) => {
+          const nickName = String(r?.nick_name || '').toLowerCase();
+          const name = String(r?.name || '').toLowerCase();
+          const code = String(r?.code_number || '').toLowerCase();
+          return nickName.includes(q) || name.includes(q) || code.includes(q);
+        });
+
+    const keys =
+      Array.isArray(resourceSortKeys.value) && resourceSortKeys.value.length
+        ? resourceSortKeys.value
+        : ['score_desc'];
+
+    const sorted = [...filtered].sort((a, b) => {
+      for (const k of keys) {
+        const d = cmpResourceByKey(a, b, k);
+        if (d !== 0) return d;
+      }
+      return 0;
+    });
+
+    return sorted.map((x, i) => ({ ...x, rank: i + 1, score: resourceScoreNumber(x) }));
+  });
+
+  const getTopResourceName = computed(
+    () => filteredResources.value[0]?.nick_name || filteredResources.value[0]?.name || '—'
+  );
+
+  const resourcePageCount = computed(() =>
+    Math.max(1, Math.ceil(filteredResources.value.length / resourceItemsPerPage.value))
+  );
+
+  const pagedResources = computed(() => {
+    const page = Math.min(Math.max(1, resourceCurrentPage.value), resourcePageCount.value);
+    const start = (page - 1) * resourceItemsPerPage.value;
+    return filteredResources.value.slice(start, start + resourceItemsPerPage.value);
+  });
+
+  const resourcePageFrom = computed(() => {
+    if (!filteredResources.value.length) return 0;
+    return (
+      (Math.min(resourceCurrentPage.value, resourcePageCount.value) - 1) *
+        resourceItemsPerPage.value +
+      1
+    );
+  });
+
+  const resourcePageTo = computed(() =>
+    Math.min(
+      resourcePageFrom.value + resourceItemsPerPage.value - 1,
+      filteredResources.value.length
+    )
   );
 
   /* ===========================

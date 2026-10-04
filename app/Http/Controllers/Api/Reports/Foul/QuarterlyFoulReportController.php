@@ -77,6 +77,7 @@ use App\Models\fifthyformatsthree\Mujahedino;
 use App\Models\fifthyformatsthree\OldJahadi;
 use App\Models\fifthyformatsthree\Sarayano;
 use App\Models\fifthyformatsthree\Tujaran;
+use App\Services\Reports\FoulActivityRows;
 
 class QuarterlyFoulReportController extends Controller
 {
@@ -162,6 +163,7 @@ class QuarterlyFoulReportController extends Controller
 
         // 4) 56-format totals (filtered by created_at if exists)
         $formats = $this->formatCounts($start, $end);
+        $activity = FoulActivityRows::between($start, $end);
 
         return response()->json([
             'meta' => [
@@ -190,6 +192,8 @@ class QuarterlyFoulReportController extends Controller
             ],
 
             'formats' => $formats,
+            'meetings' => $activity['meetings'],
+            'security_assessments' => $activity['security_assessments'],
         ]);
     }
 
@@ -367,7 +371,8 @@ class QuarterlyFoulReportController extends Controller
         ['key' => 'oldJahadis', 'name' => 'پخواني جهادي قومندانان', 'model' => OldJahadi::class],
         ['key' => 'sarayanos', 'name' => 'سرایان', 'model' => Sarayano::class],
         ['key' => 'tujarans', 'name' => 'تجاران', 'model' => Tujaran::class],
-        ['key' => 'jawasis', 'name' => 'جواسیس', 'model' => Jawasis::class],        ];
+        ['key' => 'jawasis', 'name' => 'جواسیس', 'model' => Jawasis::class],
+        ];
 
         $out = [];
 

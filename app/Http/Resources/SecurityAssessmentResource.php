@@ -19,7 +19,10 @@ class SecurityAssessmentResource extends JsonResource
             'district' => $this->district,
             'specific_place' => $this->specific_place,
             'coordinates' => $this->coordinates,
-            'direction' => $this->direction,
+            'north' => $this->north,
+            'south' => $this->south,
+            'east' => $this->east,
+            'west' => $this->west,
 
             'daily_visitors_count' => $this->daily_visitors_count,
 
@@ -48,6 +51,21 @@ class SecurityAssessmentResource extends JsonResource
             'other_problems' => $this->other_problems,
 
             'note' => $this->note,
+
+            // ✅ ترسره کوونکي
+            'office_employee_ids' => $this->whenLoaded(
+                'officeEmployees',
+                fn () => $this->officeEmployees->pluck('id')->values()
+            ),
+
+            'office_employees' => $this->whenLoaded(
+                'officeEmployees',
+                fn () => $this->officeEmployees->map(fn ($employee) => [
+                    'id' => $employee->id,
+                    'name' => $employee->name,
+                    'code_number' => $employee->code_number,
+                ])->values()
+            ),
 
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

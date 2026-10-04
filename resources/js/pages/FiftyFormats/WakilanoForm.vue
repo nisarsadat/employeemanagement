@@ -166,7 +166,7 @@
             <v-col cols="12" md="12">
               <FormatZoneAutocomplete
                 v-model="form.now_zone"
-                :label="t('زون فعلی')"
+                :label="t('آمریت فعلی')"
                 :disabled="saving"
               />
             </v-col>
@@ -423,6 +423,16 @@
           <!-- ✅ SIMPLE EXPORT BUTTONS (BOTTOM) -->
           <v-divider class="my-4" />
           <v-card-actions class="justify-end ga-2">
+            <v-btn
+              color="primary"
+              variant="tonal"
+              class="text-none rounded-pill secondary-action-btn"
+              prepend-icon="mdi-printer"
+              @click="printForm"
+            >
+              {{ t('چاپ') }}
+            </v-btn>
+
             <v-tooltip :text="t('PDF ساده (بدون عکس)')" location="top">
               <template #activator="{ props }">
                 <v-btn
@@ -501,6 +511,7 @@
   import { useWakilanoRepository } from '@/stores/WakilanoRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
+  import { printBlankForm } from '@/utils/printBlankForm';
 
   const repo = useWakilanoRepository();
   const route = useRoute();
@@ -894,7 +905,7 @@ function onResourceCleared() {
       [t('قریه اصلی'), form.value.main_village],
 
       [t('ولایت فعلی'), form.value.now_province],
-      [t('زون فعلی'), form.value.now_zone],
+      [t('آمریت فعلی'), form.value.now_zone],
       [t('ولسوالی فعلی'), form.value.now_district],
       [t('قریه فعلی'), form.value.now_village],
       [t('موقعیت مشخص فعلی'), form.value.now_specific_place],
@@ -975,6 +986,11 @@ function onResourceCleared() {
 </body>
 </html>
   `.trim();
+  }
+
+  /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+  function printForm(e) {
+    printBlankForm(e, { onError: showErrorMessage });
   }
 
   function downloadPdf() {

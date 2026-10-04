@@ -239,7 +239,7 @@
             <v-col cols="12" md="4">
               <FormatZoneAutocomplete
                 v-model="form.zone"
-                :label="t('زون احتمالی')"
+                :label="t('آمریت احتمالی')"
                 :disabled="saving"
               />
             </v-col>
@@ -480,6 +480,16 @@
           <v-row class="mt-4">
             <v-col cols="12" class="d-flex justify-end ga-2 flex-wrap">
               <!-- ✅ Simple Export (NO image / NO app headers) -->
+              <v-btn
+                color="primary"
+                variant="tonal"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-printer"
+                @click="printForm"
+              >
+                {{ t('چاپ') }}
+              </v-btn>
+
               <v-tooltip :text="t('PDF ساده (بدون عکس)')" location="top">
                 <template #activator="{ props }">
                   <v-btn
@@ -589,6 +599,7 @@
   import { useMawadRepository } from '@/stores/MawadRepository';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
+  import { printBlankForm } from '@/utils/printBlankForm';
 
   const repo = useMawadRepository();
   const route = useRoute();
@@ -1016,7 +1027,7 @@
       [t('نمبر خانه فعلی'), form.value.now_home_number],
 
       [t('ولایت'), form.value.province],
-      [t('زون'), form.value.zone],
+      [t('آمریت'), form.value.zone],
       [t('ولسوالی'), form.value.district],
 
       [t('وظیفه قبلی'), form.value.old_job],
@@ -1079,6 +1090,11 @@
 </body>
 </html>
   `.trim();
+  }
+
+  /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+  function printForm(e) {
+    printBlankForm(e, { onError: showErrorMessage });
   }
 
   function downloadPdf() {

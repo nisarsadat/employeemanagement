@@ -129,7 +129,7 @@ class CheckpointExport implements FromQuery, WithHeadings, WithMapping, WithEven
             'د مسؤل شمېره',
             'د سلاح نوم',
             'ولایت',
-            'زون',
+            'آمریت',
             'ولسوالۍ',
             'کلی',
             'مشخص ځای',

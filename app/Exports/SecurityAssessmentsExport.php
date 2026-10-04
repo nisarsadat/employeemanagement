@@ -69,10 +69,10 @@ class SecurityAssessmentsExport implements
                 $stat,
                 [
                     'all',
-                    'north',
-                    'south',
-                    'east',
-                    'west',
+                    'ministries',
+                    'independent_directorates',
+                    'diplomatic_centers',
+                    'other',
                 ],
                 true
             )
@@ -124,7 +124,10 @@ class SecurityAssessmentsExport implements
             'district',
             'specific_place',
             'coordinates',
-            'direction',
+            'north',
+            'south',
+            'east',
+            'west',
             'daily_visitors_count',
             'risk_places',
             'vulnerable_places',
@@ -177,7 +180,10 @@ class SecurityAssessmentsExport implements
                     'district',
                     'specific_place',
                     'coordinates',
-                    'direction',
+                    'north',
+                    'south',
+                    'east',
+                    'west',
                     'daily_visitors_count',
                     'risk_places',
                     'vulnerable_places',
@@ -248,16 +254,6 @@ class SecurityAssessmentsExport implements
             );
         }
 
-        if (
-            $this->stat !==
-            'all'
-        ) {
-            $query->where(
-                'direction',
-                $this->stat
-            );
-        }
-
         if ($this->year) {
             $query->whereYear(
                 $this->dateField,
@@ -310,7 +306,10 @@ class SecurityAssessmentsExport implements
             $row->district ?? '—',
             $row->specific_place ?? '—',
             $row->coordinates ?? '—',
-            $this->translateDirection($row->direction),
+            $row->north ?? '—',
+            $row->south ?? '—',
+            $row->east ?? '—',
+            $row->west ?? '—',
             $row->daily_visitors_count ?? 0,
             $row->risk_places ?? '—',
             $row->vulnerable_places ?? '—',
@@ -344,7 +343,10 @@ class SecurityAssessmentsExport implements
             $this->headingFor('district', 'ولسوالی'),
             $this->headingFor('specific_place', 'محل مشخص'),
             $this->headingFor('coordinates', 'کوردینات'),
-            $this->headingFor('direction', 'سمت'),
+            $this->headingFor('north', 'شمال'),
+            $this->headingFor('south', 'جنوب'),
+            $this->headingFor('east', 'شرق'),
+            $this->headingFor('west', 'غرب'),
             $this->headingFor('daily_visitors_count', 'تعداد روزانه مراجعین'),
             $this->headingFor('risk_places', 'محلات آسیب‌رسان'),
             $this->headingFor('vulnerable_places', 'محلات آسیب‌پذیر'),
@@ -379,7 +381,10 @@ class SecurityAssessmentsExport implements
                 'district' => 'ناحیه / ولسوالی',
                 'specific_place' => 'محل مشخص',
                 'coordinates' => 'کوردینات',
-                'direction' => 'سمت',
+                'north' => 'شمال',
+                'south' => 'جنوب',
+                'east' => 'شرق',
+                'west' => 'غرب',
                 'daily_visitors_count' => 'تعداد روزانه مراجعین',
                 'risk_places' => 'محلات آسیب‌رسان',
                 'vulnerable_places' => 'محلات آسیب‌پذیر',
@@ -409,7 +414,10 @@ class SecurityAssessmentsExport implements
                 'district' => 'ناحیه / ولسوالي',
                 'specific_place' => 'مشخص ځای',
                 'coordinates' => 'کوردینات',
-                'direction' => 'سمت',
+                'north' => 'شمال',
+                'south' => 'جنوب',
+                'east' => 'ختیځ',
+                'west' => 'لویدیځ',
                 'daily_visitors_count' => 'د مراجعینو ورځنی تعداد',
                 'risk_places' => 'د زیان رسوونکو ځایونو',
                 'vulnerable_places' => 'د زیان منونکو ځایونو',
@@ -439,7 +447,10 @@ class SecurityAssessmentsExport implements
                 'district' => 'District',
                 'specific_place' => 'Specific location',
                 'coordinates' => 'Coordinates',
-                'direction' => 'Direction',
+                'north' => 'North',
+                'south' => 'South',
+                'east' => 'East',
+                'west' => 'West',
                 'daily_visitors_count' => 'Daily Number of Visitors',
                 'risk_places' => 'Risk Locations',
                 'vulnerable_places' => 'Vulnerable Locations',
@@ -474,27 +485,30 @@ class SecurityAssessmentsExport implements
             'E' => 18,
             'F' => 24,
             'G' => 22,
-            'H' => 14,
-            'I' => 22,
-            'J' => 35,
-            'K' => 35,
-            'L' => 35,
+            'H' => 28,
+            'I' => 28,
+            'J' => 28,
+            'K' => 28,
+            'L' => 14,
             'M' => 35,
             'N' => 35,
-            'O' => 22,
-            'P' => 22,
-            'Q' => 22,
+            'O' => 35,
+            'P' => 35,
+            'Q' => 35,
             'R' => 22,
-            'S' => 24,
-            'T' => 24,
+            'S' => 22,
+            'T' => 22,
             'U' => 22,
-            'V' => 18,
-            'W' => 20,
-            'X' => 24,
-            'Y' => 26,
-            'Z' => 22,
-            'AA' => 35,
-            'AB' => 35,
+            'V' => 24,
+            'W' => 24,
+            'X' => 22,
+            'Y' => 18,
+            'Z' => 20,
+            'AA' => 24,
+            'AB' => 26,
+            'AC' => 22,
+            'AD' => 35,
+            'AE' => 35,
         ];
     }
 
@@ -605,32 +619,5 @@ class SecurityAssessmentsExport implements
                         );
                 },
         ];
-    }
-
-    private function translateDirection(
-        ?string $direction
-    ): string {
-        $maps = [
-            'fa' => [
-                'north' => 'شمال',
-                'south' => 'جنوب',
-                'east' => 'شرق',
-                'west' => 'غرب',
-            ],
-            'ps' => [
-                'north' => 'شمال',
-                'south' => 'جنوب',
-                'east' => 'ختیځ',
-                'west' => 'لویدیځ',
-            ],
-            'en' => [
-                'north' => 'North',
-                'south' => 'South',
-                'east' => 'East',
-                'west' => 'West',
-            ],
-        ];
-
-        return $maps[$this->locale][$direction] ?? '—';
     }
 }

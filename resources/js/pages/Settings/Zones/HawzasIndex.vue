@@ -51,7 +51,7 @@
           :items="zoneOptions"
           item-title="name"
           item-value="id"
-          :label="t('فیلتر زون')"
+          :label="t('فیلتر آمریت')"
           clearable
           density="comfortable"
           variant="outlined"
@@ -182,7 +182,7 @@ const zoneOptions = computed(() => zones.value || []);
 const rows = ref([]);
 
 const headersFT = computed(() => [
-  { title: t('زون'), key: 'zone_name' },
+  { title: t('آمریت'), key: 'zone_name' },
   { title: t('نام حوزه'), key: 'name' },
 ]);
 

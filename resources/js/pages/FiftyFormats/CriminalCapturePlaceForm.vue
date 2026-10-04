@@ -146,7 +146,7 @@
                 <v-col cols="12" md="3">
                   <FormatZoneAutocomplete
                     v-model="form.zone"
-                    :label="t('زون')"
+                    :label="t('آمریت')"
                     :disabled="saving"
                   />
                 </v-col>
@@ -256,6 +256,16 @@
               </v-btn>
 
               <v-btn
+                color="primary"
+                variant="tonal"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-printer"
+                @click="printForm"
+              >
+                {{ t('چاپ') }}
+              </v-btn>
+
+              <v-btn
                 color="red"
                 variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
@@ -311,6 +321,7 @@
   // ✅ Picture (ONLY added import)
   import PicturePicker from '@/components/form/PicturePicker.vue';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
+  import { printBlankForm } from '@/utils/printBlankForm';
 
   const repo = useWakilanoRepository();
   const route = useRoute();
@@ -545,7 +556,7 @@ function onResourceCleared() {
       { label: t('اداره'), value: v(form.value.office) },
 
       { label: t('ولایت'), value: v(form.value.province) },
-      { label: t('زون'), value: v(form.value.zone) },
+      { label: t('آمریت'), value: v(form.value.zone) },
       { label: t('ولسوالی'), value: v(form.value.district) },
       { label: t('قریه/ناحیه'), value: v(form.value.village) },
       { label: t('موقعیت مشخص'), value: v(form.value.specefic_place) },
@@ -578,8 +589,9 @@ function onResourceCleared() {
       </tbody>
     </table>
     <div class="sig">
-      <div>امضاء / مهر مسئول: ____________________</div>
-      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+      <div>${t('امضا مسئول')}: ____________________</div>
+      <div>${t('امضا ثبت کننده')}: ____________________</div>
+      <div>${t('تاریخ')}: ____________________</div>
     </div>
   `;
   }
@@ -616,6 +628,11 @@ function onResourceCleared() {
 </body>
 </html>
 `;
+  }
+
+  /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+  function printForm(e) {
+    printBlankForm(e, { onError: showErrorMessage });
   }
 
   function downloadPdf() {

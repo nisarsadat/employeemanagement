@@ -21,7 +21,7 @@ import { useLookupsRepository } from '@/stores/LookupsRepository'
 /* ================= PROPS ================= */
 const props = defineProps({
   modelValue: { type: String, default: '' },
-  label: { type: String, default: 'فارمت زون' },
+  label: { type: String, default: 'فارمت آمریت' },
   disabled: { type: Boolean, default: false },
 })
 

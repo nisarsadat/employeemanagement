@@ -38,7 +38,7 @@
                 :items="zoneOptions"
                 item-title="name"
                 item-value="id"
-                :label="t('زون') + ' *'"
+                :label="t('آمریت') + ' *'"
                 density="compact"
                 variant="outlined"
                 prepend-inner-icon="mdi-map-outline"

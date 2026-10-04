@@ -127,53 +127,7 @@
 
       </v-row>
 
-      <v-row
-        class="mt-2 d-flex justify-between"
-        :dir="isRtl ? 'rtl' : 'ltr'"
-      >
-        <v-col
-          v-for="card in statCards"
-          :key="card.value"
-          cols="12"
-          sm="6"
-          md="2"
-        >
-          <v-card
-            class="stat-card"
-            :class="{
-              'stat-card--active':
-                cardFilter === card.value
-            }"
-            :elevation="
-              cardFilter === card.value ? 6 : 1
-            "
-            @click="applyCardFilter(card.value)"
-          >
-            <div class="stat-card-body">
-
-              <div class="stat-card-icon">
-                <v-icon>
-                  {{ card.icon }}
-                </v-icon>
-              </div>
-
-              <div class="stat-card-text">
-
-                <div class="stat-card-title">
-                  {{ card.title }}
-                </div>
-
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}:
-                  {{ card.count }}
-                </div>
-
-              </div>
-
-            </div>
-          </v-card>
-        </v-col>
-      </v-row>
+     
 
     </v-container>
 
@@ -217,10 +171,6 @@
           type="meeting"
           :zoom="16"
         />
-      </template>
-
-      <template #cell-direction="{ row }">
-        {{ directionLabel(row.direction) }}
       </template>
 
       <template #actions="{ item }">
@@ -520,34 +470,6 @@ const stats =
           .securityAssessmentCardCounts
           ?.total ?? 0
       ),
-
-    north:
-      Number(
-        repo
-          .securityAssessmentCardCounts
-          ?.north ?? 0
-      ),
-
-    south:
-      Number(
-        repo
-          .securityAssessmentCardCounts
-          ?.south ?? 0
-      ),
-
-    east:
-      Number(
-        repo
-          .securityAssessmentCardCounts
-          ?.east ?? 0
-      ),
-
-    west:
-      Number(
-        repo
-          .securityAssessmentCardCounts
-          ?.west ?? 0
-      ),
   }));
 
 const statCards =
@@ -560,46 +482,6 @@ const statCards =
         stats.value.total,
       icon:
         'mdi-shield-check-outline',
-    },
-
-    {
-      value: 'north',
-      title:
-        t('شمال'),
-      count:
-        stats.value.north,
-      icon:
-        'mdi-compass-north',
-    },
-
-    {
-      value: 'south',
-      title:
-        t('جنوب'),
-      count:
-        stats.value.south,
-      icon:
-        'mdi-compass-south',
-    },
-
-    {
-      value: 'east',
-      title:
-        t('ختیځ'),
-      count:
-        stats.value.east,
-      icon:
-        'mdi-compass-east',
-    },
-
-    {
-      value: 'west',
-      title:
-        t('لویدیځ'),
-      count:
-        stats.value.west,
-      icon:
-        'mdi-compass-west',
     },
   ]);
 
@@ -614,27 +496,10 @@ function applyCardFilter(
   fetchAll();
 }
 
-function directionLabel(
-  value
-) {
-  const map = {
-    north: t('شمال'),
-    south: t('جنوب'),
-    east: t('ختیځ'),
-    west: t('لویدیځ'),
-  };
-
-  return map[value] ?? (value ?? '—');
-}
-
 function formatDetailValue(
   key,
   value
 ) {
-  if (key === 'direction') {
-    return directionLabel(value);
-  }
-
   return value;
 }
 
@@ -684,9 +549,30 @@ const headersFT =
 
     {
       title:
-        t('سمت'),
+        t('شمال'),
       key:
-        'direction',
+        'north',
+    },
+
+    {
+      title:
+        t('جنوب'),
+      key:
+        'south',
+    },
+
+    {
+      title:
+        t('شرق'),
+      key:
+        'east',
+    },
+
+    {
+      title:
+        t('غرب'),
+      key:
+        'west',
     },
 
     {
@@ -860,7 +746,10 @@ const topGroups =
         'district',
         'specific_place',
         'coordinates',
-        'direction',
+        'north',
+        'south',
+        'east',
+        'west',
       ],
     },
 

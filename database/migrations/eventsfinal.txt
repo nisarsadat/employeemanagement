@@ -144,7 +144,7 @@ class ImportEvents extends Command
         'تاریخ' => 'event_date',
         'ساعت_واقعه' => 'event_hour',
         'ساعت' => 'event_hour',
-        'زون' => 'event_zone',
+        'آمریت' => 'event_zone',
         'حوزه' => 'event_hawza',
         'محل_مشخص' => 'event_specific_place',
         'محل' => 'event_specific_place',

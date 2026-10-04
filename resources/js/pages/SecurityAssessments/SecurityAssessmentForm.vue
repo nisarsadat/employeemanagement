@@ -340,40 +340,106 @@
                 />
               </v-col>
 
-              <!-- Direction (ONE dropdown) -->
+              <v-col
+                cols="12"
+                md="6"
+              >
+                <v-textarea
+                  v-model="form.north"
+                  :label="t('شمال')"
+                  rows="2"
+                  auto-grow
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('north')"
+                  :error-messages="getErrorMessages('north')"
+                />
+              </v-col>
+
+              <v-col
+                cols="12"
+                md="6"
+              >
+                <v-textarea
+                  v-model="form.south"
+                  :label="t('جنوب')"
+                  rows="2"
+                  auto-grow
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('south')"
+                  :error-messages="getErrorMessages('south')"
+                />
+              </v-col>
+
+              <v-col
+                cols="12"
+                md="6"
+              >
+                <v-textarea
+                  v-model="form.east"
+                  :label="t('شرق')"
+                  rows="2"
+                  auto-grow
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('east')"
+                  :error-messages="getErrorMessages('east')"
+                />
+              </v-col>
+
+              <v-col
+                cols="12"
+                md="6"
+              >
+                <v-textarea
+                  v-model="form.west"
+                  :label="t('غرب')"
+                  rows="2"
+                  auto-grow
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('west')"
+                  :error-messages="getErrorMessages('west')"
+                />
+              </v-col>
+
+              <!-- ✅ ترسره کوونکي (one or more office employees) -->
               <v-col
                 cols="12"
                 md="6"
               >
                 <v-select
                   v-model="
-                    form.direction
+                    form.office_employee_ids
                   "
                   :items="
-                    directionOptions
+                    employeeOptions
                   "
                   item-title="title"
                   item-value="value"
                   :label="
-                    t('سمت *')
+                    t('ترسره کوونکي')
                   "
+                  multiple
+                  chips
+                  closable-chips
+                  clearable
                   density="compact"
                   variant="outlined"
-                  :rules="[
-                    rules.required,
-                  ]"
                   :error="
                     hasError(
-                      'direction'
+                      'office_employee_ids'
                     )
                   "
                   :error-messages="
                     getErrorMessages(
-                      'direction'
+                      'office_employee_ids'
                     )
                   "
                 />
               </v-col>
+
             </v-row>
           </v-sheet>
 
@@ -1100,6 +1166,16 @@
             class="form-actions d-flex justify-end ga-2 flex-wrap"
           >
             <v-btn
+              color="primary"
+              variant="outlined"
+              class="text-none"
+              prepend-icon="mdi-printer"
+              @click="printForm"
+            >
+              {{ t('چاپ') }}
+            </v-btn>
+
+            <v-btn
               type="submit"
               color="primary"
               class="text-none"
@@ -1216,6 +1292,7 @@ import ProvinceDistrictNameSelect
 import {
   useDatabaseRepository,
 } from '@/stores/DatabaseRepository';
+import { printBlankForm } from '@/utils/printBlankForm';
 
 const repo =
   useDatabaseRepository();
@@ -1271,6 +1348,10 @@ const isEdit =
 const formRef =
   ref(null);
 
+/* ✅ ترسره کوونکي dropdown options */
+const employeeOptions =
+  ref([]);
+
 const formValid =
   ref(false);
 
@@ -1292,6 +1373,11 @@ const successMessage =
 /* =========================================================
    MESSAGES
 ========================================================= */
+
+/* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+function printForm(e) {
+  printBlankForm(e, { onError: showErrorMessage });
+}
 
 function showErrorMessage(
   message
@@ -1350,33 +1436,6 @@ function getErrorMessages(
 }
 
 /* =========================================================
-   DIRECTION OPTIONS (ONE dropdown)
-========================================================= */
-
-const directionOptions =
-  computed(() => [
-    {
-      value: 'north',
-      title: t('شمال'),
-    },
-
-    {
-      value: 'south',
-      title: t('جنوب'),
-    },
-
-    {
-      value: 'east',
-      title: t('ختیځ'),
-    },
-
-    {
-      value: 'west',
-      title: t('لویدیځ'),
-    },
-  ]);
-
-/* =========================================================
    BLANK FORM
 ========================================================= */
 
@@ -1396,7 +1455,13 @@ const blankForm =
 
     coordinates: '',
 
-    direction: null,
+    north: '',
+
+    south: '',
+
+    east: '',
+
+    west: '',
 
     daily_visitors_count:
       '',
@@ -1443,6 +1508,9 @@ const blankForm =
     other_problems: '',
 
     note: '',
+
+    // ✅ ترسره کوونکي
+    office_employee_ids: [],
   });
 
 const form =
@@ -1572,9 +1640,21 @@ function mapFromApi(
     item.coordinates ??
     '';
 
-  mapped.direction =
-    item.direction ??
-    null;
+  mapped.north =
+    item.north ??
+    '';
+
+  mapped.south =
+    item.south ??
+    '';
+
+  mapped.east =
+    item.east ??
+    '';
+
+  mapped.west =
+    item.west ??
+    '';
 
   mapped.daily_visitors_count =
     item.daily_visitors_count ??
@@ -1655,6 +1735,15 @@ function mapFromApi(
   mapped.note =
     item.note ??
     '';
+
+  mapped.office_employee_ids =
+    Array.isArray(
+      item.office_employee_ids
+    )
+      ? item.office_employee_ids.map(
+          Number
+        )
+      : [];
 
   return mapped;
 }
@@ -1746,6 +1835,21 @@ function buildCreateFormData() {
         return;
       }
 
+      if (Array.isArray(value)) {
+        value.forEach((entry) => {
+          if (entry === undefined || entry === null) {
+            return;
+          }
+
+          formData.append(
+            `${key}[]`,
+            String(entry)
+          );
+        });
+
+        return;
+      }
+
       appendValue(
         formData,
         key,
@@ -1769,7 +1873,6 @@ const requiredFields =
     'district',
     'specific_place',
     'coordinates',
-    'direction',
     'daily_visitors_count',
     'risk_places',
     'vulnerable_places',
@@ -2078,11 +2181,6 @@ const step1Complete =
         form.value
           .coordinates ||
           ''
-      ).trim() &&
-      !!String(
-        form.value
-          .direction ||
-          ''
       ).trim()
   );
 
@@ -2323,6 +2421,9 @@ const steps =
 
 onMounted(
   async () => {
+    employeeOptions.value =
+      await repo.FetchOfficeEmployeeOptions();
+
     await loadForEdit();
   }
 );

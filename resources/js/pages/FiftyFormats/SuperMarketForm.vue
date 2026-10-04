@@ -162,7 +162,7 @@
                 <v-col cols="12" md="3">
                   <FormatZoneAutocomplete
                     v-model="form.zone"
-                    :label="t('زون')"
+                    :label="t('آمریت')"
                     :disabled="saving"
                   />
                 </v-col>
@@ -286,6 +286,16 @@
                 {{ isEdit ? t('ذخیره تغییرات') : t('ثبت') }}
               </v-btn>
               <v-btn
+                color="primary"
+                variant="tonal"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-printer"
+                @click="printForm"
+              >
+                {{ t('چاپ') }}
+              </v-btn>
+
+              <v-btn
                 color="secondary"
                 variant="tonal"
                 class="text-none rounded-pill soft-btn"
@@ -372,6 +382,7 @@
   // ✅ PICTURE (ONLY ADDITION)
   import PicturePicker from '@/components/form/PicturePicker.vue';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
+  import { printBlankForm } from '@/utils/printBlankForm';
 
   const repo = useWakilanoRepository();
   const route = useRoute();
@@ -495,7 +506,7 @@
       [t(' موقف مسؤول'), form.value.responsible_job],
 
       [t('ولایت'), form.value.province],
-      [t('زون'), form.value.zone],
+      [t('آمریت'), form.value.zone],
       [t('ولسوالی'), form.value.district],
       [t('قریه'), form.value.village],
       [t('موقعیت مشخص'), form.value.specefic_place],
@@ -547,11 +558,17 @@
   </table>
 
   <div class="sig">
-    <div class="line">${esc(t('امضا'))}</div>
+    <div class="line">${esc(t('امضا مسئول'))}</div>
+    <div class="line">${esc(t('امضا ثبت کننده'))}</div>
     <div class="line">${esc(t('تاریخ'))}</div>
   </div>
 </body>
 </html>`;
+  }
+
+  /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+  function printForm(e) {
+    printBlankForm(e, { onError: showErrorMessage });
   }
 
   function downloadPdf() {

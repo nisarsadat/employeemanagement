@@ -109,7 +109,7 @@ class EmaratOfficeExport implements FromQuery, WithHeadings, WithMapping, WithEv
             'ډول',
             'نوم',
             'ولایت',
-            'زون',
+            'آمریت',
             'ولسوالۍ',
             'کلی',
             'مشخص ځای',

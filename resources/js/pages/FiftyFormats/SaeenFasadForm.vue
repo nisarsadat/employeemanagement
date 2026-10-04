@@ -176,7 +176,7 @@
                 <v-col cols="12" md="3">
                   <FormatZoneAutocomplete
                     v-model="form.now_zone"
-                    :label="t('زون فعلی')"
+                    :label="t('آمریت فعلی')"
                     :disabled="saving"
                   />
                 </v-col>
@@ -502,6 +502,16 @@
               </v-btn>
 
               <v-btn
+                color="primary"
+                variant="tonal"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-printer"
+                @click="printForm"
+              >
+                {{ t('چاپ') }}
+              </v-btn>
+
+              <v-btn
                 color="red"
                 variant="outlined"
                 class="text-none rounded-pill secondary-action-btn"
@@ -579,6 +589,7 @@
   import ProvinceDistrictNameSelect from '@/components/ProvinceDistrictSelect.vue';
   import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
+  import { printBlankForm } from '@/utils/printBlankForm';
 
   const repo = useFasadRepository();
   const route = useRoute();
@@ -967,7 +978,7 @@
       { label: 'قریه/ناحیه اصلی', value: form.value.main_village },
 
       { label: 'ولایت فعلی', value: form.value.now_province },
-      { label: 'زون فعلی', value: form.value.now_zone },
+      { label: 'آمریت فعلی', value: form.value.now_zone },
       { label: 'ولسوالی فعلی', value: form.value.now_district },
       { label: 'قریه/ناحیه فعلی', value: form.value.now_village },
 
@@ -1016,8 +1027,9 @@
       </tbody>
     </table>
     <div class="sig">
-      <div>امضاء / مهر مسئول: ____________________</div>
-      <div>تاریخ / امضاء ثبت کوونکی: ____________________</div>
+      <div>${t('امضا مسئول')}: ____________________</div>
+      <div>${t('امضا ثبت کننده')}: ____________________</div>
+      <div>${t('تاریخ')}: ____________________</div>
     </div>
   `;
   }
@@ -1096,6 +1108,11 @@
 </body>
 </html>
 `;
+  }
+
+  /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+  function printForm(e) {
+    printBlankForm(e, { onError: showErrorMessage });
   }
 
   function downloadPdf() {

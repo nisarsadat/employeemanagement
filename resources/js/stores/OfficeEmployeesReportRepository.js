@@ -253,7 +253,7 @@ export const useOfficeEmployeesReportRepository = defineStore('officeEmployeesRe
         metaParts.push(`اوسنی ولایت: ${filtros.now_province}`);
       }
       if (filtros.zone) {
-        metaParts.push(`زون: ${filtros.zone}`);
+        metaParts.push(`آمریت: ${filtros.zone}`);
       }
       if (filtros.hawza) {
         metaParts.push(`حوزه: ${filtros.hawza}`);
@@ -281,7 +281,7 @@ export const useOfficeEmployeesReportRepository = defineStore('officeEmployeesRe
             ټول ټال <strong>${totalEvents}</strong> پیښې،
             <strong>${totalResources}</strong> د منابعو ریکارډونه او
             <strong>${totalInfos}</strong> معلوماتي ریکارډونه ثبت شوي دي.
-            دا راپور هڅه کوي چې د ولایتونو او زونونو په کچه د کارمندان د فعالیت انځور په روښانه ډول وړاندې کړي.
+            دا راپور هڅه کوي چې د ولایتونو او آمریتونو په کچه د کارمندان د فعالیت انځور په روښانه ډول وړاندې کړي.
           </p>
         `;
       sectionsHtml.push(globalParagraph);
@@ -337,7 +337,7 @@ export const useOfficeEmployeesReportRepository = defineStore('officeEmployeesRe
           const father = emp.father_name || '';
           const code = emp.code_number || 'بدون کوډ';
           const phone = emp.phone_number || 'شمېره ثبت نه ده';
-          const zone = emp.zone || 'نامعلوم زون';
+          const zone = emp.zone || 'نامعلوم آمریت';
           const hawza = emp.hawza || 'نامعلوم حوزه';
           const madani = emp.madani_halat || '';
           const activity = emp.activity || '';
@@ -389,7 +389,7 @@ export const useOfficeEmployeesReportRepository = defineStore('officeEmployeesRe
               <p>
                 <strong>${empIndex}.</strong>
                 کارمند «<strong>${name}</strong>» زوی د «${father}» (کد: ${code}، موبایل: ${phone})
-                په زون «${zone}» او حوزه «${hawza}» کې ثبت شوی دی${madaniText}${joinText}${leftText}.
+                په آمریت «${zone}» او حوزه «${hawza}» کې ثبت شوی دی${madaniText}${joinText}${leftText}.
                 ${activitySentence}
                 د ورکړل شوې مودې په ترڅ کې د نوموړي په اړه
                 <strong>${evCount}</strong> پیښې،

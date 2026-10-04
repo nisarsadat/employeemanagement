@@ -136,7 +136,7 @@ class BadmashanoExport implements FromQuery, WithHeadings, WithMapping, WithEven
             'اصلي ولسوالۍ',
             'اصلي کلی',
             'اوسنی ولایت',
-            'اوسنی زون',
+            'اوسنی آمریت',
             'اوسنۍ ولسوالۍ',
             'اوسنی کلی',
             'اوسنی مشخص ځای',

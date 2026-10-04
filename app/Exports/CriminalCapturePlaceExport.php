@@ -108,7 +108,7 @@ class CriminalCapturePlaceExport implements FromQuery, WithHeadings, WithMapping
             'د مجرمانو شماره',
             'اداره',
             'ولایت',
-            'زون',
+            'آمریت',
             'ولسوالۍ',
             'کلی',
             'مشخص ځای',

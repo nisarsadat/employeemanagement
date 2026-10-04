@@ -334,7 +334,7 @@ export const useFiftyFormatsReportRepository = defineStore(
         for (const row of this.rows) {
           const groupLabel = isResource
             ? row.resource_name ?? 'نامعلوم سرچینه'
-            : `${row.province ?? 'نامعلوم ولایت'} / ${row.zone ?? 'نامعلوم زون'}`
+            : `${row.province ?? 'نامعلوم ولایت'} / ${row.zone ?? 'نامعلوم آمریت'}`
 
           selectedFormats.forEach((fmt) => {
             const value = row[fmt] ?? 0
@@ -351,7 +351,7 @@ export const useFiftyFormatsReportRepository = defineStore(
             } else {
               const [prov, zone] = groupLabel.split('/')
               sentence =
-                `په ولایت «${(prov || '').trim()}» او زون «${(zone || '').trim()}» کې ` +
+                `په ولایت «${(prov || '').trim()}» او آمریت «${(zone || '').trim()}» کې ` +
                 `د «${fmtLabel}» فارمت لپاره ${value} ریکارډ(ونه) ثبت شوي دي. دغه ریکارډونه د دې سیمې د ` +
                 `عمومي وضعیت او راټول شویو استخباراتي معلوماتو د تحلیل لپاره مهم رول لري.`
             }
@@ -382,7 +382,7 @@ export const useFiftyFormatsReportRepository = defineStore(
         metaParts.push(
           isResource
             ? 'ګروپ: د سرچینې پر بنسټ'
-            : 'ګروپ: د ولایت / زون پر بنسټ',
+            : 'ګروپ: د ولایت / آمریت پر بنسټ',
         )
         metaParts.push(`موده: ${periodLabel}`)
 

@@ -713,7 +713,7 @@
     { title: t('وظیفه فعلی'), key: 'now_job' },
     { title: t('محل وظیفه'), key: 'job_place' },
 
-    { title: t('زون تدارک'), key: 'zone' },
+    { title: t('آمریت تدارک'), key: 'zone' },
     { title: t('حوزه تدارک'), key: 'hawza' },
     { title: t('محل مشخص تدارک'), key: 'specefic_place' },
     { title: t('کوردینات تدارک'), key: 'coordinates' },

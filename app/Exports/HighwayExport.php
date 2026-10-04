@@ -77,7 +77,7 @@ class HighwayExport implements FromQuery, WithHeadings, WithMapping, WithEvents,
     public function headings(): array
     {
         return [
-            'شمېره', 'دhighway نوم', 'ولایت', 'زون', 'ولسوالۍ', 'کلی',
+            'شمېره', 'دhighway نوم', 'ولایت', 'آمریت', 'ولسوالۍ', 'کلی',
             'مشخص ځای', 'مختصات', 'د منبع کوډ', 'د منبع شمېره', 'یادښت',
         ];
     }

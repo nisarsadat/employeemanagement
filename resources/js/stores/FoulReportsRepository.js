@@ -1,5 +1,6 @@
 // stores/FoulReportsRepository.js
 import { defineStore } from 'pinia';
+import { foulActivitySections } from '@/utils/foulActivityPrint';
 import { ref } from 'vue';
 import axios from '@/axios';
 import { toast } from 'vue3-toastify';
@@ -912,7 +913,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                 <table>
                   <thead>
                     <tr>
-                      <th style="width:18%;">زون</th>
+                      <th style="width:18%;">آمریت</th>
                       <th style="width:18%;">حوزه</th>
                       <th style="width:20%;">د پېښې ډول</th>
                       <th class="td-center" style="width:11%;">وژلي</th>
@@ -1012,6 +1013,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
 
             ${infoSection}
             ${formatsSection}
+            ${foulActivitySections(report, escapeHtml)}
             ${eventsSection}
             ${buildNotesSectionHtml(notes)}
           </div>
@@ -1205,6 +1207,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
 
             ${infoSection}
             ${formatsSection}
+            ${foulActivitySections(report, escapeHtml)}
             ${eventsSection}
             ${buildNotesSectionHtml(notes)}
           </div>

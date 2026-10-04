@@ -47,7 +47,7 @@
     zone: { type: String, default: '' },
     hawza: { type: String, default: '' },
 
-    zoneLabel: { type: String, default: 'زون' },
+    zoneLabel: { type: String, default: 'آمریت' },
     hawzaLabel: { type: String, default: 'حوزه' },
 
     disabled: { type: Boolean, default: false },

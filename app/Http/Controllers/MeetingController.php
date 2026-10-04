@@ -76,7 +76,8 @@ class MeetingController extends Controller
     private function baseListQuery(): Builder
     {
         return Meeting::query()
-            ->with('documents');
+            ->with('documents')
+            ->with('officeEmployees:id,name,code_number');
     }
 
     private function applySearch(
@@ -580,12 +581,22 @@ class MeetingController extends Controller
             $data =
                 $request->validated();
 
+            $employeeIds =
+                $data['office_employee_ids']
+                ?? [];
+
             unset(
-                $data['documents']
+                $data['documents'],
+                $data['office_employee_ids']
             );
 
             $meeting =
                 Meeting::create($data);
+
+            // ✅ ترسره کوونکي
+            $meeting
+                ->officeEmployees()
+                ->sync($employeeIds);
 
             if (
                 $request->hasFile(
@@ -679,11 +690,17 @@ class MeetingController extends Controller
             $data =
                 $request->validated();
 
+            // Empty selection = clear all (the form always sets the full list).
+            $employeeIds =
+                $data['office_employee_ids']
+                ?? [];
+
             unset(
                 $data['documents'],
                 $data[
                     'removed_document_ids'
-                ]
+                ],
+                $data['office_employee_ids']
             );
 
             $meeting->fill($data);
@@ -708,6 +725,11 @@ class MeetingController extends Controller
             }
 
             $meeting->save();
+
+            // ✅ ترسره کوونکي
+            $meeting
+                ->officeEmployees()
+                ->sync($employeeIds);
 
             $removedIds =
                 $request->input(

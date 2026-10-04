@@ -24,7 +24,7 @@ class EmployeesByZone implements DashboardMetric
 
         return [
             'id'     => 'employees_by_zone',
-            'title'  => ['fa' => 'کارمندان برحسب زون', 'en' => 'Employees by Zone'],
+            'title'  => ['fa' => 'کارمندان برحسب آمریت', 'en' => 'Employees by Zone'],
             'type'   => 'bar',
             'series' => [[
                 'name' => 'employees',

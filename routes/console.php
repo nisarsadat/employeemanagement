@@ -9,8 +9,8 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Nightly refresh of OfficeEmployee activity
-// Rule: ACTIVE if any resource has >= 5 events in last 7 days
-Schedule::command('office-employees:refresh-activity --days=7 --min=5')
+// Rule: ACTIVE if administrative job type OR any active resource
+Schedule::command('office-employees:refresh-activity')
     ->dailyAt('01:30');
 
     

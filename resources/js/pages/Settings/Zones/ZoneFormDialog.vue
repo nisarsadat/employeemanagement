@@ -11,10 +11,10 @@
 
             <div>
               <div class="text-h6 font-weight-bold mb-0">
-                {{ isEdit ? t('ویرایش زون') : t('ثبت زون جدید') }}
+                {{ isEdit ? t('ویرایش آمریت') : t('ثبت آمریت جدید') }}
               </div>
               <div class="text-caption opacity-90">
-                {{ isEdit ? t('زون را ویرایش کنید') : t('زون جدید را وارد کنید') }}
+                {{ isEdit ? t('آمریت را ویرایش کنید') : t('آمریت جدید را وارد کنید') }}
               </div>
             </div>
           </div>
@@ -36,7 +36,7 @@
             <div class="grid-1">
               <v-text-field
                 v-model="draft.name"
-                :label="t('نام زون') + ' *'"
+                :label="t('نام آمریت') + ' *'"
                 density="compact"
                 variant="outlined"
                 prepend-inner-icon="mdi-format-title"

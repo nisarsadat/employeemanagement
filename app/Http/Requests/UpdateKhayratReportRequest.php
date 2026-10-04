@@ -9,6 +9,11 @@ use Illuminate\Validation\Validator;
 
 class UpdateKhayratReportRequest extends FormRequest
 {
+    /**
+     * Minimum gap required between two khayrat reports for the same resource.
+     */
+    public const MIN_HOURS_BETWEEN_REPORTS = 5;
+
     public function authorize(): bool
     {
         return true;
@@ -40,20 +45,20 @@ class UpdateKhayratReportRequest extends FormRequest
             $currentId = $routeModel?->id ?? $routeModel?->getKey();
 
             $date = Carbon::parse($savedDate);
-            $startOfMonth = $date->copy()->startOfMonth()->toDateString();
-            $endOfMonth = $date->copy()->endOfMonth()->toDateString();
+            $cutoff = $date->copy()->subHours(self::MIN_HOURS_BETWEEN_REPORTS);
 
             $exists = KhayratReport::query()
                 ->where('resource_id', $resourceId)
-                ->whereDate('saved_date', '>=', $startOfMonth)
-                ->whereDate('saved_date', '<=', $endOfMonth)
+                ->where('saved_date', '>', $cutoff)
+                ->where('saved_date', '<=', $date)
                 ->when($currentId, fn ($query) => $query->where('id', '!=', $currentId))
                 ->exists();
 
             if ($exists) {
                 $validator->errors()->add(
                     'saved_date',
-                    'د دې منبع لپاره په همدې میاشت کې مخکې راپور ثبت شوی دی.'
+                    'د دې منبع لپاره یوازې ' . self::MIN_HOURS_BETWEEN_REPORTS
+                        . ' ساعته وروسته بله راپور ثبت کېدای شي.'
                 );
             }
         });

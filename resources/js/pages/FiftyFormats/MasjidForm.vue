@@ -231,7 +231,7 @@
               />
             </v-col>
             <v-col cols="12" md="3">
-              <FormatZoneAutocomplete v-model="form.masjid_zone" :label="t('زون')" :disabled="saving" />
+              <FormatZoneAutocomplete v-model="form.masjid_zone" :label="t('آمریت')" :disabled="saving" />
             </v-col>
 
             <v-col cols="12" md="6">
@@ -349,6 +349,16 @@
               </v-btn>
 
               <v-btn
+                color="primary"
+                variant="tonal"
+                class="text-none rounded-pill secondary-action-btn"
+                prepend-icon="mdi-printer"
+                @click="printForm"
+              >
+                {{ t('چاپ') }}
+              </v-btn>
+
+              <v-btn
                 color="red"
                 variant="tonal"
                 class="text-none rounded-pill secondary-action-btn"
@@ -404,6 +414,7 @@ import FormatZoneAutocomplete from '@/components/FormatZoneAutocomplete.vue';
 /* ✅ Picture (ONLY addition in script imports) */
 import PicturePicker from '@/components/form/PicturePicker.vue';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
+  import { printBlankForm } from '@/utils/printBlankForm';
 
 const repo = useWakilanoRepository();
 const route = useRoute();
@@ -679,7 +690,7 @@ function exportRows() {
     { label: t('تعداد خانه‌های مربوط مسجد'), value: v(form.value.masjid_homes_quantity) },
 
     { label: t('ولایت مسجد'), value: v(form.value.masjid_province) },
-    { label: t('زون مسجد'), value: v(form.value.masjid_zone) },
+    { label: t('آمریت مسجد'), value: v(form.value.masjid_zone) },
     { label: t('ولسوالی مسجد'), value: v(form.value.masjid_district) },
     { label: t('قریه مسجد'), value: v(form.value.masjid_village) },
     { label: t('موقعیت مشخص مسجد'), value: v(form.value.masjid_specific_place) },
@@ -695,6 +706,11 @@ function exportRows() {
 }
 
 /* (UNCHANGED) buildSimpleTableHtml / buildDocumentHtml / downloadPdf / downloadWord */
+
+/* PRINT BLANK FORM (empty fields, same design, one A4 page) */
+function printForm(e) {
+  printBlankForm(e, { onError: showErrorMessage });
+}
 
 /* SUBMIT (UNCHANGED except it uses new FormData builders already above) */
 async function onSubmit() {

@@ -491,17 +491,17 @@
             </v-row>
           </v-sheet>
 
-          <!-- SECTION 3: وظیفه، زون/حوزه، تعلیمات، جهاد -->
+          <!-- SECTION 3: وظیفه، آمریت/حوزه، تعلیمات، جهاد -->
           <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
             <div class="section-header">
               <div class="d-flex align-center">
                 <v-icon class="ml-2 section-icon">mdi-briefcase</v-icon>
                 <span class="text-subtitle-2 font-weight-medium section-title">
-                  {{ t('وظیفه، زون/حوزه و تعلیمات') }}
+                  {{ t('وظیفه، آمریت/حوزه و تعلیمات') }}
                 </span>
               </div>
               <span class="section-subtitle text-caption">
-                {{ t('وظیفه مشخص، بست، زون، حوزه و تحصیلات کارمند را درج کنید.') }}
+                {{ t('وظیفه مشخص، بست، آمریت، حوزه و تحصیلات کارمند را درج کنید.') }}
               </span>
             </div>
             <v-divider />
@@ -571,7 +571,7 @@
                 <ZoneHawzaNameSelect
                   v-model:zone="form.zone"
                   v-model:hawza="form.hawza"
-                  :zone-label="t('زون')"
+                  :zone-label="t('آمریت')"
                   :hawza-label="t('حوزه')"
                   :mdZone="6"
                   :mdHawza="6"

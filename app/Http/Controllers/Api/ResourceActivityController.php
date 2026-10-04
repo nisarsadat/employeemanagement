@@ -13,10 +13,10 @@ class ResourceActivityController extends Controller
      * Active means:
      * - Any Event in last 30 days
      * - OR any Information in last 30 days
-     * - OR any KhayratReport in last 30 days
+     * - OR at least Resource::MIN_KHAYRAT_REPORTS_FOR_ACTIVE KhayratReports in last 30 days
      *
      * Inactive means:
-     * - No Event, Information, or KhayratReport in last 30 days
+     * - None of the above in last 30 days
      */
     private function applyActiveScope($query, $since)
     {
@@ -30,8 +30,8 @@ class ResourceActivityController extends Controller
             });
 
             $q->orWhereHas('khayratReports', function ($qq) use ($since) {
-    $qq->whereDate('saved_date', '>=', $since->toDateString());
-});
+                $qq->whereDate('saved_date', '>=', $since->toDateString());
+            }, '>=', Resource::MIN_KHAYRAT_REPORTS_FOR_ACTIVE);
         });
     }
 
@@ -61,7 +61,7 @@ class ResourceActivityController extends Controller
 
     public function counts(Request $request)
     {
-        $since = now()->subDays(30);
+        $since = now()->subDays(Resource::ACTIVITY_WINDOW_DAYS);
 
         $total = Resource::count();
 
@@ -94,7 +94,7 @@ class ResourceActivityController extends Controller
         $perPage = $request->get('perPage', 25); // 10/25/50 or "all"
         $search = $request->get('search');
 
-        $since = now()->subDays(30);
+        $since = now()->subDays(Resource::ACTIVITY_WINDOW_DAYS);
 
         $q = Resource::query()
             ->with(['officeEmployee:id,name,code_number,phone_number,father_name,nick_name'])

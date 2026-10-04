@@ -11,10 +11,10 @@
 
             <div class="min-w-0">
               <div class="text-h6 font-weight-bold mb-0">
-                {{ isEdit ? t('ویرایش فارمت زون') : t('ثبت فارمت زون جدید') }}
+                {{ isEdit ? t('ویرایش فارمت آمریت') : t('ثبت فارمت آمریت جدید') }}
               </div>
               <div class="text-caption opacity-90 text-truncate">
-                {{ isEdit ? t('اطلاعات فارمت زون را ویرایش کنید') : t('اطلاعات فارمت زون جدید را وارد کنید') }}
+                {{ isEdit ? t('اطلاعات فارمت آمریت را ویرایش کنید') : t('اطلاعات فارمت آمریت جدید را وارد کنید') }}
               </div>
             </div>
           </div>
@@ -37,7 +37,7 @@
             <div class="grid-1">
               <v-text-field
                 v-model="draft.name"
-                :label="t('نام فارمت زون') + ' *'"
+                :label="t('نام فارمت آمریت') + ' *'"
                 density="compact"
                 variant="outlined"
                 prepend-inner-icon="mdi-map-marker-multiple-outline"
@@ -154,7 +154,7 @@ async function loadForEdit() {
     draft.name = item?.name ?? '';
   } catch (e) {
     console.error('loadForEdit error', e);
-    backendErrors.general = [t('خطا در دریافت معلومات فارمت زون')];
+    backendErrors.general = [t('خطا در دریافت معلومات فارمت آمریت')];
   } finally {
     loadingEdit.value = false;
   }

@@ -75,6 +75,7 @@ use App\Models\fifthyformatsthree\Mujahedino;
 use App\Models\fifthyformatsthree\OldJahadi;
 use App\Models\fifthyformatsthree\Sarayano;
 use App\Models\fifthyformatsthree\Tujaran;
+use App\Services\Reports\FoulActivityRows;
 
 class AllTimeFoulReportController extends Controller
 {
@@ -140,6 +141,7 @@ class AllTimeFoulReportController extends Controller
 
         // 4) 56-format totals (only those with data) (ALL TIME)
         $formats = $this->formatCountsAllTime();
+        $activity = FoulActivityRows::between();
 
         return response()->json([
             'meta' => [
@@ -163,6 +165,8 @@ class AllTimeFoulReportController extends Controller
             ],
 
             'formats' => $formats,
+            'meetings' => $activity['meetings'],
+            'security_assessments' => $activity['security_assessments'],
         ]);
     }
 

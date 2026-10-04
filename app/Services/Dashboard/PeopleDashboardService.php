@@ -44,8 +44,9 @@ class PeopleDashboardService
     {
         [$from, $to, $zone] = $this->range($r);
 
-        $activeEmployees = OfficeEmployee::when($zone, fn($q) => $q->where('zone', $zone))
-            ->where('activity', 'فعال')
+        $activeEmployees = OfficeEmployee::query()
+            ->active()
+            ->when($zone, fn($q) => $q->where('zone', $zone))
             ->count();
 
         // For these two we keep it simple (filter by current province if zone was passed)
