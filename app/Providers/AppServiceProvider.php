@@ -1,13 +1,12 @@
 <?php
-
 namespace App\Providers;
 
 use App\Models\Event;
 use App\Models\Information;
 use App\Observers\EventObserver;
 use App\Observers\InformationObserver;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,7 +18,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Default string length
-        Schema::defaultStringLength(60);
+        Schema::defaultStringLength(191);
 
         // Observer
         Information::observe(InformationObserver::class);
