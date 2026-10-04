@@ -62,7 +62,8 @@ function normalizeDeep(value) {
 
 // ✅ Base URL (token mode doesn't need Sanctum cookies/CSRF)
 // axios.defaults.baseURL = 'https://200.100.100.1/api';
-axios.defaults.baseURL = 'http://127.0.0.1:8000/api';
+// axios.defaults.baseURL = 'http://127.0.0.1:8000/api';
+axios.defaults.baseURL = '/api';  
 
 // ❌ Do NOT use cookies for token mode
 axios.defaults.withCredentials = false;
