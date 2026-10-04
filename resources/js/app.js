@@ -39,7 +39,8 @@ axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 // const API_BASE = import.meta.env.VITE_API_URL || 'https://200.100.100.1';
 // const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 // axios.defaults.baseURL = `${API_BASE}/api`;
-axios.defaults.baseURL = '/api';
+// axios.defaults.baseURL = '/api';
+axios.defaults.baseURL = 'http://public.test/api';
 // ✅ attach token for all API requests
 axios.interceptors.request.use((config) => {
   const token = sessionStorage.getItem('token'); // ✅ same place
