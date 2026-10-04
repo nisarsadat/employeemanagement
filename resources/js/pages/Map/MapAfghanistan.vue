@@ -1072,20 +1072,16 @@
 
       let styleJson = await fetch(STYLE_JSON).then((r) => r.json());
 
-      const layerSourceNames = [
-        ...new Set((styleJson.layers || []).filter((l) => l.source).map((l) => l.source)),
-      ];
+const vectorSourceKey = 'openmaptiles';
 
-      if (!layerSourceNames.length) {
-        throw new Error('No layer sources found in bright-complete.json');
-      }
+if (!styleJson.sources) {
+  styleJson.sources = {};
+}
 
-      const vectorSourceKey = layerSourceNames[0];
-
-      styleJson.sources[vectorSourceKey] = {
-        type: 'vector',
-        url: `pmtiles://${pmtilesUrl}`,
-      };
+styleJson.sources[vectorSourceKey] = {
+  type: 'vector',
+  url: `pmtiles://${archiveUrl}`,
+};
 
       styleJson.sprite = SPRITE_URL;
       styleJson.glyphs = GLYPHS_URL;
