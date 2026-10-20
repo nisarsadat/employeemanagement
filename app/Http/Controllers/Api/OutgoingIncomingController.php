@@ -62,7 +62,15 @@ class OutgoingIncomingController extends Controller
                 ], 422);
             }
 
-            throw $e;
+            // ❗ Any other DB / server failure → 500
+            report($e);
+
+            return response()->json([
+                'message' => 'د نوي ریکارډ ثبت کول په اوږدمهاله ناکامی وشوه؛ مهرباني وکړئ بیا هڅوئ.',
+                'errors'  => [
+                    'server' => ['د ثبت کولو په اوږدمهاله سیستم ستونزه لري (500).'],
+                ],
+            ], 500);
         }
     }
 
@@ -122,7 +130,15 @@ class OutgoingIncomingController extends Controller
                 ], 422);
             }
 
-            throw $e;
+            // ❗ Any other DB / server failure → 500
+            report($e);
+
+            return response()->json([
+                'message' => 'د ریکارډ اصلاح کول په اوږدمهاله ناکامی وشوه؛ مهرباني وکړئ بیا هڅوئ.',
+                'errors'  => [
+                    'server' => ['د اصلاح کولو په اوږدمهاله سیستم ستونزه لري (500).'],
+                ],
+            ], 500);
         }
     }
 
@@ -130,26 +146,38 @@ class OutgoingIncomingController extends Controller
     {
         $user = $request->user(); // 🔔
 
-        return DB::transaction(function () use ($outgoingIncoming, $user) {
-            $marja = $outgoingIncoming->marja;
+        try {
+            return DB::transaction(function () use ($outgoingIncoming, $user) {
+                $marja = $outgoingIncoming->marja;
 
-            $outgoingIncoming->delete();
+                $outgoingIncoming->delete();
 
-            // 🔔 Notification: DELETED
-            NotificationService::record(
-                $user,
-                module: 'صادره/وارده',
-                action: 'deleted',
-                title: 'ریکارډ حذف شو',
-                message: 'مرجع: ' . ($marja ?? ''),
-                routeName: null,
-                routeParams: ['outgoing-incomings'],
-                level: 'warning',
-                changes: null
-            );
+                // 🔔 Notification: DELETED
+                NotificationService::record(
+                    $user,
+                    module: 'صادره/وارده',
+                    action: 'deleted',
+                    title: 'ریکارډ حذف شو',
+                    message: 'مرجع: ' . ($marja ?? ''),
+                    routeName: null,
+                    routeParams: ['outgoing-incomings'],
+                    level: 'warning',
+                    changes: null
+                );
 
-            return response()->noContent();
-        });
+                return response()->noContent();
+            });
+        } catch (\Throwable $e) {
+            // ❗ Any failure while deleting → 500
+            report($e);
+
+            return response()->json([
+                'message' => 'د ریکارډ ړنګول په اوږدمهاله ناکامی وشوه؛ مهرباني وکړئ بیا هڅوئ.',
+                'errors'  => [
+                    'server' => ['د ړنګولو په اوږدمهاله سیستم ستونزه لري (500).'],
+                ],
+            ], 500);
+        }
     }
     private function searchableColumns(): array
 {
