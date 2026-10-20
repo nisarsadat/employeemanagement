@@ -1394,10 +1394,8 @@
         <div style="flex:1 1 0;min-width:0;padding:6px;text-align:center;font-size:11px;${
           i ? 'border-inline-start:1px solid #dcdcdc;' : ''
         }">
+          <div style="font-weight:700;">${safe(label)}</div>
           <div style="min-height:32px;"></div>
-          <div style="border-top:1px solid #444;padding-top:3px;font-weight:700;">${safe(
-            label,
-          )}</div>
         </div>`,
       )
       .join('');
@@ -1424,7 +1422,7 @@
         <style>
           @page {
             size: A4;
-            margin: 14mm;
+            margin: 8mm;
           }
 
           body {
@@ -1458,7 +1456,7 @@
 
           .export-table td {
             border: 1px solid #333;
-            padding: 3px 8px;
+            padding: 4px 8px;
             vertical-align: top;
             word-break: break-word;
             text-align: right;
@@ -1552,10 +1550,6 @@
           printField(t('وظیفه سابقه')),
           printField(t('وظیفه فعلی')),
           printField(t('محل وظیفه')),
-          printField(t('آمریت')),
-          printField(t('حوزه')),
-          printField(t('محل مشخص تدارک')),
-          printField(t('کوردینات تدارک')),
           printField(t('حالت مدنی')),
           printField(t('سطح علمی')),
           printField(t('دیپارتمنت/ فاکولته')),
@@ -1564,6 +1558,17 @@
           printField(t('کارمند مربوطه')),
           printField(t('رزیدنت مربوطه')),
           printField(t('دوره آموزش ')),
+        ],
+      },
+      {
+        title: t('د منبع د تدارک ځای'),
+        subtitle: t('آمریت، حوزه، محل مشخص تدارک و کوردینات تدارک'),
+        cols: 4,
+        fields: [
+          printField(t('آمریت')),
+          printField(t('حوزه')),
+          printField(t('محل مشخص تدارک')),
+          printField(t('کوردینات تدارک')),
         ],
       },
       {
@@ -1621,7 +1626,7 @@
     <style>
       @page {
         size: A4 portrait;
-        margin: 8mm 9mm;
+        margin: 6mm 8mm;
       }
 
       ${reportFontFaceCss()}
@@ -1657,8 +1662,9 @@
         display: flex;
         flex-direction: column;
         width: 100%;
-        /* one full A4 page (297mm) minus the 8mm page margins, leaving room for the signature footer */
-        min-height: 266mm;
+        /* fills the A4 printable area (297mm - 12mm page margins) with a few
+           mm of slack so rounding can never push the form onto a second page */
+        min-height: 280mm;
       }
 
       .pf-title-bar {
