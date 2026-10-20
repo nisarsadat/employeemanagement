@@ -1374,16 +1374,18 @@
   /* =====================================================================
      APPROVAL SIGN CARD — «تایید ده»
      The printed / exported documents end with one card titled تایید ده
-     holding exactly four sign cells: د چک او کنترول، مدیر، اوپراطیفي معاون، رییس
+     holding exactly five sign cells:
+     چک او کنترول، مدیر، اوپراطیفي معاون، رییس، ثبتونکی
   ===================================================================== */
-  function approvalSignsHtml({ escape, marginTop = 18 } = {}) {
+  function approvalSignsHtml({ escape, marginTop = 12 } = {}) {
     const safe = typeof escape === 'function' ? escape : (v) => String(v ?? '');
 
     const labels = [
-      t('د چک او کنترول'),
+      t('چک او کنترول'),
       t('مدیر'),
       t('اوپراطیفي معاون'),
       t('رییس'),
+      t('ثبتونکی'),
     ];
 
     const cells = labels
@@ -1392,8 +1394,8 @@
         <div style="flex:1 1 0;min-width:0;padding:6px;text-align:center;font-size:11px;${
           i ? 'border-inline-start:1px solid #dcdcdc;' : ''
         }">
-          <div style="min-height:40px;"></div>
-          <div style="border-top:1px solid #444;padding-top:4px;font-weight:700;">${safe(
+          <div style="min-height:32px;"></div>
+          <div style="border-top:1px solid #444;padding-top:3px;font-weight:700;">${safe(
             label,
           )}</div>
         </div>`,
@@ -1433,8 +1435,8 @@
             background: #fff;
             margin: 0;
             padding: 0;
-            font-size: 13px;
-            line-height: 1.6;
+            font-size: 10.5px;
+            line-height: 1.25;
           }
 
           .doc-wrap {
@@ -1443,9 +1445,9 @@
 
           .doc-title {
             text-align: center;
-            font-size: 20px;
+            font-size: 14px;
             font-weight: 700;
-            margin-bottom: 14px;
+            margin-bottom: 6px;
           }
 
           .export-table {
@@ -1456,7 +1458,7 @@
 
           .export-table td {
             border: 1px solid #333;
-            padding: 8px 10px;
+            padding: 3px 8px;
             vertical-align: top;
             word-break: break-word;
             text-align: right;
