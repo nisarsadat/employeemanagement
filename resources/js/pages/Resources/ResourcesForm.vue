@@ -1395,7 +1395,7 @@
           i ? 'border-inline-start:1px solid #dcdcdc;' : ''
         }">
           <div style="font-weight:700;">${safe(label)}</div>
-          <div style="min-height:78px;"></div>
+          <div style="min-height:98px;"></div>
         </div>`,
       )
       .join('');
