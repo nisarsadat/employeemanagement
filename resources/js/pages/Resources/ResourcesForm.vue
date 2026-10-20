@@ -464,36 +464,6 @@
                   :error-messages="getErrorMessages('job_place')"
                 />
               </v-col>
-              <v-col cols="12" md="3">
-                <ZoneHawzaPicker
-                  v-model:zone="form.zone"
-                  v-model:hawza="form.hawza"
-                  :disabled="false"
-                  :colsZone="12"
-                  :mdZone="6"
-                  :colsHawza="12"
-                  :mdHawza="6"
-                />
-              </v-col>
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.specefic_place"
-                  :label="t('محل مشخص تدارک')"
-                  density="compact"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.coordinates"
-                  :label="t('کوردینات تدارک')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('coordinates')"
-                  :error-messages="getErrorMessages('coordinates')"
-                />
-              </v-col>
               <!-- <v-col cols="12" md="3">
                 <v-autocomplete
                   v-model="form.activity"
@@ -643,6 +613,56 @@
                   density="compact"
                   variant="outlined"
                   hide-details="auto"
+                />
+              </v-col>
+            </v-row>
+          </v-sheet>
+
+          <!-- SECTION: د منبع د تدارک ځای -->
+          <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
+            <div class="section-header">
+              <div class="d-flex align-center">
+                <v-icon class="ml-2 section-icon">mdi-map-marker</v-icon>
+                <span class="text-subtitle-2 font-weight-medium section-title">
+                  {{ t('د منبع د تدارک ځای') }}
+                </span>
+              </div>
+              <span class="section-subtitle text-caption">
+                {{ t('آمریت، حوزه، محل مشخص تدارک و کوردینات تدارک') }}
+              </span>
+            </div>
+            <v-divider />
+
+            <v-row class="pa-3">
+              <v-col cols="12" md="6">
+                <ZoneHawzaPicker
+                  v-model:zone="form.zone"
+                  v-model:hawza="form.hawza"
+                  :disabled="false"
+                  :colsZone="12"
+                  :mdZone="6"
+                  :colsHawza="12"
+                  :mdHawza="6"
+                />
+              </v-col>
+
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.specefic_place"
+                  :label="t('محل مشخص تدارک')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="form.coordinates"
+                  :label="t('کوردینات تدارک')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('coordinates')"
+                  :error-messages="getErrorMessages('coordinates')"
                 />
               </v-col>
             </v-row>
@@ -846,7 +866,6 @@
   import { useLookupsRepository } from '../../stores/LookupsRepository';
   import { useCalendar } from '../../../composables/useCalendar';
   import { reportFontFaceCss, reportFontForLang, whenPrintFontsReady } from '@/utils/reportFonts.js';
-  import { signatureFooterHtml } from '@/utils/printSignature.js';
   const lookups = useLookupsRepository();
 
   const repo = useDatabaseRepository();
@@ -1352,6 +1371,44 @@
   `;
   }
 
+  /* =====================================================================
+     APPROVAL SIGN CARD — «تایید ده»
+     The printed / exported documents end with one card titled تایید ده
+     holding exactly four sign cells: د چک او کنترول، مدیر، اوپراطیفي معاون، رییس
+  ===================================================================== */
+  function approvalSignsHtml({ escape, marginTop = 18 } = {}) {
+    const safe = typeof escape === 'function' ? escape : (v) => String(v ?? '');
+
+    const labels = [
+      t('د چک او کنترول'),
+      t('مدیر'),
+      t('اوپراطیفي معاون'),
+      t('رییس'),
+    ];
+
+    const cells = labels
+      .map(
+        (label, i) => `
+        <div style="flex:1 1 0;min-width:0;padding:6px;text-align:center;font-size:11px;${
+          i ? 'border-inline-start:1px solid #dcdcdc;' : ''
+        }">
+          <div style="min-height:40px;"></div>
+          <div style="border-top:1px solid #444;padding-top:4px;font-weight:700;">${safe(
+            label,
+          )}</div>
+        </div>`,
+      )
+      .join('');
+
+    return `
+    <div style="border:1px solid #444;border-radius:8px;overflow:hidden;margin-top:${marginTop}px;">
+      <div style="background:#f4f6fa;border-bottom:1px solid #444;padding:4px 8px;font-size:12px;font-weight:700;text-align:center;">${safe(
+        t('تایید ده'),
+      )}</div>
+      <div style="display:flex;justify-content:space-between;">${cells}</div>
+    </div>`;
+  }
+
   function buildDocumentHtml() {
     const title = isEdit.value ? t('اضافه کردن منبع') : t('اضافه کردن منبع');
     const rows = exportRows();
@@ -1420,7 +1477,7 @@
         <div class="doc-wrap">
           <div class="doc-title">${esc(title)}</div>
           ${buildSimpleTableHtml(rows)}
-          ${signatureFooterHtml({ escape: esc })}
+          ${approvalSignsHtml({ escape: esc })}
         </div>
       </body>
     </html>
@@ -1717,7 +1774,7 @@
         </div>
       </div>
       ${sections}
-      ${signatureFooterHtml({ escape: esc, marginTop: 10 })}
+      ${approvalSignsHtml({ escape: esc, marginTop: 10 })}
     </div>
   </body>
 </html>
