@@ -1375,7 +1375,7 @@
      APPROVAL SIGN CARD — «تایید ده»
      The printed / exported documents end with one card titled تایید ده
      holding exactly five sign cells:
-     چک او کنترول، مدیر، اوپراطیفي معاون، رییس، ثبتونکی
+     چک او کنترول، مدیر، اوپراتیفي معاون، رییس، ثبتونکی
   ===================================================================== */
   function approvalSignsHtml({ escape, marginTop = 12 } = {}) {
     const safe = typeof escape === 'function' ? escape : (v) => String(v ?? '');
@@ -1383,7 +1383,7 @@
     const labels = [
       t('چک او کنترول'),
       t('مدیر'),
-      t('اوپراطیفي معاون'),
+      t('اوپراتیفي معاون'),
       t('رییس'),
       t('ثبتونکی'),
     ];
@@ -1395,7 +1395,7 @@
           i ? 'border-inline-start:1px solid #dcdcdc;' : ''
         }">
           <div style="font-weight:700;">${safe(label)}</div>
-          <div style="min-height:32px;"></div>
+          <div style="min-height:44px;"></div>
         </div>`,
       )
       .join('');
