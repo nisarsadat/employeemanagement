@@ -67,6 +67,11 @@ class SecurityAssessmentResource extends JsonResource
                 ])->values()
             ),
 
+            'office_employees_display' => $this->whenLoaded(
+                'officeEmployees',
+                fn () => $this->office_employees_display
+            ),
+
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

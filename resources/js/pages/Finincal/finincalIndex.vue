@@ -128,7 +128,7 @@
         <section class="section-block">
           <div class="section-title-wrap mb-4">
             <h2 class="section-title">{{ t('Messages') }}</h2>
-            <p class="section-subtitle">{{ t('Information and event messages') }}</p>
+            <p class="section-subtitle">{{ t('Information, event, and meeting messages') }}</p>
           </div>
 
           <div class="cards-column">
@@ -160,6 +160,22 @@
                 <div class="text-h6 font-weight-bold mb-2">{{ t('د پیښو پیغامونه') }}</div>
                 <div class="text-body-2 text-medium-emphasis">
                   {{ t('د پیښو پیغامونو مشاهده او مدیریت') }}
+                </div>
+              </v-card-text>
+            </v-card>
+
+            <!-- Meeting Messages -->
+            <v-card
+              class="finance-card"
+              elevation="2"
+              hover
+              @click="goTo('/app/finance/messages/meetings')"
+            >
+              <v-card-text class="text-center py-6">
+                <v-icon size="36" color="teal" class="mb-3">mdi-account-group</v-icon>
+                <div class="text-h6 font-weight-bold mb-2">{{ t('د جلساتو پیغامونه') }}</div>
+                <div class="text-body-2 text-medium-emphasis">
+                  {{ t('د جلساتو پیغامونو مشاهده او مدیریت') }}
                 </div>
               </v-card-text>
             </v-card>

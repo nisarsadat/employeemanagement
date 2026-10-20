@@ -2,7 +2,7 @@
   <v-autocomplete
     v-model="modelProxy"
     :items="items"
-    item-title="name"
+    item-title="display_name"
     item-value="name"
     :label="label"
     density="compact"
@@ -17,6 +17,7 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useLookupsRepository } from '@/stores/LookupsRepository'
+import { useSystemProfileRepository } from '@/stores/SystemProfileRepository'
 
 /* ================= PROPS ================= */
 const props = defineProps({
@@ -29,6 +30,12 @@ const emit = defineEmits(['update:modelValue'])
 
 /* ================= STORE ================= */
 const lookups = useLookupsRepository()
+const systemProfile = useSystemProfileRepository()
+
+function brandLabel(text) {
+  const name = systemProfile.name || ''
+  return String(text ?? '').replace(/۰۳۰|030|۳۳۳|333/g, name)
+}
 
 /* ================= V-MODEL ================= */
 const modelProxy = computed({
@@ -37,10 +44,16 @@ const modelProxy = computed({
 })
 
 /* ================= ITEMS ================= */
-const items = computed(() => lookups.DocsTypes ?? [])
+const items = computed(() =>
+  (lookups.DocsTypes ?? []).map((item) => ({
+    ...item,
+    display_name: brandLabel(item?.name),
+  }))
+)
 
 /* ================= INIT ================= */
 onMounted(() => {
+  systemProfile.ensureLoaded()
   if (!lookups.DocsTypes?.length) {
     lookups.GetDocsTypes()
   }

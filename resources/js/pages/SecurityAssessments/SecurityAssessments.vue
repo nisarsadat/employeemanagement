@@ -22,7 +22,7 @@
             :column-label="t('ستون جستجو')"
             :all-columns-label="t('همه ستون‌ها')"
             :value-label="t('ارزش ستون')"
-            :exclude-keys="['map']"
+            :exclude-keys="['map', 'office_employees_display']"
             :fetch-column-values="fetchColumnValues"
             @search="handleSearch"
             @clearSearch="clearSearch"
@@ -171,6 +171,35 @@
           type="meeting"
           :zoom="16"
         />
+      </template>
+
+      <template #cell-office_employees_display="{ row }">
+        <div
+          v-if="officeEmployeesOf(row).length"
+          class="d-flex flex-column align-center ga-1"
+        >
+          <v-tooltip
+            v-for="employee in officeEmployeesOf(row)"
+            :key="employee.id"
+            :text="t('برای رفتن به صفحه کارمند کلیک کنید')"
+            location="top"
+          >
+            <template #activator="{ props: tooltipProps }">
+              <v-btn
+                v-bind="tooltipProps"
+                color="deep-purple"
+                variant="tonal"
+                size="small"
+                class="text-none"
+                @click.stop="goOfficeEmployee(employee)"
+              >
+                <v-icon size="16" class="mr-1">mdi-account-badge</v-icon>
+                {{ employeeLabel(employee) }}
+              </v-btn>
+            </template>
+          </v-tooltip>
+        </div>
+        <span v-else>—</span>
       </template>
 
       <template #actions="{ item }">
@@ -521,6 +550,15 @@ const headersFT =
 
     {
       title:
+        t('ترسره کوونکي'),
+      key:
+        'office_employees_display',
+      sortable:
+        false,
+    },
+
+    {
+      title:
         t('ولایت'),
       key:
         'province',
@@ -734,6 +772,7 @@ const topGroups =
       keys: [
         'place_name',
         'responsible_owner_name',
+        'office_employees_display',
       ],
     },
 
@@ -875,6 +914,37 @@ function goEdit(
   router.push(
     `/app/security-assessments/form/${row.id}`
   );
+}
+
+function officeEmployeesOf(row) {
+  const source = getRow(row) || {};
+  const list = source.office_employees;
+
+  return Array.isArray(list)
+    ? list.filter((employee) => employee?.id)
+    : [];
+}
+
+function employeeLabel(employee) {
+  const name = String(employee?.name || '').trim();
+  const code = String(employee?.code_number || '').trim();
+
+  if (name && code) return `${name} (${code})`;
+
+  return name || code || t('کارمند');
+}
+
+function goOfficeEmployee(employee) {
+  const empId = employee?.id;
+  if (!empId) return;
+
+  router.push({
+    path: '/app/officeemployee',
+    query: {
+      office_employee_id: empId,
+      source: 'securityassessments',
+    },
+  });
 }
 
 const deleteDialog =

@@ -202,7 +202,7 @@ function appFontStack() {
       const b = import.meta?.env?.VITE_SYSTEM_NAME;
       if (typeof b === 'string' && b.trim()) return b.trim();
     } catch {}
-    return 'د پنځم مدیریت';
+    return '';
   }
 
   const BISMILLAH = 'بسم الله الرحمن الرحیم';
@@ -670,7 +670,7 @@ function baseExportCss() {
     const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
 
     function getLogoUrl() {
-      return `${window.location.origin}/logo.jpeg`;
+      return window.systemLogo || `${window.location.origin}/logo.jpeg`;
     }
 
     const infoSection = hasUsefulRows(infoTypes, 'count')

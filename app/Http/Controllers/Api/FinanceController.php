@@ -9,6 +9,7 @@ use App\Models\Account;
 use App\Models\Event;
 use App\Models\Finance;
 use App\Models\Information;
+use App\Models\Meeting;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -516,6 +517,7 @@ class FinanceController extends Controller
                 'account:id,name,price',
                 'event:id,finance_status,finance_paid_at',
                 'information:id,finance_status,finance_paid_at',
+                'meeting:id,finance_status,finance_paid_at',
             ])
             ->orderByDesc('id');
 
@@ -548,6 +550,7 @@ class FinanceController extends Controller
             'account:id,name,price',
             'event:id,finance_status,finance_paid_at',
             'information:id,finance_status,finance_paid_at',
+            'meeting:id,finance_status,finance_paid_at',
         ]);
 
         return new FinanceResource($finance);
@@ -578,6 +581,7 @@ class FinanceController extends Controller
             'account:id,name,price',
             'event:id,finance_status,finance_paid_at',
             'information:id,finance_status,finance_paid_at',
+            'meeting:id,finance_status,finance_paid_at',
         ]);
 
         return new FinanceResource($finance);
@@ -618,6 +622,7 @@ class FinanceController extends Controller
             'account:id,name,price',
             'event:id,finance_status,finance_paid_at',
             'information:id,finance_status,finance_paid_at',
+            'meeting:id,finance_status,finance_paid_at',
         ]);
 
         return new FinanceResource($finance);
@@ -752,6 +757,7 @@ class FinanceController extends Controller
             'account_id'          => ['required', 'integer', 'exists:accounts,id'],
             'event_id'            => ['nullable', 'integer', 'exists:events,id'],
             'information_id'      => ['nullable', 'integer', 'exists:information,id'],
+            'meeting_id'          => ['nullable', 'integer', 'exists:meetings,id'],
             'money_amount_number' => ['required', 'numeric', 'gt:0'],
             'money_amount_words'  => ['nullable', 'string', 'max:500'],
             'date'                => ['nullable', 'string', 'max:20'],
@@ -802,6 +808,13 @@ class FinanceController extends Controller
 
         if (!empty($data['information_id'])) {
             Information::where('id', $data['information_id'])->update([
+                'finance_status'  => 'paid',
+                'finance_paid_at' => $now,
+            ]);
+        }
+
+        if (!empty($data['meeting_id'])) {
+            Meeting::where('id', $data['meeting_id'])->update([
                 'finance_status'  => 'paid',
                 'finance_paid_at' => $now,
             ]);
@@ -870,6 +883,7 @@ public function printView(Request $request)
             'account:id,name,price',
             'event:id,finance_status,finance_paid_at',
             'information:id,finance_status,finance_paid_at',
+            'meeting:id,finance_status,finance_paid_at',
         ])
         ->orderByDesc('id');
 
@@ -937,6 +951,8 @@ public function printView(Request $request)
                 $finance->expense_result = 'اطلاع ' . $finance->information_id;
             } elseif (!empty($finance->event_id)) {
                 $finance->expense_result = 'واقعه ' . $finance->event_id;
+            } elseif (!empty($finance->meeting_id)) {
+                $finance->expense_result = 'جلسه ' . $finance->meeting_id;
             } else {
                 $finance->expense_result = $finance->expense_result ?: '-';
             }

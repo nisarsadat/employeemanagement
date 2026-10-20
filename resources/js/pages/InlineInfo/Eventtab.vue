@@ -632,7 +632,7 @@
   const eventSpecificTypeOptions = ['قتل', 'چاودنه', 'ټکر', 'سرقت', 'مسلحانه برید'];
   function printEventForm() {
     repo.DownloadEventFormPdf({
-      logo_url: '/logo.png',
+      logo_url: window.systemLogo || '/logo.jpeg',
       form_number: '',
 
       source_code: draft.resource_id,
@@ -665,7 +665,7 @@
   function downloadEventFormWord() {
     repo.DownloadEventFormWord(
       {
-        logo_url: '/logo.png',
+        logo_url: window.systemLogo || '/logo.jpeg',
         form_number: '',
 
         source_code: draft.resource_id,

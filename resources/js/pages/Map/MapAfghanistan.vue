@@ -240,7 +240,29 @@
 
   const pointsQ = ref('');
   let protocol;
-  const pmtilesUrl = '/pmtiles-range/afghanistan.pmtiles';
+  const pmtilesUrl = '/pmtiles/afghanistan.pmtiles';
+
+  async function pmtilesArchiveUrl() {
+    const candidates = [pmtilesUrl, '/pmtiles-range/afghanistan.pmtiles'];
+
+    for (const path of candidates) {
+      try {
+        const response = await fetch(path, { headers: { Range: 'bytes=0-16383' } });
+        const length = Number(response.headers.get('content-length') || 0);
+        const ranged = response.status === 206 || (response.status === 200 && length > 0 && length <= 16384);
+        if (!ranged) continue;
+
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        if (bytes.length >= 2 && bytes[0] === 0x50 && bytes[1] === 0x4d) {
+          return path;
+        }
+      } catch (error) {
+        console.warn('PMTiles probe failed', path, error);
+      }
+    }
+
+    return candidates[candidates.length - 1];
+  }
 
   let highlightMarker = null;
 
@@ -1059,9 +1081,8 @@
         console.warn('addProtocol warning:', e);
       }
 
-      const archiveUrl = `${window.location.origin}/pmtiles-range/afghanistan.pmtiles`;
-      const pm = new PMTiles(archiveUrl);
-      protocol.add(pm);
+      const archiveUrl = await pmtilesArchiveUrl();
+      protocol.add(new PMTiles(archiveUrl));
 
       try {
         maplibregl.setRTLTextPlugin(RTL_PLUGIN_URL, false);

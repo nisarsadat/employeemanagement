@@ -54,6 +54,19 @@ class MeetingResource extends JsonResource
 
             'note' => $this->note,
 
+            'account_id' => $this->account_id,
+            'account' => $this->whenLoaded('account', function () {
+                return $this->account ? [
+                    'id' => $this->account->id,
+                    'name' => $this->account->name,
+                    'price' => $this->account->price,
+                ] : null;
+            }),
+            'message_to_finance' => $this->message_to_finance,
+            'money_amount_words' => $this->money_amount_words,
+            'finance_status' => $this->finance_status ?? 'pending',
+            'finance_paid_at' => optional($this->finance_paid_at)?->toISOString(),
+
             // ✅ ترسره کوونکي
             'office_employee_ids' => $this->whenLoaded(
                 'officeEmployees',
@@ -67,6 +80,11 @@ class MeetingResource extends JsonResource
                     'name' => $employee->name,
                     'code_number' => $employee->code_number,
                 ])->values()
+            ),
+
+            'office_employees_display' => $this->whenLoaded(
+                'officeEmployees',
+                fn () => $this->office_employees_display
             ),
 
             'documents' => $this->whenLoaded(

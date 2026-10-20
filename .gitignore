@@ -5,4 +5,6 @@ vendor/
 dist/
 build/
 public/build/
-resources/js/plugins/reverb.js
+# resources/js/plugins/reverb.js
+resources/js/app.js
+resources/js/axios.js

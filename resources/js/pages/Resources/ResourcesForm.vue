@@ -524,7 +524,7 @@
                 <v-text-field
                   v-model="form.age"
                   :label="t('عمر')"
-                  type="number"
+                  inputmode="numeric"
                   density="compact"
                   variant="outlined"
                   :rules="[rules.ageRange]"
@@ -1598,8 +1598,8 @@
         display: flex;
         flex-direction: column;
         width: 100%;
-        /* one full A4 page (297mm) minus the 8mm page margins, with a 5mm safety buffer */
-        min-height: 276mm;
+        /* one full A4 page (297mm) minus the 8mm page margins, leaving room for the signature footer */
+        min-height: 266mm;
       }
 
       .pf-title-bar {
@@ -1717,6 +1717,7 @@
         </div>
       </div>
       ${sections}
+      ${signatureFooterHtml({ escape: esc, marginTop: 10 })}
     </div>
   </body>
 </html>

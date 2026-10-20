@@ -17,6 +17,7 @@ class Finance extends Model
         // ✅ NEW (fix)
         'event_id',
         'information_id',
+        'meeting_id',
 
         'money_amount_number',
         'money_amount_words',
@@ -58,6 +59,11 @@ class Finance extends Model
     public function information()
     {
         return $this->belongsTo(Information::class, 'information_id');
+    }
+
+    public function meeting()
+    {
+        return $this->belongsTo(Meeting::class, 'meeting_id');
     }
 
     public function scopeSearch($q, $search)

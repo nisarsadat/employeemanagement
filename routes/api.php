@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ActiveInactiveOfficeEmployeeController as AE;
 // ---------------------- Core APIs ----------------------
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\SystemProfileController;
 use App\Http\Controllers\Api\DistrictController;
 use App\Http\Controllers\Api\EventControllerReport;
 use App\Http\Controllers\Api\EventSpecificTypeController;
@@ -202,6 +203,7 @@ if (! function_exists('protectResource')) {
 */
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/system-profile', [SystemProfileController::class, 'show']);
 
 Route::get('/tiles/{filename}', [PmtilesController::class, 'serve'])->where('filename', '.*');
 Route::view('/map-afg', 'map-afg');
@@ -366,6 +368,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/meetings/date-options', [
         MeetingController::class,
         'dateOptions',
+    ]);
+
+    Route::put('/meetings/{meeting}/finance', [
+        MeetingController::class,
+        'updateFinance',
     ]);
 
 // Meeting documents
@@ -1031,6 +1038,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/outgoing-incomings/{id}/documents-zip', [OutgoingIncomingController::class, 'downloadDocumentsZip']);
 
     // system settings
+    Route::post('/system-profile', [SystemProfileController::class, 'update']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('provinces', ProvinceController::class);

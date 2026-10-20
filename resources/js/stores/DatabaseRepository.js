@@ -308,6 +308,10 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           ...(params?.from_date !== undefined ? { from_date: params.from_date } : {}),
 
           ...(params?.to_date !== undefined ? { to_date: params.to_date } : {}),
+
+          ...(params?.only_finance_queue !== undefined
+            ? { only_finance_queue: params.only_finance_queue }
+            : {}),
         };
 
         const response = await axios.get('/meetings', {
@@ -436,6 +440,27 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         this.error = error;
 
         toast.error('تغییر جلسه ناکام شد');
+
+        throw error;
+      }
+    },
+
+    async UpdateMeetingFinance(id, payload) {
+      try {
+        setContentType('application/json');
+
+        const { data } = await axios.put(`/meetings/${id}/finance`, payload);
+
+        toast.success('معلومات مالی جلسه ذخیره شد', {
+          autoClose: 1000,
+        });
+
+        return data?.data ?? data;
+      } catch (error) {
+        console.error(error);
+        this.error = error;
+
+        toast.error('ذخیره معلومات مالی جلسه ناکام شد');
 
         throw error;
       }
@@ -2165,8 +2190,10 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     buildInformationFormHTML(data = {}) {
       // ✅ helper: safe text
       const t = (k) => this.escapeHtml(data?.[k] ?? '');
-      // ✅ logo: you can pass data.logo_url OR keep LOGO_URL_HERE
-      const logo = data?.logo_url ? String(data.logo_url) : 'LOGO_URL_HERE';
+      const systemName = this.escapeHtml(window.systemName || '');
+      const logo = data?.logo_url
+        ? String(data.logo_url)
+        : window.systemLogo || `${window.location.origin}/logo.jpeg`;
 
       return `<!DOCTYPE html>
 <html lang="ps" dir="rtl">
@@ -2342,19 +2369,19 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
             د ریاست عمومی استخبارات<br />
             د استخباراتو لوی ریاست<br />
             ریاست استخبارات ۶۹<br />
-            پنځم مدیریت
+            ${systemName}
           </div>
 
           <div class="header-center">
             <img src="${logo}" alt="logo" />
-            <div>پنځم مدیریت</div>
+            <div>${systemName}</div>
           </div>
 
           <div class="header-block">
             د ریاست عمومی استخبارات<br />
             د استخباراتو لوی ریاست<br />
             د استخباراتو ۶۹ ریاست<br />
-            پنځم مدیریت
+            ${systemName}
           </div>
         </div>
 
@@ -2505,8 +2532,10 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           .replace(/"/g, '&quot;')
           .replace(/'/g, '&#39;');
 
-      // keep the same logo pattern you use
-      const logo = data?.logo_url ? String(data.logo_url) : 'LOGO_URL_HERE';
+      const systemName = esc(window.systemName || '');
+      const logo = data?.logo_url
+        ? String(data.logo_url)
+        : window.systemLogo || `${window.location.origin}/logo.jpeg`;
 
       return `<!DOCTYPE html>
 <html lang="ps" dir="rtl">
@@ -2555,19 +2584,19 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
         د ریاست عمومی استخبارات<br/>
         د استخباراتو لوی ریاست<br/>
         ریاست استخبارات ۶۹<br/>
-        پنځم مدیریت
+        ${systemName}
       </div>
 
       <div class="header-center">
         <img src="${logo}" alt="logo" />
-        <div>پنځم مدیریت</div>
+        <div>${systemName}</div>
       </div>
 
       <div class="header-block">
         د ریاست عمومی استخبارات<br/>
         د استخباراتو لوی ریاست<br/>
         د استخباراتو ۶۹ ریاست<br/>
-        پنځم مدیریت
+        ${systemName}
       </div>
     </div>
 

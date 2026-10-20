@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Models\KhayratReport;
 use App\Models\Meeting;
 use App\Models\SecurityAssessment;
 use Illuminate\Support\Carbon;
@@ -96,6 +97,53 @@ class FoulActivityRows
                     'province' => $row->province,
                     'district' => $row->district,
                     'specific_place' => $row->specific_place,
+                ];
+            })
+            ->values();
+
+        return [
+            'total' => (int) $total,
+            'rows' => $rows,
+        ];
+    }
+
+    /**
+     * Khayrat reports (by saved_date) for a report window.
+     * Null bounds mean all time. $endExclusive is the first moment after the window.
+     */
+    public static function khayrat(?Carbon $start = null, ?Carbon $endExclusive = null): array
+    {
+        $query = KhayratReport::query();
+
+        if ($start) {
+            $query->whereDate('saved_date', '>=', $start->toDateString());
+        }
+        if ($endExclusive) {
+            $query->whereDate('saved_date', '<', $endExclusive->toDateString());
+        }
+
+        $total = (clone $query)->count();
+
+        $rows = (clone $query)
+            ->with([
+                'resource:id,name,code_number',
+                'officeEmployee:id,name,code_number',
+            ])
+            ->orderByDesc('saved_date')
+            ->orderByDesc('id')
+            ->limit(100)
+            ->get()
+            ->map(function (KhayratReport $row) {
+                return [
+                    'id' => $row->id,
+                    'zone' => $row->zone,
+                    'hawza' => $row->hawza,
+                    'specefic_place' => $row->specefic_place,
+                    'saved_date' => optional($row->saved_date)->toDateString(),
+                    'resource_name' => $row->resource?->name,
+                    'resource_code' => $row->resource?->code_number,
+                    'office_employee_name' => $row->officeEmployee?->name,
+                    'office_employee_code' => $row->officeEmployee?->code_number,
                 ];
             })
             ->values();

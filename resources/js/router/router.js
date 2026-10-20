@@ -120,6 +120,8 @@ const EventsToFinanceTable = () =>
   import('@/pages/Finincal/IncomeOutcome/EventsToFinanceTable.vue');
 const InformationsToFinanceTable = () =>
   import('@/pages/Finincal/IncomeOutcome/InformationsToFinanceTable.vue');
+const MeetingsToFinanceTable = () =>
+  import('@/pages/Finincal/IncomeOutcome/MeetingsToFinanceTable.vue');
 const IncomesIndex = () => import('@/pages/Finincal/IncomeOutcome/IncomesIndex.vue');
 const Finances = () => import('@/pages/Finincal/IncomeOutcome/Finances.vue');
 const OilIndex = () => import('@/pages/Finincal/oil/oilIndex.vue');
@@ -174,6 +176,7 @@ const JobTypesIndex = () => import('../pages/Settings/JobTypes/JobTypesIndex.vue
 const ResourceActivityTypesIndex = () =>
   import('../pages/Settings/ResourceActivityTypes/ResourceActivityTypesIndex.vue');
 const SystemSettingsIndex = () => import('../pages/Settings/SystemSettingsIndex.vue');
+const SystemProfilePage = () => import('../pages/Settings/SystemProfilePage.vue');
 const MawqafJahadisIndex = () => import('../pages/Settings/MawqafJahadis/MawqafJahadisIndex.vue');
 const FormatZonePage = () => import('../pages/Settings/FormatZone/FormatZonePage.vue');
 const DocsTypesIndex = () => import('../pages/Settings/DocsType/DocsTypesIndex.vue');
@@ -1535,6 +1538,12 @@ const router = createRouter({
           meta: { requiresAuth: true, perm: permFor('finincalindex') },
         },
         {
+          path: 'finance/messages/meetings',
+          name: 'FinanceMeetingsMessages',
+          component: MeetingsToFinanceTable,
+          meta: { requiresAuth: true, perm: permFor('finincalindex') },
+        },
+        {
           path: 'finance/cashflow/income',
           name: 'FinanceIncome',
           component: IncomesIndex,
@@ -1628,6 +1637,12 @@ const router = createRouter({
           path: 'settings/zones/hawzas',
           name: 'settings-hawzas',
           component: HawzasIndex,
+          meta: { requiresAuth: true },
+        },
+        {
+          path: 'settings/system-profile',
+          name: 'settings-system-profile',
+          component: SystemProfilePage,
           meta: { requiresAuth: true },
         },
         { path: '/app/event-types', name: 'EventTypes', component: EventTypes },

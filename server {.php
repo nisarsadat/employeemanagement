@@ -31,6 +31,29 @@ location ^~ /build/ {
         add_header Cache-Control "public";
     }
 
+    # PMTiles need real byte ranges and must not be gzipped, on every OS.
+    location ~ ^/pmtiles/([^/]+\.pmtiles)$ {
+        gzip off;
+        root /var/www/employeemanagement/public;
+        default_type application/vnd.pmtiles;
+        add_header Accept-Ranges bytes always;
+        add_header Cache-Control "public, max-age=86400, no-transform" always;
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Expose-Headers "Accept-Ranges, Content-Length, Content-Range" always;
+        try_files /pmtiles/$1 /pmtiles-range/$1 /index.php?$query_string;
+    }
+
+    location ~ ^/pmtiles-range/([^/]+\.pmtiles)$ {
+        gzip off;
+        root /var/www/employeemanagement/public;
+        default_type application/vnd.pmtiles;
+        add_header Accept-Ranges bytes always;
+        add_header Cache-Control "public, max-age=86400, no-transform" always;
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Expose-Headers "Accept-Ranges, Content-Length, Content-Range" always;
+        try_files /pmtiles-range/$1 /pmtiles/$1 /index.php?$query_string;
+    }
+
     location / {
         try_files $uri $uri/ /index.php?$query_string;
     }
@@ -44,58 +67,26 @@ location ^~ /build/ {
         deny all;
     }
 
-    # your Reverb/Websocket proxy (keep)
+    # Reverb websocket. The process listens on 6001 on every OS.
     location /app/ {
         proxy_pass http://127.0.0.1:6001;
         proxy_http_version 1.1;
-        proxy_set_header Connection "Upgrade";
         proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 60s;
+    }
+
+    location /apps {
+        proxy_pass http://127.0.0.1:6001;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 60s;
     }
 }
-
-
-
-
-
-
-
-
-
-location ^~ /pmtiles/ {
-    root /var/www/employeemanagement/public;
-    try_files $uri =404;
-    expires 30d;
-    add_header Cache-Control "public, immutable";
-    types {
-        application/octet-stream pmtiles;
-    }
-}
-
-location ^~ /pmtiles-range/ {
-    alias /var/www/employeeanagement/public/pmtiles-range/;
-    default_type application/vnd.pmtiles;
-    types {
-        application/vnd.pmtiles pmtiles;
-        application/octet-stream pmtiles;
-    }
-    add_header Cache-Control "public, immutable" always;
-    add_header Accept-Ranges "bytes" always;
-    expires 30d;
-}
-
-
-
-
-
-
-
-window.mapDebug.getStyle().layers.filter(l => l.type === 'symbol').slice(0, 3).map(l => ({
-  id: l.id,
-  textField: l.layout?.['text-field'],
-  textFont: l.layout?.['text-font']
-}))
-
-
-const RTL_PLUGIN_URL = `${ORIGIN}/vendor/maplibre/mapbox-gl-rtl-text.js`;

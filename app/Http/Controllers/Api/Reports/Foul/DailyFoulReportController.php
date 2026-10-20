@@ -157,10 +157,10 @@ class DailyFoulReportController extends Controller
 
         // 4) 56-format totals (only those with data)
         $formats = $this->formatCounts($date);
-        $activity = FoulActivityRows::between(
-            $date->copy()->startOfDay(),
-            $date->copy()->addDay()->startOfDay()
-        );
+        $windowStart = $date->copy()->startOfDay();
+        $windowEnd = $date->copy()->addDay()->startOfDay();
+        $activity = FoulActivityRows::between($windowStart, $windowEnd);
+        $khayrat = FoulActivityRows::khayrat($windowStart, $windowEnd);
 
         return response()->json([
             'meta' => [
@@ -185,6 +185,7 @@ class DailyFoulReportController extends Controller
             'formats' => $formats,
             'meetings' => $activity['meetings'],
             'security_assessments' => $activity['security_assessments'],
+            'khayrat_reports' => $khayrat,
         ]);
     }
 

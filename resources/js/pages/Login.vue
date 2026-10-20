@@ -81,8 +81,10 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useLoginRepository } from "@/stores/LoginRepository";
+import { useSystemProfileRepository } from "@/stores/SystemProfileRepository";
 
 const LoginRepository = useLoginRepository();
+const systemProfile = useSystemProfileRepository();
 const { t, locale } = useI18n();
 
 const form = ref({ username: "", password: "" });
@@ -107,7 +109,7 @@ const applyGlobalDir = (lang) => {
   document.documentElement.setAttribute("dir", rtl ? "rtl" : "ltr");
 };
 
-const selectedLang = ref("ps"); // ✅ default Pashto
+const selectedLang = ref(localStorage.getItem("apartment-lang") || locale.value || "ps");
 
 const changeLanguage = (lang) => {
   selectedLang.value = lang;
@@ -116,10 +118,13 @@ const changeLanguage = (lang) => {
   applyGlobalDir(lang);
 };
 
-// ✅ load language BEFORE user logs in
-onMounted(() => {
-  const saved = localStorage.getItem("apartment-lang") || "ps"; // ✅ default ps
-  changeLanguage(saved);
+onMounted(async () => {
+  await systemProfile.ensureLoaded();
+  const saved = localStorage.getItem("apartment-lang");
+  const lang = saved || systemProfile.defaultLanguage || "ps";
+  selectedLang.value = lang;
+  locale.value = lang;
+  applyGlobalDir(lang);
 });
 
 // keep selectedLang synced if something else changes locale

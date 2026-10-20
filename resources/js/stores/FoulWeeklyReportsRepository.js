@@ -316,7 +316,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
       const b = import.meta?.env?.VITE_SYSTEM_NAME;
       if (typeof b === 'string' && b.trim()) return b.trim();
     } catch {}
-    return 'د پنځم مدیریت';
+    return '';
   }
 
   const BISMILLAH = 'بسم الله الرحمن الرحیم';
@@ -786,7 +786,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
 
     function getLogoUrl() {
-      return `${window.location.origin}/logo.jpeg`;
+      return window.systemLogo || `${window.location.origin}/logo.jpeg`;
     }
 
     const heroDatePills = buildDatePillsRange(fromIso, toIso);
@@ -905,7 +905,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
                 <!-- ✅ left texts (same structure as daily/monthly) -->
                 <div class="hero-info margintowline">
                   <div class="hero-system fontsizeb">${escapeHtml(systemName)} اوونیز راپور</div>
-                  <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ اوونیزه عمومي کتنه</p>
+                  <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو، پنځوس فارمټ او د خیریت راپور اوونیزه عمومي کتنه</p>
                 </div>
 
                 <!-- ✅ middle bismillah (same as daily/monthly “hero-mid”) -->
@@ -944,6 +944,12 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
               <div class="card"><div class="stat-card"><div>
                 <div class="stat-label">پنځوس فارمټ</div>
                 <div class="stat-number">${formatsActive}</div>
+              </div></div></div>
+
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">د خیریت راپور</div>
+                <div class="stat-number">${safeNum(report?.khayrat_reports?.total)}</div>
+                <span class="badge b-success">ثبت شوې</span>
               </div></div></div>
             </div>
 

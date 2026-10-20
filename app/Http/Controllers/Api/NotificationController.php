@@ -8,6 +8,7 @@ use App\Http\Resources\NotificationResource;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use App\Events\NotificationRead;
+use App\Support\Broadcasts;
 class NotificationController extends Controller
 {
     public function index(Request $request)
@@ -52,7 +53,7 @@ class NotificationController extends Controller
             ]);
 
             // ✅ NEW: realtime decrement for other open tabs/devices
-            event(new NotificationRead($user->id, $notification->id));
+            Broadcasts::send(new NotificationRead($user->id, $notification->id));
         }
 
         return new NotificationResource($notification->loadMissing('user'));
@@ -73,7 +74,7 @@ class NotificationController extends Controller
 
         // ✅ NEW: broadcast each id (simple + correct)
         foreach ($ids as $id) {
-            event(new NotificationRead($user->id, (int)$id));
+            Broadcasts::send(new NotificationRead($user->id, (int)$id));
         }
 
         return response()->json(['status' => 'ok']);

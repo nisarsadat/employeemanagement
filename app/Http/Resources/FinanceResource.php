@@ -15,6 +15,7 @@ class FinanceResource extends JsonResource
 
         $event = $this->getRelationValue('event');
         $info  = $this->getRelationValue('information');
+        $meeting = $this->getRelationValue('meeting');
 
         return [
             'id' => $this->id,
@@ -26,6 +27,7 @@ class FinanceResource extends JsonResource
             // ✅ NEW: link finance to event/information (nullable)
             'event_id'           => $this->event_id,
             'information_id'     => $this->information_id,
+            'meeting_id'         => $this->meeting_id,
 
             'money_amount_number' => $this->money_amount_number,
             'money_amount_words'  => $this->money_amount_words,
@@ -86,6 +88,12 @@ class FinanceResource extends JsonResource
             'information' => $this->whenLoaded('information', function () use ($info) {
                 return $info ? [
                     'id' => $info->id,
+                ] : null;
+            }),
+
+            'meeting' => $this->whenLoaded('meeting', function () use ($meeting) {
+                return $meeting ? [
+                    'id' => $meeting->id,
                 ] : null;
             }),
 

@@ -3,67 +3,93 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PmtilesController extends Controller
 {
-    // Streams a PMTiles file with HTTP byte-range support (dev-safe)
+    /**
+     * Byte-range PMTiles response that behaves the same on Herd (nginx),
+     * Ubuntu nginx, Apache/XAMPP, and php-fpm. The archive may live in any
+     * of the known folders and is matched without case sensitivity.
+     */
     public function serve(Request $request, string $filename)
     {
-        // make sure the file is in public/pmtiles
-        $safe = basename($filename); // prevent paths
-        $path = public_path('pmtiles/' . $safe);
+        $headers = $this->headers();
 
-        if (!is_file($path)) {
+        if ($request->isMethod('OPTIONS')) {
+            return response('', 204, $headers);
+        }
+
+        $path = $this->findArchive($filename);
+        if ($path === null) {
             abort(404, 'PMTiles file not found');
         }
 
-        // disable output buffering/chunking
-        @ini_set('zlib.output_compression', 'Off');
-        while (ob_get_level() > 0) { @ob_end_clean(); }
-
-        $size   = filesize($path);
-        $start  = 0;
-        $end    = $size - 1;
-        $status = 200;
-
-        // parse Range: bytes=start-end
-        if ($range = $request->header('Range')) {
-            if (preg_match('/bytes=(\d*)-(\d*)/i', $range, $m)) {
-                if ($m[1] !== '') $start = (int)$m[1];
-                if ($m[2] !== '') $end   = min((int)$m[2], $size - 1);
-                if ($start > $end || $start >= $size) {
-                    return response('', 416, ['Content-Range' => "bytes */$size"]);
-                }
-                $status = 206;
-            }
+        @ini_set('zlib.output_compression', '0');
+        @ini_set('output_buffering', '0');
+        while (ob_get_level() > 0) {
+            @ob_end_clean();
         }
 
-        $length = $end - $start + 1;
+        $response = new BinaryFileResponse($path, 200, $headers, true, null, false, false);
+        $response->setAutoEtag(false);
+        $response->setAutoLastModified(false);
+        $response->headers->remove('Content-Encoding');
 
-        $headers = [
-            'Content-Type'      => 'application/vnd.pmtiles',
-            'Accept-Ranges'     => 'bytes',
-            'Content-Encoding'  => 'identity',
-            'Cache-Control'     => 'no-transform, public, max-age=0',
-            'Content-Length'    => $length,
+        return $response;
+    }
+
+    private function headers(): array
+    {
+        return [
+            'Content-Type' => 'application/vnd.pmtiles',
+            'Accept-Ranges' => 'bytes',
+            'Cache-Control' => 'public, max-age=86400, no-transform',
+            'X-Accel-Buffering' => 'no',
+            'X-Content-Type-Options' => 'nosniff',
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'GET, HEAD, OPTIONS',
+            'Access-Control-Allow-Headers' => 'Range, Origin, Accept, Content-Type',
+            'Access-Control-Expose-Headers' => 'Accept-Ranges, Content-Length, Content-Range, Content-Type',
         ];
-        if ($status === 206) {
-            $headers['Content-Range'] = "bytes $start-$end/$size";
+    }
+
+    private function findArchive(string $filename): ?string
+    {
+        $safe = basename(rawurldecode($filename));
+        if (! preg_match('/^[A-Za-z0-9._-]+\.pmtiles$/', $safe)) {
+            return null;
         }
 
-        return new StreamedResponse(function () use ($path, $start, $end) {
-            $fh = fopen($path, 'rb');
-            fseek($fh, $start);
-            $left = $end - $start + 1;
-            $chunk = 8192;
-            while ($left > 0 && !feof($fh)) {
-                $read = ($left > $chunk) ? $chunk : $left;
-                echo fread($fh, $read);
-                $left -= $read;
-                @ob_flush(); flush();
+        $directories = [
+            public_path('pmtiles'),
+            public_path('pmtiles-range'),
+            storage_path('app/pmtiles'),
+            storage_path('app/public/pmtiles'),
+        ];
+
+        foreach ($directories as $directory) {
+            if (! is_dir($directory)) {
+                continue;
             }
-            fclose($fh);
-        }, $status, $headers);
+
+            $exact = $directory.DIRECTORY_SEPARATOR.$safe;
+            if (is_file($exact)) {
+                return $exact;
+            }
+
+            $entries = @scandir($directory);
+            if ($entries === false) {
+                continue;
+            }
+
+            foreach ($entries as $entry) {
+                if (strcasecmp($entry, $safe) === 0 && is_file($directory.DIRECTORY_SEPARATOR.$entry)) {
+                    return $directory.DIRECTORY_SEPARATOR.$entry;
+                }
+            }
+        }
+
+        return null;
     }
 }

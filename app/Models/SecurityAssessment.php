@@ -59,4 +59,25 @@ class SecurityAssessment extends Model
             'security_assessment_office_employee'
         )->withTimestamps();
     }
+
+    public function getOfficeEmployeesDisplayAttribute(): string
+    {
+        if (!$this->relationLoaded('officeEmployees')) {
+            return '';
+        }
+
+        return $this->officeEmployees
+            ->map(function ($employee) {
+                $name = trim((string) $employee->name);
+                $code = trim((string) $employee->code_number);
+
+                if ($name !== '' && $code !== '') {
+                    return $name.' ('.$code.')';
+                }
+
+                return $name !== '' ? $name : $code;
+            })
+            ->filter()
+            ->implode('، ');
+    }
 }

@@ -36,10 +36,12 @@ return [
             'secret' => env('REVERB_APP_SECRET'),
             'app_id' => env('REVERB_APP_ID'),
             'options' => [
-                'host' => env('REVERB_HOST'),
-                'port' => env('REVERB_PORT', 443),
-                'scheme' => env('REVERB_SCHEME', 'https'),
-                'useTLS' => env('REVERB_SCHEME', 'https') === 'https',
+                // PHP publishes to the local Reverb process on every OS.
+                // The browser connects through the site hostname instead.
+                'host' => env('REVERB_BROADCAST_HOST', '127.0.0.1'),
+                'port' => (int) env('REVERB_SERVER_PORT', 6001),
+                'scheme' => 'http',
+                'useTLS' => false,
             ],
             'client_options' => [
                 // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html

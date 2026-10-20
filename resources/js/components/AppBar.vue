@@ -15,13 +15,13 @@
         :ripple="false"
         :aria-label="t('داشبورد')"
       >
-        <v-img src="/logo.jpeg" width="44" height="44" contain />
+        <v-img :src="logoSrc" width="44" height="44" contain />
       </v-btn>
 
       <div class="title-block">
         <div class="title-row">
           <v-toolbar-title class="main-title">
-            {{ t('۳۳۳') }}
+            {{ systemName }}
           </v-toolbar-title>
 
           <v-divider
@@ -161,11 +161,15 @@ import { useTheme, useDisplay } from 'vuetify';
 import { useRouter, useRoute } from 'vue-router';
 import { useCalendar } from '../../composables/useCalendar';
 import { useLoginRepository } from '@/stores/LoginRepository';
+import { useSystemProfileRepository } from '@/stores/SystemProfileRepository';
 import NotificationMenu from './NotificationBell.vue';
 import ChatMenu from './chat/ChatMenu.vue';
 import { runPageRefresh } from '@/composables/usePageRefresh';
 
 const login = useLoginRepository();
+const systemProfile = useSystemProfileRepository();
+const systemName = computed(() => systemProfile.name);
+const logoSrc = computed(() => systemProfile.logoUrl || '/logo.jpeg');
 const router = useRouter();
 const route = useRoute();
 const { t, locale } = useI18n();
@@ -243,6 +247,8 @@ const calendarColor = computed(() =>
 );
 
 onMounted(() => {
+  systemProfile.ensureLoaded();
+
   const saved = localStorage.getItem('apartment-theme');
   darkMode.value = saved
     ? saved === 'dark'

@@ -13,6 +13,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\MessageAttachment;
 use App\Models\User;
+use App\Support\Broadcasts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -174,9 +175,10 @@ class ChatController extends Controller
         $this->storeAttachments($request, $message);
 
         // 🔥 REALTIME
-        broadcast(new MessageSent(
-            $message->load(['sender', 'attachments', 'replyTo.sender'])
-        ))->toOthers();
+        Broadcasts::send(
+            new MessageSent($message->load(['sender', 'attachments', 'replyTo.sender'])),
+            toOthers: true
+        );
 
         return response()->json($message);
     }
@@ -225,12 +227,12 @@ class ChatController extends Controller
             Message::whereIn('id', $ids)->update(['seen_at' => $now]);
 
             // 🔥 REALTIME
-            broadcast(new MessageSeen(
+            Broadcasts::send(new MessageSeen(
                 sender_id: $user->id,
                 conversation_id: $conversation->id,
                 message_ids: $ids,
                 seen_at: $now->toIso8601String()
-            ))->toOthers();
+            ), toOthers: true);
         }
 
         $conversation->participants()->updateExistingPivot($user->id, [
@@ -260,12 +262,12 @@ class ChatController extends Controller
             if ($ids) {
                 Message::whereIn('id', $ids)->update(['seen_at' => $now]);
 
-                broadcast(new MessageSeen(
+                Broadcasts::send(new MessageSeen(
                     sender_id: $auth->id,
                     conversation_id: $conversation->id,
                     message_ids: $ids,
                     seen_at: $now->toIso8601String()
-                ))->toOthers();
+                ), toOthers: true);
             }
 
             $conversation->participants()->updateExistingPivot($auth->id, [
@@ -302,11 +304,11 @@ class ChatController extends Controller
 
         $message->delete();
 
-        broadcast(new MessageDeleted(
+        Broadcasts::send(new MessageDeleted(
             conversation_id: $message->conversation_id,
             message_id: $message->id,
             deleted_at: $message->deleted_at?->toIso8601String()
-        ))->toOthers();
+        ), toOthers: true);
 
         return response()->json(['ok' => true]);
     }
@@ -393,13 +395,13 @@ class ChatController extends Controller
             'call_type' => ['required', 'in:voice,video'],
         ])->validate();
 
-        broadcast(new CallIncoming(
+        Broadcasts::send(new CallIncoming(
             toUserId: (int)$data['to_user_id'],
             fromUserId: (int)$user->id,
             conversationId: (int)$data['conversation_id'],
             callId: (string)$data['call_id'],
             callType: (string)$data['call_type'],
-        ))->toOthers();
+        ), toOthers: true);
 
         return response()->json(['ok' => true]);
     }
@@ -417,14 +419,14 @@ class ChatController extends Controller
             'signal.type' => ['required', 'in:offer,answer,ice'],
         ])->validate();
 
-        broadcast(new CallSignal(
+        Broadcasts::send(new CallSignal(
             toUserId: (int)$data['to_user_id'],
             fromUserId: (int)$user->id,
             conversationId: (int)$data['conversation_id'],
             callId: (string)$data['call_id'],
             callType: (string)$data['call_type'],
             signal: (array)$data['signal'],
-        ))->toOthers();
+        ), toOthers: true);
 
         return response()->json(['ok' => true]);
     }
@@ -442,7 +444,7 @@ class ChatController extends Controller
             'duration_seconds' => ['nullable', 'integer', 'min:0'],
         ])->validate();
 
-        broadcast(new CallEnded(
+        Broadcasts::send(new CallEnded(
             toUserId: (int)$data['to_user_id'],
             fromUserId: (int)$user->id,
             conversationId: (int)$data['conversation_id'],
@@ -450,7 +452,7 @@ class ChatController extends Controller
             callType: (string)$data['call_type'],
             status: (string)$data['status'],
             durationSeconds: (int)($data['duration_seconds'] ?? 0),
-        ))->toOthers();
+        ), toOthers: true);
 
         return response()->json(['ok' => true]);
     }

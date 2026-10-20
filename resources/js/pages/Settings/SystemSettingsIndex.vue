@@ -209,6 +209,12 @@
       to: { path: '/app/infoCategory' },
       permission: 'InfoCategory.view',
     },
+    {
+      key: 'system-profile',
+      title: t('مشخصات سیستم'),
+      icon: 'mdi-cog-outline',
+      to: { path: '/app/settings/system-profile' },
+    },
   ]);
   usePageRefresh('/app/settings');
 

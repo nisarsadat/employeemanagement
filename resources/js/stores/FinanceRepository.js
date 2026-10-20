@@ -59,6 +59,19 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     }
   }
 
+  const meetings = ref([]);
+  const meetingsLoading = ref(false);
+
+  async function FetchMeetingsOptions({ search = '' } = {}) {
+    meetingsLoading.value = true;
+    try {
+      const resp = await axios.get('/meetings', { params: { search } });
+      meetings.value = resp.data?.data ?? resp.data ?? [];
+    } finally {
+      meetingsLoading.value = false;
+    }
+  }
+
   const informations = ref([]);
   const informationsLoading = ref(false);
 
@@ -495,6 +508,10 @@ export const useFinanceRepository = defineStore('FinanceRepository', () => {
     informations,
     informationsLoading,
     FetchInformationsOptions,
+
+    meetings,
+    meetingsLoading,
+    FetchMeetingsOptions,
 
     // Accounts
     accounts,

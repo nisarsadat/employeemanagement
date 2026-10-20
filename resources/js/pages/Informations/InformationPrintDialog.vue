@@ -145,6 +145,7 @@
   import router from '../../router/router';
   import AppBar from '../../components/AppBar.vue';
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
+  import { useSystemProfileRepository } from '@/stores/SystemProfileRepository';
   import { useCalendar } from '../../../composables/useCalendar';
   import dayjs from 'dayjs';
 
@@ -158,7 +159,8 @@
 
   const printArea = ref(null);
   const printing = ref(false);
-  const logoSrc = '/logo.jpeg';
+  const systemProfile = useSystemProfileRepository();
+  const logoSrc = computed(() => systemProfile.logoUrl || '/logo.jpeg');
 
   const id = computed(() => route.params.id);
 
@@ -177,7 +179,7 @@
     return v && String(v).trim() ? String(v) : '—';
   });
 
-  const systemName = computed(() => t('۳۳۳ مدیریت'));
+  const systemName = computed(() => systemProfile.name);
   const systemId = ref('');
   const printedAt = ref('');
 

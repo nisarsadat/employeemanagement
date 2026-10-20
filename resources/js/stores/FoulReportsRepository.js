@@ -340,7 +340,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
       const b = import.meta?.env?.VITE_SYSTEM_NAME;
       if (typeof b === 'string' && b.trim()) return b.trim();
     } catch {}
-    return 'د پنځم مدیریت';
+    return '';
   }
 
   const BISMILLAH = 'بسم الله الرحمن الرحیم';
@@ -829,7 +829,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     const eventRows = Array.isArray(report?.events?.rows) ? report.events.rows : [];
 
     function getLogoUrl() {
-      return `${window.location.origin}/logo.jpeg`;
+      return window.systemLogo || `${window.location.origin}/logo.jpeg`;
     }
 
     const heroDatePills = buildDatePillsSameDay(dateText);
@@ -970,7 +970,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                     ${escapeHtml(systemName)} ورځنی راپور
                   </div>
                   <div>
-                    <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو او پنځوس فارمټ ورځنۍ عمومي کتنه</p>
+                    <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو، پنځوس فارمټ او د خیریت راپور ورځنۍ عمومي کتنه</p>
                   </div>
                 </div>
 
@@ -1009,6 +1009,12 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                 <div class="stat-label">پنځوس فارمټ</div>
                 <div class="stat-number">${formatsActive}</div>
               </div></div></div>
+
+              <div class="card"><div class="stat-card"><div>
+                <div class="stat-label">د خیریت راپور</div>
+                <div class="stat-number">${safeNum(report?.khayrat_reports?.total)}</div>
+                <span class="badge b-success">ثبت شوې</span>
+              </div></div></div>
             </div>
 
             ${infoSection}
@@ -1041,7 +1047,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
     const eventTypes = Array.isArray(report?.events?.types) ? report.events.types : [];
 
     function getLogoUrl() {
-      return `${window.location.origin}/logo.jpeg`;
+      return window.systemLogo || `${window.location.origin}/logo.jpeg`;
     }
 
     const heroDatePills = buildDatePillsSameDay(headerIso);

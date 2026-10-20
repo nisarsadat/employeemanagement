@@ -29,6 +29,7 @@
      }
 ============================================================================= */
 import i18n from '@/localization/Local.js';
+import { useSystemProfileRepository } from '@/stores/SystemProfileRepository';
 import { reportFontFaceCss, reportFontForLang, whenPrintFontsReady } from '@/utils/reportFonts.js';
 import { signatureLabels } from '@/utils/printSignature.js';
 
@@ -555,7 +556,7 @@ export function buildBlankFormHtml(options = {}) {
   <body>
     <div class="pf-page">
       <div class="pf-title-bar">
-        <div class="pf-title-badge">۳۳۳</div>
+        <div class="pf-title-badge">${esc(useSystemProfileRepository().name)}</div>
         <div>
           <div class="pf-title">${esc(title)}</div>
           ${subtitle ? `<div class="pf-subtitle">${esc(subtitle)}</div>` : ''}

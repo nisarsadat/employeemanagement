@@ -5,6 +5,7 @@ import vuetify from './plugins/vuetify';
 import router from './router/router';
 import { createPinia } from 'pinia';
 import i18n from './localization/Local.js';
+import { useSystemProfileRepository } from './stores/SystemProfileRepository.js';
 import Toast from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 import VueApexCharts from 'vue3-apexcharts';
@@ -37,9 +38,9 @@ axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 // ✅ API base
 // const API_BASE = import.meta.env.VITE_API_URL || 'https://200.100.100.1';
-// const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 // axios.defaults.baseURL = `${API_BASE}/api`;
-axios.defaults.baseURL = '/api';
+// axios.defaults.baseURL = '/api';
 // axios.defaults.baseURL = 'http://public.test/api';
 // ✅ attach token for all API requests
 axios.interceptors.request.use((config) => {
@@ -65,6 +66,15 @@ const pinia = createPinia();
 app.use(NoAutofill);
 app.use(pinia);
 app.use(router);
+
+const systemProfile = useSystemProfileRepository(pinia);
+systemProfile.ensureLoaded().then(() => {
+  if (!localStorage.getItem('apartment-lang') && systemProfile.defaultLanguage) {
+    i18n.global.locale.value = systemProfile.defaultLanguage;
+    const rtl = systemProfile.defaultLanguage === 'fa' || systemProfile.defaultLanguage === 'ps';
+    document.documentElement.setAttribute('dir', rtl ? 'rtl' : 'ltr');
+  }
+});
 app.use(vuetify);
 app.use(i18n);
 

@@ -32,7 +32,11 @@
 
   RewriteEngine On
 
-  # Handle Authorization Header
+  # Serve /pmtiles-range from the real archive folder so Apache does byte ranges itself.
+RewriteCond %{DOCUMENT_ROOT}/pmtiles/$1 -f
+RewriteRule ^pmtiles-range/([^/]+\.pmtiles)$ pmtiles/$1 [L]
+
+# Handle Authorization Header
   RewriteCond %{HTTP:Authorization} .
   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 

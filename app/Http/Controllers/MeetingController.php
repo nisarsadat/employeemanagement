@@ -41,6 +41,9 @@ class MeetingController extends Controller
             'meeting_amniyat_responsable_phone',
             'amniyat_mansobine_count',
             'note',
+            'message_to_finance',
+            'money_amount_words',
+            'finance_status',
         ];
     }
 
@@ -77,7 +80,8 @@ class MeetingController extends Controller
     {
         return Meeting::query()
             ->with('documents')
-            ->with('officeEmployees:id,name,code_number');
+            ->with('officeEmployees:id,name,code_number')
+            ->with('account:id,name,price');
     }
 
     private function applySearch(
@@ -248,6 +252,31 @@ class MeetingController extends Controller
         return $query;
     }
 
+    private function applyFinanceQueueFilter(
+        Builder $query,
+        bool $onlyFinanceQueue = false
+    ): Builder {
+        if (!$onlyFinanceQueue) {
+            return $query;
+        }
+
+        $query
+            ->whereNotNull('message_to_finance')
+            ->whereRaw("CHAR_LENGTH(TRIM(message_to_finance)) > 0")
+            ->where(function ($q) {
+                $q->whereNull('finance_status')
+                    ->orWhereIn(DB::raw('LOWER(TRIM(finance_status))'), [
+                        '',
+                        'unpaid',
+                        'pending',
+                        'ناپرداخت',
+                        'not_paid',
+                    ]);
+            });
+
+        return $query;
+    }
+
     private function buildCardCounts(
         ?string $search,
         ?string $searchField,
@@ -354,6 +383,9 @@ class MeetingController extends Controller
 
             'to_date' =>
                 'nullable|date',
+
+            'only_finance_queue' =>
+                'nullable|boolean',
         ]);
 
         $search =
@@ -400,6 +432,11 @@ class MeetingController extends Controller
         $this->applyStatFilter(
             $query,
             $stat
+        );
+
+        $this->applyFinanceQueueFilter(
+            $query,
+            $request->boolean('only_finance_queue')
         );
 
         $query->latest('id');
@@ -846,6 +883,37 @@ class MeetingController extends Controller
                     $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function updateFinance(Request $request, $meeting)
+    {
+        $data = $request->validate([
+            'account_id' => ['nullable', 'integer', 'exists:accounts,id'],
+            'message_to_finance' => ['nullable', 'string', 'max:255'],
+            'money_amount_words' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $meeting = Meeting::with([
+            'documents',
+            'officeEmployees:id,name,code_number',
+            'account:id,name,price',
+        ])->findOrFail($meeting);
+
+        $meeting->fill($data);
+
+        if (blank($meeting->finance_status)) {
+            $meeting->finance_status = 'pending';
+        }
+
+        $meeting->save();
+
+        return new MeetingResource(
+            $meeting->load([
+                'documents',
+                'officeEmployees:id,name,code_number',
+                'account:id,name,price',
+            ])
+        );
     }
 
     public function destroy(

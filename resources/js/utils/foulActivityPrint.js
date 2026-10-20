@@ -5,6 +5,8 @@ export function foulActivitySections(report, escapeHtml) {
     : [];
   const meetingsTotal = Number(report?.meetings?.total ?? 0) || 0;
   const assessmentsTotal = Number(report?.security_assessments?.total ?? 0) || 0;
+  const khayrat = Array.isArray(report?.khayrat_reports?.rows) ? report.khayrat_reports.rows : [];
+  const khayratTotal = Number(report?.khayrat_reports?.total ?? 0) || 0;
 
   const meetingRows = meetings
     .map((row) => {
@@ -61,6 +63,52 @@ export function foulActivitySections(report, escapeHtml) {
       `
       : '';
 
+  const khayratRows = khayrat
+    .map((row) => {
+      const resource = row?.resource_code || row?.resource_name || '';
+      const employee = row?.office_employee_code || row?.office_employee_name || '';
+      return `
+        <tr>
+          <td>${escapeHtml(resource)}</td>
+          <td>${escapeHtml(employee)}</td>
+          <td>${escapeHtml(row?.zone ?? '')}</td>
+          <td>${escapeHtml(row?.hawza ?? '')}</td>
+          <td>${escapeHtml(row?.specefic_place ?? '')}</td>
+          <td>${escapeHtml(row?.saved_date ?? '')}</td>
+        </tr>
+      `;
+    })
+    .join('');
+
+  const khayratSection =
+    khayratTotal > 0
+      ? `
+        <div class="section">
+          <div class="card">
+            <div class="header-strip bg-success">
+              <div><div class="strip-title">د خیریت راپور</div><div class="strip-sub">د دې مودې د خیریت راپورونه</div></div>
+              <span class="chip chip-success">${khayratTotal}</span>
+            </div>
+            <div style="padding:0;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>منبع</th>
+                    <th>کارمند</th>
+                    <th>آمریت</th>
+                    <th>حوزه</th>
+                    <th>محل مشخص</th>
+                    <th>نېټه</th>
+                  </tr>
+                </thead>
+                <tbody>${khayratRows}</tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `
+      : '';
+
   const assessmentsSection =
     assessmentsTotal > 0
       ? `
@@ -88,5 +136,5 @@ export function foulActivitySections(report, escapeHtml) {
       `
       : '';
 
-  return `${meetingsSection}${assessmentsSection}`;
+  return `${meetingsSection}${assessmentsSection}${khayratSection}`;
 }

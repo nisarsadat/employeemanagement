@@ -1,5 +1,16 @@
 <template>
   <v-container fluid class="page-bg pt-6" :dir="isRtl ? 'rtl' : 'ltr'">
+    <MeetingFinanceDialog
+      v-model="financeDialogOpen"
+      :id="selectedRow?.id"
+      :account_id="selectedRow?.account_id ?? null"
+      :message_to_finance="selectedRow?.message_to_finance ?? ''"
+      :money_amount_words="selectedRow?.money_amount_words ?? ''"
+      :account-items="accountItems"
+      :is-rtl="isRtl"
+      :loading="dialogSaving"
+      @save="handleSaveMeetingFinance"
+    />
     <AppBar
       :title="t('جلسات')"
       :subtitle="t('فهرست، جستجو و مدیریت جلسات')"
@@ -22,7 +33,7 @@
             :column-label="t('ستون جستجو')"
             :all-columns-label="t('همه ستون‌ها')"
             :value-label="t('ارزش ستون')"
-            :exclude-keys="['map']"
+            :exclude-keys="['map', 'office_employees_display']"
             :fetch-column-values="fetchColumnValues"
             @search="handleSearch"
             @clearSearch="clearSearch"
@@ -127,54 +138,6 @@
 
       </v-row>
 
-      <v-row
-        class="mt-2 d-flex justify-between"
-        :dir="isRtl ? 'rtl' : 'ltr'"
-      >
-        <v-col
-          v-for="card in statCards"
-          :key="card.value"
-          cols="12"
-          sm="6"
-          md="2"
-        >
-          <v-card
-            class="stat-card"
-            :class="{
-              'stat-card--active':
-                cardFilter === card.value
-            }"
-            :elevation="
-              cardFilter === card.value ? 6 : 1
-            "
-            @click="applyCardFilter(card.value)"
-          >
-            <div class="stat-card-body">
-
-              <div class="stat-card-icon">
-                <v-icon>
-                  {{ card.icon }}
-                </v-icon>
-              </div>
-
-              <div class="stat-card-text">
-
-                <div class="stat-card-title">
-                  {{ card.title }}
-                </div>
-
-                <div class="stat-card-subtitle">
-                  {{ t('تعداد') }}:
-                  {{ card.count }}
-                </div>
-
-              </div>
-
-            </div>
-          </v-card>
-        </v-col>
-      </v-row>
-
     </v-container>
 
     <v-container fluid>
@@ -216,6 +179,45 @@
           type="meeting"
           :zoom="16"
         />
+      </template>
+
+      <template #cell-office_employees_display="{ row }">
+        <div
+          v-if="officeEmployeesOf(row).length"
+          class="d-flex flex-column align-center ga-1"
+        >
+          <v-tooltip
+            v-for="employee in officeEmployeesOf(row)"
+            :key="employee.id"
+            :text="t('برای رفتن به صفحه کارمند کلیک کنید')"
+            location="top"
+          >
+            <template #activator="{ props: tooltipProps }">
+              <v-btn
+                v-bind="tooltipProps"
+                color="deep-purple"
+                variant="tonal"
+                size="small"
+                class="text-none"
+                @click.stop="goOfficeEmployee(employee)"
+              >
+                <v-icon size="16" class="mr-1">mdi-account-badge</v-icon>
+                {{ employeeLabel(employee) }}
+              </v-btn>
+            </template>
+          </v-tooltip>
+        </div>
+        <span v-else>—</span>
+      </template>
+
+      <template #cell-finance_status="{ row }">
+        <v-chip
+          size="small"
+          variant="tonal"
+          :color="financeStatusColor(getRow(row).finance_status)"
+        >
+          {{ financeStatusLabel(getRow(row).finance_status) }}
+        </v-chip>
       </template>
 
       <template #actions="{ item }">
@@ -274,6 +276,23 @@
                 "
               >
                 mdi-paperclip
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <v-tooltip
+            :text="t('مالی جلسه')"
+            location="top"
+          >
+            <template #activator="{ props }">
+              <v-icon
+                v-if="auth.can('meetings.update')"
+                v-bind="props"
+                size="small"
+                color="indigo"
+                @click.stop="openMeetingFinanceDialog(item)"
+              >
+                mdi-cash-edit
               </v-icon>
             </template>
           </v-tooltip>
@@ -393,6 +412,13 @@ import {
 } from '@/stores/LoginRepository';
 
 import {
+  useFinanceRepository,
+} from '@/stores/FinanceRepository';
+
+import MeetingFinanceDialog
+  from './MeetingFinanceDialog.vue';
+
+import {
   usePageRefresh,
 } from '@/composables/usePageRefresh';
 
@@ -405,6 +431,9 @@ const repo =
 
 const auth =
   useLoginRepository();
+
+const financeRepo =
+  useFinanceRepository();
 
 const router =
   useRouter();
@@ -454,6 +483,127 @@ const getRow =
     value && value.raw
       ? value.raw
       : value;
+
+const financeDialogOpen =
+  ref(false);
+
+const dialogSaving =
+  ref(false);
+
+const selectedRow =
+  ref(null);
+
+const accountItems =
+  computed(() =>
+    (financeRepo.accounts || []).map(
+      (account) => ({
+        ...account,
+        display: account.name
+          ? `${account.name} (${account.price ?? '0'})`
+          : `${account.id}`,
+      })
+    )
+  );
+
+function financeStatusLabel(
+  value
+) {
+  const status =
+    String(value ?? '')
+      .trim()
+      .toLowerCase();
+
+  if (
+    status === 'paid' ||
+    status === 'پرداخت'
+  ) {
+    return t('پرداخت شوی');
+  }
+
+  if (
+    status === 'unpaid' ||
+    status === 'pending' ||
+    status === 'ناپرداخت' ||
+    status === 'not_paid' ||
+    status === ''
+  ) {
+    return t('د انتظار حالت');
+  }
+
+  return value || '—';
+}
+
+function financeStatusColor(
+  value
+) {
+  const status =
+    String(value ?? '')
+      .trim()
+      .toLowerCase();
+
+  if (
+    status === 'paid' ||
+    status === 'پرداخت'
+  ) {
+    return 'green';
+  }
+
+  if (
+    status === 'unpaid' ||
+    status === 'pending' ||
+    status === 'ناپرداخت' ||
+    status === 'not_paid'
+  ) {
+    return 'amber';
+  }
+
+  return 'grey';
+}
+
+function openMeetingFinanceDialog(
+  payload
+) {
+  selectedRow.value =
+    getRow(payload);
+
+  financeDialogOpen.value =
+    true;
+}
+
+async function handleSaveMeetingFinance(
+  patch
+) {
+  dialogSaving.value =
+    true;
+
+  try {
+    await repo.UpdateMeetingFinance(
+      patch.id,
+      {
+        account_id:
+          patch.account_id,
+        message_to_finance:
+          patch.message_to_finance,
+        money_amount_words:
+          patch.money_amount_words,
+      }
+    );
+
+    await fetchAll();
+
+    financeDialogOpen.value =
+      false;
+  } catch (error) {
+    console.error(error);
+
+    showErrorMessage(
+      t('خطا در ذخیره اطلاعات')
+    );
+  } finally {
+    dialogSaving.value =
+      false;
+  }
+}
 
 const normalizedSearchField =
   computed(() => {
@@ -525,115 +675,6 @@ const rowsFT =
 
     return [];
   });
-
-const cardFilter =
-  ref('all');
-
-const stats =
-  computed(() => ({
-    total:
-      Number(
-        repo
-          .meetingCardCounts
-          ?.total ?? 0
-      ),
-
-    today:
-      Number(
-        repo
-          .meetingCardCounts
-          ?.today ?? 0
-      ),
-
-    upcoming:
-      Number(
-        repo
-          .meetingCardCounts
-          ?.upcoming ?? 0
-      ),
-
-    ongoing:
-      Number(
-        repo
-          .meetingCardCounts
-          ?.ongoing ?? 0
-      ),
-
-    completed:
-      Number(
-        repo
-          .meetingCardCounts
-          ?.completed ?? 0
-      ),
-  }));
-
-const statCards =
-  computed(() => [
-    {
-      value: 'all',
-      title:
-        t('همه جلسات'),
-      count:
-        stats.value.total,
-      icon:
-        'mdi-account-group',
-    },
-
-    {
-      value: 'today',
-      title:
-        t('جلسات امروز'),
-      count:
-        stats.value.today,
-      icon:
-        'mdi-calendar-today',
-    },
-
-    {
-      value: 'upcoming',
-      title:
-        t('جلسات آینده'),
-      count:
-        stats.value.upcoming,
-      icon:
-        'mdi-calendar-clock',
-    },
-
-    {
-      value: 'ongoing',
-      title:
-        t(
-          'جلسات در حال اجرا'
-        ),
-      count:
-        stats.value.ongoing,
-      icon:
-        'mdi-progress-clock',
-    },
-
-    {
-      value: 'completed',
-      title:
-        t(
-          'جلسات ختم شده'
-        ),
-      count:
-        stats.value.completed,
-      icon:
-        'mdi-calendar-check',
-    },
-  ]);
-
-function applyCardFilter(
-  value
-) {
-  cardFilter.value =
-    value;
-
-  repo.page = 1;
-
-  fetchAll();
-}
 
 const headersFT =
   computed(() => [
@@ -729,6 +770,15 @@ const headersFT =
 
     {
       title:
+        t('ترسره کوونکي'),
+      key:
+        'office_employees_display',
+      sortable:
+        false,
+    },
+
+    {
+      title:
         t('نام مسئول'),
       key:
         'leader_name',
@@ -815,6 +865,13 @@ const headersFT =
       key:
         'note',
     },
+
+    {
+      title:
+        t('د پیسو د پرداخت وضعیت'),
+      key:
+        'finance_status',
+    },
   ]);
 
 const topGroups =
@@ -862,6 +919,7 @@ const topGroups =
         'participant',
         'boss_participant',
         'office_employee_count',
+        'office_employees_display',
         'leader_name',
       ],
     },
@@ -970,6 +1028,37 @@ function goEdit(
   router.push(
     `/app/meetings/form/${row.id}`
   );
+}
+
+function officeEmployeesOf(row) {
+  const source = getRow(row) || {};
+  const list = source.office_employees;
+
+  return Array.isArray(list)
+    ? list.filter((employee) => employee?.id)
+    : [];
+}
+
+function employeeLabel(employee) {
+  const name = String(employee?.name || '').trim();
+  const code = String(employee?.code_number || '').trim();
+
+  if (name && code) return `${name} (${code})`;
+
+  return name || code || t('کارمند');
+}
+
+function goOfficeEmployee(employee) {
+  const empId = employee?.id;
+  if (!empId) return;
+
+  router.push({
+    path: '/app/officeemployee',
+    query: {
+      office_employee_id: empId,
+      source: 'meetings',
+    },
+  });
 }
 
 function hasDocuments(
@@ -1082,9 +1171,6 @@ async function fetchAll() {
   try {
     await repo
       .FetchMeetingsData({
-        stat:
-          cardFilter.value,
-
         search:
           repo.Search,
 
@@ -1182,9 +1268,6 @@ async function clearAllFilters() {
   selectedColumnValue.value =
     null;
 
-  cardFilter.value =
-    'all';
-
   filters.value =
     {};
 
@@ -1241,9 +1324,6 @@ async function downloadExcel() {
   try {
     await repo
       .DownloadMeetingsExcel({
-        stat:
-          cardFilter.value,
-
         search:
           repo.Search,
 
@@ -1349,9 +1429,6 @@ const {
 
   getFilters:
     () => ({
-      stat:
-        cardFilter.value,
-
       search:
         repo.Search,
 
@@ -1399,6 +1476,12 @@ usePageRefresh(
 
 onMounted(
   async () => {
+    await financeRepo.FetchAccountsData({
+      page: 1,
+      perPage: 2000,
+      search: '',
+    });
+
     await fetchAll();
 
     selectedPrintColumns
@@ -1427,141 +1510,5 @@ onMounted(
 
   min-height:
     100%;
-}
-
-.stat-card {
-  cursor:
-    pointer;
-
-  border-radius:
-    14px;
-
-  border:
-    1px solid
-    rgba(
-      33,
-      150,
-      243,
-      0.08
-    );
-
-  background:
-    #fff;
-
-  transition:
-    box-shadow 0.2s ease,
-    transform 0.15s ease,
-    border-color 0.2s ease,
-    background-color 0.2s ease;
-}
-
-.stat-card:hover {
-  box-shadow:
-    0 6px 18px
-    rgba(
-      0,
-      0,
-      0,
-      0.06
-    );
-
-  transform:
-    translateY(-1px);
-
-  border-color:
-    rgba(
-      33,
-      150,
-      243,
-      0.35
-    );
-}
-
-.stat-card--active {
-  border-color:
-    rgb(
-      var(
-        --v-theme-primary
-      )
-    );
-
-  background:
-    rgba(
-      var(
-        --v-theme-primary
-      ),
-      0.05
-    );
-}
-
-.stat-card-body {
-  min-height:
-    88px;
-
-  padding:
-    14px;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  gap:
-    12px;
-}
-
-.stat-card-icon {
-  width:
-    42px;
-
-  height:
-    42px;
-
-  border-radius:
-    12px;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  background:
-    rgba(
-      var(
-        --v-theme-primary
-      ),
-      0.1
-    );
-
-  color:
-    rgb(
-      var(
-        --v-theme-primary
-      )
-    );
-}
-
-.stat-card-title {
-  font-weight:
-    600;
-
-  line-height:
-    1.3;
-}
-
-.stat-card-subtitle {
-  margin-top:
-    4px;
-
-  font-size:
-    0.78rem;
-
-  opacity:
-    0.72;
 }
 </style>

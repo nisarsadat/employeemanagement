@@ -142,7 +142,7 @@
                 {{ r030ApprovedCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('د ۰۳۰ ریاست له لوري احکام شوي وړاندیزونه ') }}
+                {{ brandLabel(t('د ۰۳۰ ریاست له لوري احکام شوي وړاندیزونه ')) }}
               </div>
             </div>
             <v-avatar color="indigo" variant="tonal" size="48">
@@ -164,7 +164,7 @@
                 {{ r030RejectedCount }}
               </div>
               <div class="text-caption text-medium-emphasis fontfamily">
-                {{ t('د ۰۳۰ ریاست له لوري رد  شوي وړاندیزونه ') }}
+                {{ brandLabel(t('د ۰۳۰ ریاست له لوري رد  شوي وړاندیزونه ')) }}
               </div>
             </div>
             <v-avatar color="green" variant="tonal" size="48">
@@ -237,6 +237,9 @@
       @peek="openPeek"
       class="mx-2"
     >
+      <template #cell-docs_type="{ row }">
+        <span class="text-caption">{{ brandLabel(row?.docs_type) }}</span>
+      </template>
       <template #actions="{ item }">
         <div class="d-flex align-center ga-2">
           <v-tooltip text="مشاهده" location="top">
@@ -317,6 +320,7 @@
   import SearchColumnFilter from '@/components/SearchColumnFilter.vue';
 
   import { useOutgoingIncomingRepository } from '@/stores/OutgoingIncomingRepository';
+  import { useSystemProfileRepository } from '@/stores/SystemProfileRepository';
   import { useLoginRepository } from '@/stores/LoginRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
   import { useTablePrintExport } from '@/composables/useTablePrintExport';
@@ -324,6 +328,12 @@
   const router = useRouter();
   const { t, locale } = useI18n();
   const repo = useOutgoingIncomingRepository();
+  const systemProfile = useSystemProfileRepository();
+
+  function brandLabel(text) {
+    const name = systemProfile.name || '';
+    return String(text ?? '').replace(/۰۳۰|030|۳۳۳|333/g, name);
+  }
   const activeDocsType = ref(null);
   const selectedPrintColumns = ref([]);
   const searchField = ref(null);
@@ -495,7 +505,11 @@
   const loadingOne = ref(false);
   const detail = ref(null);
 
-  const detailForPeek = computed(() => detail.value || null);
+  const detailForPeek = computed(() => {
+    const row = detail.value;
+    if (!row) return null;
+    return { ...row, docs_type: brandLabel(row.docs_type) };
+  });
 
   async function fetchOne(id) {
     if (!id) return;

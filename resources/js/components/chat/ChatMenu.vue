@@ -1256,7 +1256,6 @@
       replyToMessage.value = null;
       clearAttachments();
     }
-    let currentChannelKey = null;
   });
 
   const selectUser = async (user) => {

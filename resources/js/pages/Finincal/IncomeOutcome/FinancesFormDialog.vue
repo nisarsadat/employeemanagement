@@ -255,6 +255,23 @@
                 class="field"
                 @update:search="onInformationSearch"
               />
+
+              <v-autocomplete
+                v-model="draft.meeting_id"
+                :items="meetingOptions"
+                :item-title="meetingTitle"
+                item-value="id"
+                :label="t('جلسات')"
+                density="compact"
+                variant="outlined"
+                prepend-inner-icon="mdi-account-group"
+                clearable
+                :loading="meetingsLoadingLocal || repo.meetingsLoading"
+                :error="hasError('meeting_id')"
+                :error-messages="getErrorMessages('meeting_id')"
+                class="field"
+                @update:search="onMeetingSearch"
+              />
             </div>
 
             <v-alert
@@ -322,7 +339,9 @@
   import DateInput from '@/components/DateInput.vue';
   import { useDatabaseRepository } from '@/stores/DatabaseRepository';
   import ResourceRemoteAutocomplete from '@/components/lookup/ResourceRemoteAutocomplete.vue';
-  const expenseResultLocked = computed(() => !!draft.event_id || !!draft.information_id);
+  const expenseResultLocked = computed(
+    () => !!draft.event_id || !!draft.information_id || !!draft.meeting_id
+  );
   const dbRepo = useDatabaseRepository();
   const { t } = useI18n();
 
@@ -369,6 +388,7 @@
     resource_id: null,
     event_id: null,
     information_id: null,
+    meeting_id: null,
   });
 
   const backendErrors = reactive({});
@@ -454,6 +474,7 @@
   function setExpenseResultLabelFromLink() {
     const eid = draft.event_id;
     const iid = draft.information_id;
+    const mid = draft.meeting_id;
 
     if (String(draft.expense_result ?? '').trim() !== '') return;
 
@@ -464,6 +485,9 @@
     if (iid) {
       draft.expense_result = `اطلاع ${iid}`;
       return;
+    }
+    if (mid) {
+      draft.expense_result = `جلسه ${mid}`;
     }
   }
 
@@ -515,6 +539,7 @@
 
   const selectedEventsById = reactive({});
   const selectedInfosById = reactive({});
+  const selectedMeetingsById = reactive({});
 
   const eventOptions = computed(() => {
     const base = Array.isArray(repo.events) ? [...repo.events] : [];
@@ -574,6 +599,22 @@
     const spec = item.event_specific_type ?? '';
     const res = [type, spec].filter(Boolean).join(' / ');
     return res ? `${res} — #${item.id}` : `#${item.id}`;
+  };
+
+  const meetingOptions = computed(() => {
+    const base = Array.isArray(repo.meetings) ? [...repo.meetings] : [];
+    const id = draft.meeting_id;
+    if (id !== null && id !== undefined && id !== '') {
+      const exists = base.some((x) => String(x?.id) === String(id));
+      if (!exists && selectedMeetingsById[String(id)]) base.unshift(selectedMeetingsById[String(id)]);
+    }
+    return base;
+  });
+
+  const meetingTitle = (item) => {
+    if (!item) return '';
+    const title = item.meeting_title ?? '';
+    return title ? `${title} — #${item.id}` : `#${item.id}`;
   };
 
   const informationTitle = (item) => {
@@ -668,6 +709,7 @@
     draft.resource_id = null;
     draft.event_id = null;
     draft.information_id = null;
+    draft.meeting_id = null;
 
     originalAccountId.value = null;
     originalAmount.value = 0;
@@ -691,6 +733,24 @@
     if (Array.isArray(repo.events) && repo.events.length) return;
 
     const fns = ['FetchEventsOptions', 'FetchEventsData', 'FetchEventOptions', 'FetchEventData'];
+    for (const fn of fns) {
+      if (typeof repo[fn] === 'function') {
+        try {
+          await repo[fn]({ page: 1, perPage: 2000, search: '' });
+        } catch {
+          try {
+            await repo[fn]({ search: '' });
+          } catch {}
+        }
+        break;
+      }
+    }
+  }
+
+  async function ensureMeetingsLoaded() {
+    if (Array.isArray(repo.meetings) && repo.meetings.length) return;
+
+    const fns = ['FetchMeetingsOptions', 'FetchMeetingsData', 'FetchMeetingOptions', 'FetchMeetingData'];
     for (const fn of fns) {
       if (typeof repo[fn] === 'function') {
         try {
@@ -742,9 +802,11 @@
 
   const eventsLoadingLocal = ref(false);
   const informationsLoadingLocal = ref(false);
+  const meetingsLoadingLocal = ref(false);
 
   let eventSearchT = null;
   let infoSearchT = null;
+  let meetingSearchT = null;
 
   async function fetchEventsBySearch(search) {
     const s = String(search ?? '').trim();
@@ -809,6 +871,35 @@
     }, 250);
   }
 
+  async function fetchMeetingsBySearch(search) {
+    const s = String(search ?? '').trim();
+    const fns = ['FetchMeetingsOptions', 'FetchMeetingsData', 'FetchMeetingOptions', 'FetchMeetingData'];
+    for (const fn of fns) {
+      if (typeof repo[fn] === 'function') {
+        try {
+          await repo[fn]({ page: 1, perPage: 2000, search: s });
+        } catch {
+          try {
+            await repo[fn]({ search: s });
+          } catch {}
+        }
+        break;
+      }
+    }
+  }
+
+  function onMeetingSearch(v) {
+    if (meetingSearchT) clearTimeout(meetingSearchT);
+    meetingSearchT = setTimeout(async () => {
+      meetingsLoadingLocal.value = true;
+      try {
+        await fetchMeetingsBySearch(v);
+      } finally {
+        meetingsLoadingLocal.value = false;
+      }
+    }, 250);
+  }
+
   const employeePhoneManuallyChanged = ref(false);
 
   function onEmployeeManualChange() {}
@@ -858,7 +949,7 @@
     () => draft.event_id,
     (eid) => {
       if (!eid) {
-        if (!draft.information_id) {
+        if (!draft.information_id && !draft.meeting_id) {
           accountLocked.value = false;
           amountLocked.value = false;
           wordsLocked.value = false;
@@ -867,6 +958,7 @@
       }
 
       if (draft.information_id) draft.information_id = null;
+      if (draft.meeting_id) draft.meeting_id = null;
 
       const ev = eventOptions.value.find((x) => sameId(x.id, eid));
       if (ev) selectedEventsById[String(eid)] = ev;
@@ -887,7 +979,7 @@
     () => draft.information_id,
     (iid) => {
       if (!iid) {
-        if (!draft.event_id) {
+        if (!draft.event_id && !draft.meeting_id) {
           accountLocked.value = false;
           amountLocked.value = false;
           wordsLocked.value = false;
@@ -896,6 +988,7 @@
       }
 
       if (draft.event_id) draft.event_id = null;
+      if (draft.meeting_id) draft.meeting_id = null;
 
       const inf = informationOptions.value.find((x) => sameId(x.id, iid));
       if (inf) selectedInfosById[String(iid)] = inf;
@@ -907,6 +1000,39 @@
       setEmployeeAndPhone(empId);
 
       if (inf) applyLockedAmountsFromLinkedRow(inf);
+
+      setExpenseResultLabelFromLink();
+    }
+  );
+
+  watch(
+    () => draft.meeting_id,
+    (mid) => {
+      if (!mid) {
+        if (!draft.event_id && !draft.information_id) {
+          accountLocked.value = false;
+          amountLocked.value = false;
+          wordsLocked.value = false;
+        }
+        return;
+      }
+
+      if (draft.event_id) draft.event_id = null;
+      if (draft.information_id) draft.information_id = null;
+
+      const meeting = meetingOptions.value.find((x) => sameId(x.id, mid));
+      if (meeting) selectedMeetingsById[String(mid)] = meeting;
+
+      const employees = Array.isArray(meeting?.office_employees) ? meeting.office_employees : [];
+      const empId =
+        meeting?.office_employee_id ??
+        employees[0]?.id ??
+        (Array.isArray(meeting?.office_employee_ids) ? meeting.office_employee_ids[0] : null) ??
+        null;
+
+      setEmployeeAndPhone(empId);
+
+      if (meeting) applyLockedAmountsFromLinkedRow(meeting);
 
       setExpenseResultLabelFromLink();
     }
@@ -942,6 +1068,14 @@
         : [];
       return list.find((x) => String(x?.id) === sid) || null;
     }
+    if (type === 'meeting') {
+      const list = Array.isArray(dbRepo.Meetings)
+        ? dbRepo.Meetings
+        : Array.isArray(dbRepo.meetings)
+        ? dbRepo.meetings
+        : [];
+      return list.find((x) => String(x?.id) === sid) || null;
+    }
     return null;
   }
 
@@ -949,6 +1083,8 @@
     const fns =
       type === 'event'
         ? ['FetchEventData', 'FetchEvent', 'FetchEventById', 'GetEvent']
+        : type === 'meeting'
+        ? ['FetchMeetingData', 'FetchMeeting', 'FetchMeetingById', 'GetMeeting']
         : ['FetchInformationData', 'FetchInformation', 'FetchInformationById', 'GetInformation'];
 
     for (const fn of fns) {
@@ -981,15 +1117,22 @@
       await ensureOfficeEmployeesLoaded();
       await ensureEventsLoaded();
       await ensureInformationsLoaded();
+      await ensureMeetingsLoaded();
 
       const pre = dbRepo.financePrefill;
 
       if (pre?.event_id) {
         draft.event_id = pre.event_id;
         draft.information_id = null;
+        draft.meeting_id = null;
       } else if (pre?.information_id) {
         draft.information_id = pre.information_id;
         draft.event_id = null;
+        draft.meeting_id = null;
+      } else if (pre?.meeting_id) {
+        draft.meeting_id = pre.meeting_id;
+        draft.event_id = null;
+        draft.information_id = null;
       }
 
       if (pre?.resource_id) draft.resource_id = pre.resource_id;
@@ -1019,6 +1162,18 @@
           applyLockedAmountsFromLinkedRow(inf);
           setExpenseResultLabelFromLink();
         }
+      } else if (pre?.meeting_id) {
+        let meeting =
+          meetingOptions.value.find((x) => sameId(x.id, pre.meeting_id)) ||
+          findFromDbRepo('meeting', pre.meeting_id);
+
+        if (!meeting) meeting = await fetchSingleIfPossible('meeting', pre.meeting_id);
+
+        if (meeting) {
+          selectedMeetingsById[String(pre.meeting_id)] = meeting;
+          applyLockedAmountsFromLinkedRow(meeting);
+          setExpenseResultLabelFromLink();
+        }
       }
 
       dbRepo.clearFinancePrefill?.();
@@ -1046,6 +1201,7 @@
           resource_id: item?.resource_id ?? null,
           event_id: item?.event_id ?? null,
           information_id: item?.information_id ?? null,
+          meeting_id: item?.meeting_id ?? null,
         });
 
         accountLocked.value = false;
@@ -1108,12 +1264,17 @@
         resource_id: draft.resource_id || null,
         event_id: draft.event_id || null,
         information_id: draft.information_id || null,
+        meeting_id: draft.meeting_id || null,
       };
 
       if (isEdit.value) await repo.UpdateFinance(props.editId, payload);
       else await repo.CreateFinance(payload);
 
-      emit('saved', { event_id: draft.event_id, information_id: draft.information_id });
+      emit('saved', {
+        event_id: draft.event_id,
+        information_id: draft.information_id,
+        meeting_id: draft.meeting_id,
+      });
 
       close();
     } catch (e) {

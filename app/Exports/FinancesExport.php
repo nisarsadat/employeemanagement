@@ -344,6 +344,23 @@ class FinancesExport implements FromQuery, WithHeadings, WithMapping, WithEvents
         return $q;
     }
 
+    private function expenseLabel($row): string
+    {
+        if (!empty($row->information_id)) {
+            return 'اطلاع ' . $row->information_id;
+        }
+
+        if (!empty($row->event_id)) {
+            return 'واقعه ' . $row->event_id;
+        }
+
+        if (!empty($row->meeting_id)) {
+            return 'جلسه ' . $row->meeting_id;
+        }
+
+        return $row->expense_result ?: '—';
+    }
+
     public function map($row): array
     {
         return [
@@ -355,7 +372,7 @@ class FinancesExport implements FromQuery, WithHeadings, WithMapping, WithEvents
             $row->resource?->code_number ?? '—',
             $this->formatShamsiDate($row->date),
             $row->officeEmployee?->phone_number ?? ($row->employee_phone ?? '—'),
-            $row->expense_result ?? '—',
+            $this->expenseLabel($row),
             $row->payer ?? '—',
             $row->notes ?? '—',
         ];

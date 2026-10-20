@@ -320,6 +320,8 @@
                     ? 'info'
                     : item?.expense_kind === 'event'
                     ? 'deep-purple'
+                    : item?.expense_kind === 'meeting'
+                    ? 'teal'
                     : 'grey'
                 "
               >
@@ -329,6 +331,8 @@
                       ? 'mdi-information-outline'
                       : item?.expense_kind === 'event'
                       ? 'mdi-calendar-alert'
+                      : item?.expense_kind === 'meeting'
+                      ? 'mdi-account-group'
                       : 'mdi-clipboard-text-outline'
                   }}
                 </v-icon>
@@ -614,9 +618,11 @@
   function prettyExpenseInfo(it) {
     const infoId = it?.information_id ?? it?.information?.id ?? null;
     const eventId = it?.event_id ?? it?.event?.id ?? null;
+    const meetingId = it?.meeting_id ?? it?.meeting?.id ?? null;
 
     if (infoId) return { kind: 'information', label: `اطلاع ${infoId}` };
     if (eventId) return { kind: 'event', label: `واقعه ${eventId}` };
+    if (meetingId) return { kind: 'meeting', label: `جلسه ${meetingId}` };
 
     const text = String(it?.expense_result ?? '').trim();
     return { kind: 'manual', label: text || '—' };
