@@ -36,18 +36,22 @@ class OutgoingIncomingController extends Controller
             return DB::transaction(function () use ($request, $user) {
                 $row = OutgoingIncoming::create($request->validated());
 
-                // 🔔 Notification: CREATED
-                NotificationService::record(
-                    $user,
-                    module: 'صادره/وارده',
-                    action: 'created',
-                    title: 'نوی ریکارډ ثبت شو',
-                    message: 'مرجع: ' . ($row->marja ?? ''),
-                    routeName: 'outgoing-incomings',      // ⚠️ adjust if needed
-                    routeParams: ['id' => $row->id],
-                    level: 'success',
-                    changes: null
-                );
+                // 🔔 Notification: CREATED (a notification failure must never break the save)
+                try {
+                    NotificationService::record(
+                        $user,
+                        module: 'صادره/وارده',
+                        action: 'created',
+                        title: 'نوی ریکارډ ثبت شو',
+                        message: 'مرجع: ' . ($row->marja ?? ''),
+                        routeName: 'outgoing-incomings.show',
+                        routeParams: ['outgoing_incoming' => $row->id],
+                        level: 'success',
+                        changes: null
+                    );
+                } catch (\Throwable $notifyError) {
+                    report($notifyError);
+                }
 
                 return OutgoingIncomingResource::make($row);
             });
@@ -63,6 +67,16 @@ class OutgoingIncomingController extends Controller
             }
 
             // ❗ Any other DB / server failure → 500
+            report($e);
+
+            return response()->json([
+                'message' => 'د نوي ریکارډ ثبت کول په اوږدمهاله ناکامی وشوه؛ مهرباني وکړئ بیا هڅوئ.',
+                'errors'  => [
+                    'server' => ['د ثبت کولو په اوږدمهاله سیستم ستونزه لري (500).'],
+                ],
+            ], 500);
+        } catch (\Throwable $e) {
+            // ❗ Any non-DB failure (notification, route, model, …) → JSON 500, never an HTML error page
             report($e);
 
             return response()->json([
@@ -105,18 +119,22 @@ class OutgoingIncomingController extends Controller
                 // 🔄 apply update
                 $outgoingIncoming->update($validated);
 
-                // 🔔 Notification: UPDATED + changes
-                NotificationService::record(
-                    $user,
-                    module: 'صادره/وارده',
-                    action: 'updated',
-                    title: 'ریکارډ اصلاح شو',
-                    message: 'مرجع: ' . ($outgoingIncoming->marja ?? ''),
-                    routeName: 'outgoing-incomings',      // ⚠️ adjust if needed
-                    routeParams: ['id' => $outgoingIncoming->id],
-                    level: 'info',
-                    changes: !empty($changes) ? $changes : null
-                );
+                // 🔔 Notification: UPDATED + changes (never break the update if it fails)
+                try {
+                    NotificationService::record(
+                        $user,
+                        module: 'صادره/وارده',
+                        action: 'updated',
+                        title: 'ریکارډ اصلاح شو',
+                        message: 'مرجع: ' . ($outgoingIncoming->marja ?? ''),
+                        routeName: 'outgoing-incomings.show',
+                        routeParams: ['outgoing_incoming' => $outgoingIncoming->id],
+                        level: 'info',
+                        changes: !empty($changes) ? $changes : null
+                    );
+                } catch (\Throwable $notifyError) {
+                    report($notifyError);
+                }
 
                 return OutgoingIncomingResource::make($outgoingIncoming);
             });
@@ -139,6 +157,16 @@ class OutgoingIncomingController extends Controller
                     'server' => ['د اصلاح کولو په اوږدمهاله سیستم ستونزه لري (500).'],
                 ],
             ], 500);
+        } catch (\Throwable $e) {
+            // ❗ Any non-DB failure (notification, route, model, …) → JSON 500, never an HTML error page
+            report($e);
+
+            return response()->json([
+                'message' => 'د ریکارډ اصلاح کول په اوږدمهاله ناکامی وشوه؛ مهرباني وکړئ بیا هڅوئ.',
+                'errors'  => [
+                    'server' => ['د اصلاح کولو په اوږدمهاله سیستم ستونزه لري (500).'],
+                ],
+            ], 500);
         }
     }
 
@@ -152,18 +180,22 @@ class OutgoingIncomingController extends Controller
 
                 $outgoingIncoming->delete();
 
-                // 🔔 Notification: DELETED
-                NotificationService::record(
-                    $user,
-                    module: 'صادره/وارده',
-                    action: 'deleted',
-                    title: 'ریکارډ حذف شو',
-                    message: 'مرجع: ' . ($marja ?? ''),
-                    routeName: null,
-                    routeParams: ['outgoing-incomings'],
-                    level: 'warning',
-                    changes: null
-                );
+                // 🔔 Notification: DELETED (never break the delete if it fails)
+                try {
+                    NotificationService::record(
+                        $user,
+                        module: 'صادره/وارده',
+                        action: 'deleted',
+                        title: 'ریکارډ حذف شو',
+                        message: 'مرجع: ' . ($marja ?? ''),
+                        routeName: null,
+                        routeParams: [],
+                        level: 'warning',
+                        changes: null
+                    );
+                } catch (\Throwable $notifyError) {
+                    report($notifyError);
+                }
 
                 return response()->noContent();
             });
