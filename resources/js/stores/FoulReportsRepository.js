@@ -970,7 +970,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
                     ${escapeHtml(systemName)} ورځنی راپور
                   </div>
                   <div>
-                    <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو، پنځوس فارمټ او د حاضری راپور ورځنۍ عمومي کتنه</p>
+                    <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو، پنځوس فارمټ او د غیر حاضری راپور ورځنۍ عمومي کتنه</p>
                   </div>
                 </div>
 
@@ -1011,7 +1011,7 @@ export const useFoulReportsRepository = defineStore('FoulReportsRepository', () 
               </div></div></div>
 
               <div class="card"><div class="stat-card"><div>
-                <div class="stat-label">د حاضری راپور</div>
+                <div class="stat-label">د غیر حاضری راپور</div>
                 <div class="stat-number">${safeNum(report?.khayrat_reports?.total)}</div>
                 <span class="badge b-success">ثبت شوې</span>
               </div></div></div>

@@ -1114,18 +1114,9 @@
 
                 <template #item.khayrat_reports_count="{ item }">
                   <div class="metric-with-point">
-                    <div class="metric-point">{{ pointLabel(reportPoints(item)) }}</div>
+                    <div class="metric-point" :class="{ 'is-minus': reportPoints(item) < 0 }">{{ pointLabel(reportPoints(item)) }}</div>
                     <div class="metric-chip">
                       <span class="font-weight-bold">{{ num(item.khayrat_reports_count || 0) }}</span>
-                    </div>
-                  </div>
-                </template>
-
-                <template #item.missed_report_days="{ item }">
-                  <div class="metric-with-point">
-                    <div class="metric-point is-minus">{{ pointLabel(missedPoints(item)) }}</div>
-                    <div class="metric-chip">
-                      <span class="font-weight-bold">{{ num(item.missed_report_days || 0) }}</span>
                     </div>
                   </div>
                 </template>
@@ -1944,10 +1935,9 @@
   );
 
   /* ===========================
-  Resources ranking
+  Resources ranking (مالی دوران)
   information points come from the category,
-  each event = 1, each khayrat report = 1,
-  each day in the period with no report = -1
+  each event = 1, each report = -1
   =========================== */
   const resourceSortOptions = computed(() => [
     { title: t('فعالیت (زیاد → کم)'), value: 'score_desc' },
@@ -1973,13 +1963,6 @@
       title: t('گزارش‌های خیرات'),
       key: 'khayrat_reports_count',
       width: 130,
-      sortable: false,
-      align: 'center',
-    },
-    {
-      title: t('ورځې بې راپور'),
-      key: 'missed_report_days',
-      width: 120,
       sortable: false,
       align: 'center',
     },
@@ -2021,11 +2004,8 @@
   }
 
   function reportPoints(item) {
-    return Number((item?.raw ?? item)?.khayrat_reports_count) || 0;
-  }
-
-  function missedPoints(item) {
-    return -(Number((item?.raw ?? item)?.missed_report_days) || 0);
+    const count = Number((item?.raw ?? item)?.khayrat_reports_count) || 0;
+    return count > 0 ? -count : 0;
   }
 
   function pointLabel(value) {
@@ -2039,9 +2019,8 @@
     const events = Number(item?.events_count) || 0;
     const khayrat = Number(item?.khayrat_reports_count) || 0;
     const informationPoints = Number(item?.information_points) || 0;
-    const missedDays = Number(item?.missed_report_days) || 0;
 
-    return informationPoints + events + khayrat - missedDays;
+    return informationPoints + events - khayrat;
   }
 
   function cmpResourceByKey(a, b, key) {

@@ -279,10 +279,9 @@ class DashboardController extends Controller
         })->values();
 
         /* -------------------------------------------------
-        | ✅ RESOURCES TABLE - FINANCE period
+        | ✅ RESOURCES TABLE - FINANCE period (مالی دوران)
         | information points come from the اطلاع کتگوری points,
-        | each event = 1, each khayrat report = 1,
-        | each day in the period with no khayrat report = -1
+        | each event = 1, each khayrat report = -1
         |-------------------------------------------------*/
         $categoryPoints = InformationCategory::query()
             ->get(['information_category', 'points'])
@@ -307,11 +306,6 @@ class DashboardController extends Controller
                     + ($points * (int) $row->total);
             });
 
-        $periodDays = 0;
-        if ($financeFrom && $financeTo) {
-            $periodDays = (int) $financeFrom->copy()->startOfDay()->diffInDays($financeTo->copy()->startOfDay()) + 1;
-        }
-
         $resourcesForRanking = Resource::query()
             ->select('id', 'name', 'nick_name', 'code_number', 'picture', 'activity')
             ->withCount([
@@ -326,13 +320,6 @@ class DashboardController extends Controller
             ])
             ->get();
 
-        $reportDaysByResource = KhayratReport::query()
-            ->select('resource_id', DB::raw('COUNT(DISTINCT DATE(`'.$khayratDateCol.'`)) as days'))
-            ->whereNotNull('resource_id')
-            ->when($financeFrom && $financeTo, fn ($q) => $this->applyDateRange($q, $khayratDateCol, $financeFrom, $financeTo))
-            ->groupBy('resource_id')
-            ->pluck('days', 'resource_id');
-
         $resourcesWithActivity = $resourcesForRanking
             ->filter(function ($r) {
                 return (
@@ -343,18 +330,13 @@ class DashboardController extends Controller
             })
             ->values();
 
-        $resourcesScored = $resourcesWithActivity->map(function ($r) use ($informationPointsByResource, $periodDays, $reportDaysByResource) {
+        $resourcesScored = $resourcesWithActivity->map(function ($r) use ($informationPointsByResource) {
             $events = (int) $r->events_count;
             $infos  = (int) $r->informations_count;
             $khayrat = (int) $r->khayrat_reports_count;
-            $reportDays = (int) ($reportDaysByResource[$r->id] ?? 0);
-            if ($periodDays > 0) {
-                $reportDays = min($reportDays, $periodDays);
-            }
-            $missedDays = $periodDays > 0 ? max(0, $periodDays - $reportDays) : 0;
             $informationPoints = (int) ($informationPointsByResource[(int) $r->id] ?? 0);
 
-            $score = $informationPoints + $events + $khayrat - $missedDays;
+            $score = $informationPoints + $events - $khayrat;
 
             $picture = null;
             if ($r->picture) {
@@ -374,7 +356,6 @@ class DashboardController extends Controller
                 'informations_count'    => $infos,
                 'information_points'    => $informationPoints,
                 'khayrat_reports_count' => $khayrat,
-                'missed_report_days'    => $missedDays,
                 'total'                 => $score,
                 'score'                 => $score,
             ];

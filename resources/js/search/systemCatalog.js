@@ -24,7 +24,7 @@ const pages = [
   { title: 'راپور سالانه', icon: 'mdi-calendar', to: '/app/yearlyfoulreports', perm: 'yearlyfoulreports.view', group: 'راپورها', aliases: ['yearly report'] },
   { title: 'آرشیف', icon: 'mdi-archive-outline', to: '/app/alltimefoulreports', perm: 'alltimefoulreports.view', group: 'راپورها', aliases: ['archive'] },
   { title: 'نوت', icon: 'mdi-note-text-outline', to: '/app/reportnote', perm: 'reports.view', group: 'راپورها', aliases: ['note', 'notes'] },
-  { title: 'حاضری راپور', icon: 'mdi-chart-donut-variant', to: '/app/khayratreports', perm: 'khayratreport.view', aliases: ['khayrat'] },
+  { title: 'غیر حاضری راپور', icon: 'mdi-chart-donut-variant', to: '/app/khayratreports', perm: 'khayratreport.view', aliases: ['khayrat'] },
   { title: 'نقشه', icon: 'mdi-map-marker-radius-outline', to: '/app/map-afg', perm: 'map-afg.view', aliases: ['map'] },
   { title: 'ارتباطی مرکز', icon: 'mdi-chat-processing-outline', to: '/app/inlineinfo', perm: 'inlineinfo.view', aliases: ['inline', 'center'] },
   { title: 'نقش ها', icon: 'mdi-shield-account-outline', to: '/app/roles', perm: 'roles.view', aliases: ['roles', 'role', 'permission'] },
