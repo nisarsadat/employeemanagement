@@ -360,7 +360,6 @@
                   density="compact"
                   variant="outlined"
                   clearable
-                  :rules="[rules.required]"
                   :error="hasError('office_employee_akhistonky_id')"
                   :error-messages="getErrorMessages('office_employee_akhistonky_id')"
                 />
