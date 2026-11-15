@@ -49,7 +49,7 @@ class DashboardController extends Controller
         // Main filter (cards + formats + khayrat + etc.) => Shamsi-based
         [$from, $to] = $this->resolvePeriodRangeShamsi($period);
 
-        // Finance filter (money + oil + employee tables) => Shamsi-based
+        // Finance filter (money + oil + employee tables + resource ranking) => Shamsi-based
         [$financeFrom, $financeTo] = $this->resolvePeriodRangeShamsi($financePeriod);
         $resourceDateCol = 'created_at';
         $resourceDateCol = $this->detectModelDateColumn(new Resource(), [
@@ -188,8 +188,34 @@ class DashboardController extends Controller
         })->values();
 
         /* -------------------------------------------------
-        | ✅ EMPLOYEES TABLE (NEW) - includes KHAYRAT - FINANCE period
+        | ✅ EMPLOYEES TABLE (NEW) - FINANCE period
+        | same point policy as resources:
+        | information points from اطلاع کتگوری,
+        | each event = +1, each khayrat report = -1
         |-------------------------------------------------*/
+
+        $employeeCategoryPoints = InformationCategory::query()
+            ->get(['information_category', 'points'])
+            ->mapWithKeys(function ($category) {
+                $name = trim((string) $category->information_category);
+
+                return [$name => (int) $category->points];
+            });
+
+        $informationPointsByEmployee = [];
+        Information::query()
+            ->select('office_employee_id', 'information_category', DB::raw('COUNT(*) as total'))
+            ->whereNotNull('office_employee_id')
+            ->when($financeFrom && $financeTo, fn ($q) => $this->applyDateRange($q, $informationDateCol, $financeFrom, $financeTo))
+            ->groupBy('office_employee_id', 'information_category')
+            ->get()
+            ->each(function ($row) use (&$informationPointsByEmployee, $employeeCategoryPoints) {
+                $category = trim((string) $row->information_category);
+                $points = (int) ($employeeCategoryPoints[$category] ?? 0);
+                $employeeId = (int) $row->office_employee_id;
+                $informationPointsByEmployee[$employeeId] = ($informationPointsByEmployee[$employeeId] ?? 0)
+                    + ($points * (int) $row->total);
+            });
 
         $employeesNew = OfficeEmployee::query()
         ->select('id', 'name', 'nick_name', 'code_number', 'picture')
@@ -197,7 +223,6 @@ class DashboardController extends Controller
             'resources as resources_count' => fn ($q) =>
                 $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo),
 
-            // ✅ 1 active resource = 1 point
             'resources as active_resources_count' => fn ($q) =>
                 $this->applyDateRange($q, $resourceDateCol, $financeFrom, $financeTo)
                     ->where('activity', 'فعال'),
@@ -221,7 +246,6 @@ class DashboardController extends Controller
         ->orderByDesc('events_count')
         ->orderByDesc('resources_count')
         ->orderByDesc('informations_count')
-        ->orderByDesc('khayrat_reports_count')
         ->orderBy('name')
         ->get();
 
@@ -236,7 +260,7 @@ class DashboardController extends Controller
             })
             ->values();
 
-        $employeesScoredNew = $employeesForDashboardNew->map(function ($e) {
+        $employeesScoredNew = $employeesForDashboardNew->map(function ($e) use ($informationPointsByEmployee) {
             $events    = (int) $e->events_count;
             $resources = (int) $e->resources_count;
             $infos     = (int) $e->informations_count;
@@ -244,12 +268,10 @@ class DashboardController extends Controller
             $assessments = (int) $e->security_assessments_count;
             $meetingsPerformed = (int) $e->meetings_count;
             $activeResources = (int) $e->active_resources_count;
+            $informationPoints = (int) ($informationPointsByEmployee[(int) $e->id] ?? 0);
 
-            // ✅ امتیاز: 1 active resource = 1, 1 info = 1, 2 events = 1, 20 khayrat = 1
-            $score = $activeResources
-                + $infos
-                + intdiv($events, 2)
-                + intdiv($khayrat, 20);
+            // ✅ same as resources: category info points + events - reports
+            $score = $informationPoints + $events - $khayrat;
 
             return [
             'id'                    => $e->id,
@@ -260,6 +282,7 @@ class DashboardController extends Controller
             'events_count'          => $events,
             'resources_count'       => $resources,
             'informations_count'    => $infos,
+            'information_points'    => $informationPoints,
             'khayrat_reports_count' => $khayrat,
             'security_assessments_count' => $assessments,
             'meetings_count'        => $meetingsPerformed,

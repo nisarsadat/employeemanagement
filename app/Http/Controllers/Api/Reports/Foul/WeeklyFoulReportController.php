@@ -157,7 +157,6 @@ class WeeklyFoulReportController extends Controller
         // 4) 56-format totals (period filter on created_at if exists)
         $formats = $this->formatCounts($start, $endExclusive);
         $activity = FoulActivityRows::between($start, $endExclusive);
-        $khayrat = FoulActivityRows::khayrat($start, $endExclusive);
 
         return response()->json([
             'meta' => [
@@ -187,7 +186,6 @@ class WeeklyFoulReportController extends Controller
             'formats' => $formats,
             'meetings' => $activity['meetings'],
             'security_assessments' => $activity['security_assessments'],
-            'khayrat_reports' => $khayrat,
         ]);
     }
 

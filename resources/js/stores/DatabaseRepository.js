@@ -314,6 +314,10 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           ...(params?.only_finance_queue !== undefined
             ? { only_finance_queue: params.only_finance_queue }
             : {}),
+
+          ...(params?.office_employee_id !== undefined
+            ? { office_employee_id: params.office_employee_id }
+            : {}),
         };
 
         const response = await axios.get('/meetings', {
@@ -673,6 +677,10 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           ...(params?.from_date !== undefined ? { from_date: params.from_date } : {}),
 
           ...(params?.to_date !== undefined ? { to_date: params.to_date } : {}),
+
+          ...(params?.office_employee_id !== undefined
+            ? { office_employee_id: params.office_employee_id }
+            : {}),
         };
 
         const response = await axios.get('/security-assessments', {

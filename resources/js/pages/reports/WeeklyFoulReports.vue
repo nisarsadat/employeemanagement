@@ -253,25 +253,6 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="6" lg="3">
-        <v-card class="stat-card" elevation="0" :dir="isRtl ? 'rtl' : 'ltr'" @click="goKhayratReports">
-          <v-card-text class="pa-4 d-flex align-center justify-space-between">
-            <div>
-              <div class="stat-label fontfamily">{{ t('گزارش خیرات') }}</div>
-              <div class="stat-number fontfamily">{{ report?.khayrat_reports?.total ?? 0 }}</div>
-              <v-chip size="x-small" color="teal" variant="tonal" class="mt-2 fontfamily">
-                <v-icon icon="mdi-hand-heart-outline" size="x-small" class="mr-1" />
-                {{ t('ثبت شده') }}
-              </v-chip>
-            </div>
-
-            <v-avatar size="44" color="teal" variant="tonal">
-              <v-icon icon="mdi-hand-heart-outline" />
-            </v-avatar>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
       <FoulReportActivity variant="cards" :report="report" :loading="repo.loading" :is-rtl="isRtl" />
     </v-row>
 
@@ -456,62 +437,6 @@
     </v-row>
 
     <FoulReportActivity variant="tables" :report="report" :loading="repo.loading" :is-rtl="isRtl" />
-
-    <v-row class="mt-4">
-      <v-col cols="12">
-        <v-card class="data-card" elevation="0" :dir="isRtl ? 'rtl' : 'ltr'">
-          <div class="card-header khayrat-header" @click="goKhayratReports">
-            <div class="d-flex align-center">
-              <v-avatar size="34" color="teal" variant="tonal" class="mr-2">
-                <v-icon icon="mdi-hand-heart-outline" size="18" />
-              </v-avatar>
-              <div>
-                <div class="card-title fontfamily">{{ t('گزارش خیرات') }}</div>
-                <div class="card-subtitle fontfamily">{{ t('فهرست راپورهای خیریت این دوره') }}</div>
-              </div>
-            </div>
-            <v-chip color="teal" variant="tonal" size="small" class="fontfamily">
-              {{ report?.khayrat_reports?.total ?? 0 }}
-            </v-chip>
-          </div>
-
-          <v-divider />
-
-          <v-card-text class="pa-0" :dir="isRtl ? 'rtl' : 'ltr'">
-            <v-data-table
-              :headers="khayratHeaders"
-              :items="report?.khayrat_reports?.rows ?? []"
-              item-key="id"
-              density="comfortable"
-              class="elevation-0"
-              :loading="repo.loading"
-              hide-default-footer
-              :no-data-text="t('هیچ دیتا وجود ندارد')"
-              @click:row="() => goKhayratReports()"
-            >
-              <template #item.resource_code="{ item }">
-                <span class="fontfamily">{{ item.resource_code || item.resource_name || '—' }}</span>
-              </template>
-              <template #item.office_employee_code="{ item }">
-                <span class="fontfamily">{{ item.office_employee_code || item.office_employee_name || '—' }}</span>
-              </template>
-              <template #item.zone="{ item }">
-                <span class="fontfamily">{{ item.zone || '—' }}</span>
-              </template>
-              <template #item.hawza="{ item }">
-                <span class="fontfamily">{{ item.hawza || '—' }}</span>
-              </template>
-              <template #item.specefic_place="{ item }">
-                <span class="fontfamily">{{ item.specefic_place || '—' }}</span>
-              </template>
-              <template #item.saved_date="{ item }">
-                <span class="fontfamily">{{ item.saved_date || '—' }}</span>
-              </template>
-            </v-data-table>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
   </v-container>
 </template>
 
@@ -560,16 +485,6 @@
   const goInformations = () =>
     router.push({
       path: '/app/informations',
-      query: {
-        date_from: fromDate.value,
-        date_to: toDate.value,
-        source: 'weeklyfoulreports',
-      },
-    });
-
-  const goKhayratReports = () =>
-    router.push({
-      path: '/app/khayratreports',
       query: {
         date_from: fromDate.value,
         date_to: toDate.value,
@@ -665,8 +580,7 @@
       (r.events?.total ?? 0) === 0 &&
       (r.formats?.length ?? 0) === 0 &&
       (r.meetings?.total ?? 0) === 0 &&
-      (r.security_assessments?.total ?? 0) === 0 &&
-      (r.khayrat_reports?.total ?? 0) === 0
+      (r.security_assessments?.total ?? 0) === 0
     );
   });
 
@@ -678,15 +592,6 @@
   const formatHeaders = computed(() => [
     { title: t('نام فورم'), key: 'name', width: '70%' },
     { title: t('ورودی‌ها'), key: 'count', align: 'end', width: '30%' },
-  ]);
-
-  const khayratHeaders = computed(() => [
-    { title: t('منبع'), key: 'resource_code' },
-    { title: t('کارمند'), key: 'office_employee_code' },
-    { title: t('آمریت'), key: 'zone' },
-    { title: t('حوزه'), key: 'hawza' },
-    { title: t('محل مشخص'), key: 'specefic_place' },
-    { title: t('تاریخ ثبت'), key: 'saved_date' },
   ]);
 
   const eventHeaders = computed(() => [
@@ -903,11 +808,6 @@
 
   .warning-header {
     background: linear-gradient(135deg, #fff6df 0%, #ffeab6 100%);
-  }
-
-  .khayrat-header {
-    background: linear-gradient(135deg, #e6fffb 0%, #ccfbf1 100%);
-    cursor: pointer;
   }
 
   .summary-footer {

@@ -324,6 +324,8 @@ class OfficeEmployeeController extends Controller
                 'informations',
                 'infoInformations',
                 'documents',
+                'meetings',
+                'securityAssessments as security_assessments_count',
             ]);
     }
 

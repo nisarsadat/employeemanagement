@@ -133,7 +133,8 @@ class SecurityAssessmentController extends Controller
     private function buildCardCounts(
         ?string $search,
         ?string $searchField,
-        ?string $searchValue
+        ?string $searchValue,
+        $officeEmployeeId = null
     ): array {
         $base = SecurityAssessment::query();
 
@@ -143,6 +144,16 @@ class SecurityAssessmentController extends Controller
             $searchField,
             $searchValue
         );
+
+        if ($officeEmployeeId) {
+            $base->whereHas(
+                'officeEmployees',
+                fn ($q) => $q->where(
+                    'office_employees.id',
+                    (int) $officeEmployeeId
+                )
+            );
+        }
 
         return [
             'total' =>
@@ -191,6 +202,9 @@ class SecurityAssessmentController extends Controller
 
             'to_date' =>
                 'nullable|date',
+
+            'office_employee_id' =>
+                'nullable|integer|exists:office_employees,id',
         ]);
 
         $search =
@@ -201,6 +215,9 @@ class SecurityAssessmentController extends Controller
 
         $searchValue =
             $request->input('search_value');
+
+        $officeEmployeeId =
+            $request->input('office_employee_id');
 
         $page =
             (int) $request->input(
@@ -222,6 +239,16 @@ class SecurityAssessmentController extends Controller
             $searchField,
             $searchValue
         );
+
+        if ($officeEmployeeId) {
+            $query->whereHas(
+                'officeEmployees',
+                fn ($q) => $q->where(
+                    'office_employees.id',
+                    (int) $officeEmployeeId
+                )
+            );
+        }
 
         if (is_numeric($request->input('year'))) {
             $query->whereYear(
@@ -272,7 +299,8 @@ class SecurityAssessmentController extends Controller
             $this->buildCardCounts(
                 $search,
                 $searchField,
-                $searchValue
+                $searchValue,
+                $officeEmployeeId
             );
 
         if (

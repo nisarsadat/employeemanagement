@@ -160,7 +160,6 @@ class DailyFoulReportController extends Controller
         $windowStart = $date->copy()->startOfDay();
         $windowEnd = $date->copy()->addDay()->startOfDay();
         $activity = FoulActivityRows::between($windowStart, $windowEnd);
-        $khayrat = FoulActivityRows::khayrat($windowStart, $windowEnd);
 
         return response()->json([
             'meta' => [
@@ -185,7 +184,6 @@ class DailyFoulReportController extends Controller
             'formats' => $formats,
             'meetings' => $activity['meetings'],
             'security_assessments' => $activity['security_assessments'],
-            'khayrat_reports' => $khayrat,
         ]);
     }
 

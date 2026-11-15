@@ -29,6 +29,8 @@
               'resources_inactive_count',
               'informations_count',
               'events_count',
+              'meetings_count',
+              'security_assessments_count',
             ]"
             :fetch-column-values="fetchColumnValues"
             @search="fetchAll"
@@ -381,6 +383,52 @@
         <span v-else class="text-red">0</span>
       </template>
 
+      <template #cell-meetings_count="{ row }">
+        <v-tooltip
+          v-if="getRow(row).meetings_count && getRow(row).meetings_count > 0"
+          :text="t('ترسره شوی غونډې')"
+          location="top"
+        >
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              color="indigo"
+              variant="tonal"
+              size="default"
+              class="text-none"
+              @click.stop="goEmployeeMeetings(row)"
+            >
+              <v-icon size="18" class="mr-1">mdi-calendar-account</v-icon>
+              {{ getRow(row).meetings_count }}
+            </v-btn>
+          </template>
+        </v-tooltip>
+        <span v-else class="text-red">0</span>
+      </template>
+
+      <template #cell-security_assessments_count="{ row }">
+        <v-tooltip
+          v-if="getRow(row).security_assessments_count && getRow(row).security_assessments_count > 0"
+          :text="t('ترسره شوی ارزونې')"
+          location="top"
+        >
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              color="blue-grey"
+              variant="tonal"
+              size="default"
+              class="text-none"
+              @click.stop="goEmployeeSecurityAssessments(row)"
+            >
+              <v-icon size="18" class="mr-1">mdi-shield-check</v-icon>
+              {{ getRow(row).security_assessments_count }}
+            </v-btn>
+          </template>
+        </v-tooltip>
+        <span v-else class="text-red">0</span>
+      </template>
+
       <template #cell-resources_active_count="{ row }">
         <v-tooltip v-if="getRow(row).resources_active_count > 0" text="فعاله منابع" location="top">
           <template #activator="{ props }">
@@ -707,6 +755,8 @@
     { title: t('نقشه'), key: 'map', sortable: false },
     { title: t('اطلاعات'), key: 'informations_count', sortable: false },
     { title: t('حوادث'), key: 'events_count', sortable: false },
+    { title: t('ترسره شوی غونډې'), key: 'meetings_count', sortable: false },
+    { title: t('ترسره شوی ارزونې'), key: 'security_assessments_count', sortable: false },
     { title: t('نام'), key: 'name' },
     { title: t('نام پدر'), key: 'father_name' },
     { title: t('نام پدرکلان'), key: 'grand_father_name' },
@@ -975,6 +1025,28 @@
     const row = getRow(rowPayload);
     router.push({
       path: '/app/events',
+      query: {
+        office_employee_id: row.id,
+        source: 'officeemployee',
+      },
+    });
+  }
+
+  function goEmployeeMeetings(rowPayload) {
+    const row = getRow(rowPayload);
+    router.push({
+      path: '/app/meetings',
+      query: {
+        office_employee_id: row.id,
+        source: 'officeemployee',
+      },
+    });
+  }
+
+  function goEmployeeSecurityAssessments(rowPayload) {
+    const row = getRow(rowPayload);
+    router.push({
+      path: '/app/security-assessments',
       query: {
         office_employee_id: row.id,
         source: 'officeemployee',

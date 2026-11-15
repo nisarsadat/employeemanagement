@@ -381,7 +381,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
 
     @page {
       size: A4 portrait;
-      margin: 10mm;
+      margin: 18mm 12mm 12mm 12mm;
     }
 
     :root{
@@ -398,8 +398,9 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     html, body {
       margin: 0;
       padding: 0;
-      width: 210mm;
-      min-height: 297mm;
+      width: 100%;
+      max-width: 100%;
+      min-height: auto;
       background: #fff !important;
       color: #000 !important;
       font-family: var(--app-font) !important;
@@ -413,20 +414,23 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
     }
 
     .page {
-      width: 190mm;
+      width: 100%;
+      max-width: 100%;
       min-height: auto;
-      margin: 0 auto;
-      padding: 0;
+      margin: 0;
+      padding: 4mm 0 0;
       background: #fff !important;
     }
 
     .hero {
-      border-radius: 16px;
+      border-radius: 12px;
       padding: 14px 14px 12px;
-      background: #547ca3;
+      background: #547ca3 !important;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 18px 40px rgba(79,70,229,.18);
+      box-shadow: none;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
     }
 
     .hero::before{
@@ -438,6 +442,8 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
         radial-gradient(circle at 16% 26%, rgba(255,255,255,.20) 0 2px, transparent 3px) 0 0/26px 26px,
         radial-gradient(circle at 70% 40%, rgba(255,255,255,.14) 0 2px, transparent 3px) 0 0/34px 34px;
       pointer-events:none;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
     }
 
     .hero-top{
@@ -704,14 +710,26 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
 
     @media print {
       html, body {
-        width: 210mm !important;
-        min-height: 297mm !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: auto !important;
         overflow: visible !important;
       }
 
       .page {
-        width: 190mm !important;
+        width: 100% !important;
+        max-width: 100% !important;
         min-height: auto !important;
+        padding-top: 4mm !important;
+      }
+
+      .hero,
+      .hero::before,
+      .header-strip,
+      .stat-card,
+      .chip {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
 
       .hero,
@@ -905,7 +923,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
                 <!-- ✅ left texts (same structure as daily/monthly) -->
                 <div class="hero-info margintowline">
                   <div class="hero-system fontsizeb">${escapeHtml(systemName)} اوونیز راپور</div>
-                  <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو، پنځوس فارمټ او د غیر حاضری راپور اوونیزه عمومي کتنه</p>
+                  <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو او د پنځوس فارمټ اوونیزه عمومي کتنه</p>
                 </div>
 
                 <!-- ✅ middle bismillah (same as daily/monthly “hero-mid”) -->
@@ -946,11 +964,6 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
                 <div class="stat-number">${formatsActive}</div>
               </div></div></div>
 
-              <div class="card"><div class="stat-card"><div>
-                <div class="stat-label">د غیر حاضری راپور</div>
-                <div class="stat-number">${safeNum(report?.khayrat_reports?.total)}</div>
-                <span class="badge b-success">ثبت شوې</span>
-              </div></div></div>
             </div>
 
             ${infoSection}

@@ -5,8 +5,6 @@ export function foulActivitySections(report, escapeHtml) {
     : [];
   const meetingsTotal = Number(report?.meetings?.total ?? 0) || 0;
   const assessmentsTotal = Number(report?.security_assessments?.total ?? 0) || 0;
-  const khayrat = Array.isArray(report?.khayrat_reports?.rows) ? report.khayrat_reports.rows : [];
-  const khayratTotal = Number(report?.khayrat_reports?.total ?? 0) || 0;
 
   const meetingRows = meetings
     .map((row) => {
@@ -14,9 +12,9 @@ export function foulActivitySections(report, escapeHtml) {
         <tr>
           <td>${escapeHtml(row?.meeting_title ?? '')}</td>
           <td>${escapeHtml(row?.organ ?? '')}</td>
-          <td>${escapeHtml(row?.province ?? '')}</td>
-          <td>${escapeHtml(row?.district ?? '')}</td>
           <td>${escapeHtml(row?.start_date ?? '')}</td>
+          <td>${escapeHtml(row?.end_date ?? '')}</td>
+          <td>${escapeHtml(row?.total_time ?? '')}</td>
         </tr>
       `;
     })
@@ -27,9 +25,10 @@ export function foulActivitySections(report, escapeHtml) {
       return `
         <tr>
           <td>${escapeHtml(row?.place_name ?? '')}</td>
-          <td>${escapeHtml(row?.responsible_owner_name ?? '')}</td>
-          <td>${escapeHtml(row?.province ?? '')}</td>
-          <td>${escapeHtml(row?.district ?? '')}</td>
+          <td>${escapeHtml(row?.daily_visitors_count ?? '')}</td>
+          <td>${escapeHtml(row?.physical_check_status ?? '')}</td>
+          <td>${escapeHtml(row?.technical_check_status ?? '')}</td>
+          <td>${escapeHtml(row?.security_cameras ?? '')}</td>
         </tr>
       `;
     })
@@ -48,60 +47,14 @@ export function foulActivitySections(report, escapeHtml) {
               <table>
                 <thead>
                   <tr>
-                    <th>عنوان</th>
-                    <th>ارگان</th>
-                    <th>ولایت</th>
-                    <th>ولسوالی</th>
-                    <th>نېټه</th>
+                    <th>د غونډې عنوان</th>
+                    <th>دايرونکی ارګان</th>
+                    <th>د پیل نیټه</th>
+                    <th>د پای نیټه</th>
+                    <th>د دوام موده</th>
                   </tr>
                 </thead>
                 <tbody>${meetingRows}</tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      `
-      : '';
-
-  const khayratRows = khayrat
-    .map((row) => {
-      const resource = row?.resource_code || row?.resource_name || '';
-      const employee = row?.office_employee_code || row?.office_employee_name || '';
-      return `
-        <tr>
-          <td>${escapeHtml(resource)}</td>
-          <td>${escapeHtml(employee)}</td>
-          <td>${escapeHtml(row?.zone ?? '')}</td>
-          <td>${escapeHtml(row?.hawza ?? '')}</td>
-          <td>${escapeHtml(row?.specefic_place ?? '')}</td>
-          <td>${escapeHtml(row?.saved_date ?? '')}</td>
-        </tr>
-      `;
-    })
-    .join('');
-
-  const khayratSection =
-    khayratTotal > 0
-      ? `
-        <div class="section">
-          <div class="card">
-            <div class="header-strip bg-success">
-              <div><div class="strip-title">د غیر حاضری راپور</div><div class="strip-sub">د دې مودې د غیر حاضری راپورونه</div></div>
-              <span class="chip chip-success">${khayratTotal}</span>
-            </div>
-            <div style="padding:0;">
-              <table>
-                <thead>
-                  <tr>
-                    <th>منبع</th>
-                    <th>کارمند</th>
-                    <th>آمریت</th>
-                    <th>حوزه</th>
-                    <th>محل مشخص</th>
-                    <th>نېټه</th>
-                  </tr>
-                </thead>
-                <tbody>${khayratRows}</tbody>
               </table>
             </div>
           </div>
@@ -123,9 +76,10 @@ export function foulActivitySections(report, escapeHtml) {
                 <thead>
                   <tr>
                     <th>د ځای نوم</th>
-                    <th>مسؤول</th>
-                    <th>ولایت</th>
-                    <th>ولسوالی</th>
+                    <th>د مراجعینو ورځني تعداد</th>
+                    <th>د فزیکي چک وضعیت</th>
+                    <th>د تخنیکي چک وضعیت</th>
+                    <th>د امنیتي کامرو وضعیت</th>
                   </tr>
                 </thead>
                 <tbody>${assessmentRows}</tbody>
@@ -136,5 +90,5 @@ export function foulActivitySections(report, escapeHtml) {
       `
       : '';
 
-  return `${meetingsSection}${assessmentsSection}${khayratSection}`;
+  return `${meetingsSection}${assessmentsSection}`;
 }

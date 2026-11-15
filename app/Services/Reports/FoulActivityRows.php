@@ -43,18 +43,18 @@ class FoulActivityRows
                 'id',
                 'meeting_title',
                 'organ',
-                'province',
-                'district',
                 'start_date',
+                'end_date',
+                'total_time',
             ])
             ->map(function (Meeting $row) {
                 return [
                     'id' => $row->id,
                     'meeting_title' => $row->meeting_title,
                     'organ' => $row->organ,
-                    'province' => $row->province,
-                    'district' => $row->district,
                     'start_date' => optional($row->start_date)->toDateString(),
+                    'end_date' => optional($row->end_date)->toDateString(),
+                    'total_time' => $row->total_time,
                 ];
             })
             ->values();
@@ -84,19 +84,19 @@ class FoulActivityRows
             ->get([
                 'id',
                 'place_name',
-                'responsible_owner_name',
-                'province',
-                'district',
-                'specific_place',
+                'daily_visitors_count',
+                'physical_check_status',
+                'technical_check_status',
+                'security_cameras',
             ])
             ->map(function (SecurityAssessment $row) {
                 return [
                     'id' => $row->id,
                     'place_name' => $row->place_name,
-                    'responsible_owner_name' => $row->responsible_owner_name,
-                    'province' => $row->province,
-                    'district' => $row->district,
-                    'specific_place' => $row->specific_place,
+                    'daily_visitors_count' => $row->daily_visitors_count,
+                    'physical_check_status' => $row->physical_check_status,
+                    'technical_check_status' => $row->technical_check_status,
+                    'security_cameras' => $row->security_cameras,
                 ];
             })
             ->values();

@@ -66,40 +66,55 @@
     </div>
 
     <div class="right-icons" :class="isRtl ? 'rtl-icons' : 'ltr-icons'">
-      <v-btn
-        @click="!iconsLoading && goBack()"
-        icon
-        size="small"
-        variant="tonal"
-        class="action-btn"
-        :disabled="iconsLoading"
-      >
-        <v-icon size="18" color="primary">mdi-arrow-left</v-icon>
-      </v-btn>
+      <v-tooltip :text="t('بازگشت')">
+        <template #activator="{ props }">
+          <v-btn
+            v-bind="props"
+            @click="!iconsLoading && goBack()"
+            icon
+            size="small"
+            variant="tonal"
+            class="action-btn"
+            :disabled="iconsLoading"
+          >
+            <v-icon size="18" color="primary">mdi-arrow-left</v-icon>
+          </v-btn>
+        </template>
+      </v-tooltip>
 
-      <v-btn
-        @click="!iconsLoading && toggleFullscreen()"
-        icon
-        size="small"
-        variant="tonal"
-        class="action-btn"
-        :disabled="iconsLoading"
-      >
-        <v-icon size="18" color="primary">mdi-crop-free</v-icon>
-      </v-btn>
+      <v-tooltip :text="t('تمام صفحه')">
+        <template #activator="{ props }">
+          <v-btn
+            v-bind="props"
+            @click="!iconsLoading && toggleFullscreen()"
+            icon
+            size="small"
+            variant="tonal"
+            class="action-btn"
+            :disabled="iconsLoading"
+          >
+            <v-icon size="18" color="primary">mdi-crop-free</v-icon>
+          </v-btn>
+        </template>
+      </v-tooltip>
 
-      <v-btn
-        @click="!iconsLoading && refreshPage()"
-        icon
-        size="small"
-        variant="tonal"
-        class="action-btn"
-        :disabled="iconsLoading || refreshing"
-      >
-        <v-icon size="18" color="primary" :class="{ 'spin-refresh': refreshing }">
-          mdi-refresh
-        </v-icon>
-      </v-btn>
+      <v-tooltip :text="t('بروزرسانی')">
+        <template #activator="{ props }">
+          <v-btn
+            v-bind="props"
+            @click="!iconsLoading && refreshPage()"
+            icon
+            size="small"
+            variant="tonal"
+            class="action-btn"
+            :disabled="iconsLoading || refreshing"
+          >
+            <v-icon size="18" color="primary" :class="{ 'spin-refresh': refreshing }">
+              mdi-refresh
+            </v-icon>
+          </v-btn>
+        </template>
+      </v-tooltip>
 
       <v-tooltip :text="calLabel">
         <template #activator="{ props }">
@@ -119,17 +134,21 @@
       </v-tooltip>
 
       <v-menu transition="scale-transition">
-        <template #activator="{ props }">
-          <v-btn
-            v-bind="props"
-            icon
-            size="small"
-            variant="tonal"
-            class="action-btn"
-            :disabled="iconsLoading"
-          >
-            <v-icon size="18" color="primary">mdi-web</v-icon>
-          </v-btn>
+        <template #activator="{ props: menuProps }">
+          <v-tooltip :text="t('زبان')">
+            <template #activator="{ props: tipProps }">
+              <v-btn
+                v-bind="{ ...menuProps, ...tipProps }"
+                icon
+                size="small"
+                variant="tonal"
+                class="action-btn"
+                :disabled="iconsLoading"
+              >
+                <v-icon size="18" color="primary">mdi-web</v-icon>
+              </v-btn>
+            </template>
+          </v-tooltip>
         </template>
 
         <v-list class="language-menu bg-navi">
@@ -229,15 +248,12 @@ const refreshPage = async () => {
 
 const { calendar, cycleCalendar } = useCalendar();
 
-const calLabel = computed(() =>
-  calendar.value === 'gregorian'
-    ? 'Gregorian'
-    : calendar.value === 'jalali'
-      ? 'هجری شمسی'
-      : calendar.value === 'hijri'
-        ? 'هجری قمری'
-        : 'Calendar'
-);
+const calLabel = computed(() => {
+  if (calendar.value === 'gregorian') return t('میلادی');
+  if (calendar.value === 'jalali') return t('هجری شمسی');
+  if (calendar.value === 'hijri') return t('هجری قمری');
+  return t('تقویم');
+});
 
 const calendarColor = computed(() =>
   calendar.value === 'gregorian'

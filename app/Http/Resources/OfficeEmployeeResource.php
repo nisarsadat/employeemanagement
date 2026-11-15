@@ -142,6 +142,12 @@ class OfficeEmployeeResource extends JsonResource
             'events_count' => $this->events_count
                 ?? ($this->relationLoaded('events') ? $this->events->count() : 0),
 
+            'meetings_count' => $this->meetings_count
+                ?? ($this->relationLoaded('meetings') ? $this->meetings->count() : 0),
+
+            'security_assessments_count' => $this->security_assessments_count
+                ?? ($this->relationLoaded('securityAssessments') ? $this->securityAssessments->count() : 0),
+
             'informations_count' => $this->informations_count
                 ?? ($this->relationLoaded('informations') ? $this->informations->count() : 0),
 

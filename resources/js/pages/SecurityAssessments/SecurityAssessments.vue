@@ -324,6 +324,7 @@ import {
 } from 'vue-i18n';
 
 import {
+  useRoute,
   useRouter,
 } from 'vue-router';
 
@@ -360,6 +361,10 @@ import {
 } from '@/composables/usePageRefresh';
 
 import {
+  useRelatedRouteFilters,
+} from '@/composables/useRelatedRouteFilters';
+
+import {
   useTablePrintExport,
 } from '@/composables/useTablePrintExport';
 
@@ -369,8 +374,15 @@ const repo =
 const auth =
   useLoginRepository();
 
+const route =
+  useRoute();
+
 const router =
   useRouter();
+
+const {
+  relatedFilters,
+} = useRelatedRouteFilters();
 
 const {
   t,
@@ -1023,6 +1035,10 @@ async function fetchAll() {
 
         date_field:
           'created_at',
+
+        office_employee_id:
+          relatedFilters.value
+            .office_employee_id,
       });
   } catch (error) {
     console.error(error);
@@ -1123,6 +1139,11 @@ async function clearAllFilters() {
 
   detail.value =
     null;
+
+  await router.replace({
+    path: '/app/security-assessments',
+    query: {},
+  });
 
   await fetchAll();
 }
@@ -1320,6 +1341,15 @@ const {
 usePageRefresh(
   '/app/security-assessments',
   fetchAll
+);
+
+watch(
+  () => route.query,
+  async () => {
+    repo.page = 1;
+    await fetchAll();
+  },
+  { deep: true }
 );
 
 onMounted(

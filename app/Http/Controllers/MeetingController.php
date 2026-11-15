@@ -289,7 +289,8 @@ class MeetingController extends Controller
     private function buildCardCounts(
         ?string $search,
         ?string $searchField,
-        ?string $searchValue
+        ?string $searchValue,
+        $officeEmployeeId = null
     ): array {
         $today = now()->toDateString();
 
@@ -301,6 +302,16 @@ class MeetingController extends Controller
             $searchField,
             $searchValue
         );
+
+        if ($officeEmployeeId) {
+            $base->whereHas(
+                'officeEmployees',
+                fn ($q) => $q->where(
+                    'office_employees.id',
+                    (int) $officeEmployeeId
+                )
+            );
+        }
 
         $row = (clone $base)->selectRaw("
             COUNT(*) as total,
@@ -370,6 +381,9 @@ class MeetingController extends Controller
 
             'only_finance_queue' =>
                 'nullable|boolean',
+
+            'office_employee_id' =>
+                'nullable|integer|exists:office_employees,id',
         ]);
 
         $search =
@@ -386,6 +400,9 @@ class MeetingController extends Controller
                 'stat',
                 'all'
             );
+
+        $officeEmployeeId =
+            $request->input('office_employee_id');
 
         $page =
             (int) $request->input(
@@ -423,13 +440,24 @@ class MeetingController extends Controller
             $request->boolean('only_finance_queue')
         );
 
+        if ($officeEmployeeId) {
+            $query->whereHas(
+                'officeEmployees',
+                fn ($q) => $q->where(
+                    'office_employees.id',
+                    (int) $officeEmployeeId
+                )
+            );
+        }
+
         $query->latest('id');
 
         $cardCounts =
             $this->buildCardCounts(
                 $search,
                 $searchField,
-                $searchValue
+                $searchValue,
+                $officeEmployeeId
             );
 
         if (

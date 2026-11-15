@@ -26,7 +26,7 @@
           <!-- Finance menu -->
           <v-menu location="bottom" transition="scale-transition" :close-on-content-click="false">
             <template #activator="{ props }">
-              <v-tooltip :text="t('فیلتر دوره مالی (تیل + مالی + جدول کارمندان)')">
+              <v-tooltip :text="t('فیلتر دوره مالی (تیل، مالی، کارمندان و منابع)')">
                 <template #activator="{ props: tipProps }">
                   <v-btn
                     v-bind="{ ...props, ...tipProps }"
@@ -54,7 +54,7 @@
                 </div>
 
                 <v-chip size="x-small" variant="tonal" color="primary">
-                  {{ financePeriod }}
+                  {{ periodKeyLabel(financePeriod) }}
                 </v-chip>
               </v-card-title>
 
@@ -110,7 +110,7 @@
                 </div>
 
                 <v-chip size="x-small" variant="tonal" color="teal">
-                  {{ period }}
+                  {{ periodKeyLabel(period) }}
                 </v-chip>
               </v-card-title>
 
@@ -507,7 +507,7 @@
                     <div>
                       <div class="text-h6 font-weight-black">{{ t('درجه‌بندی کارمندان') }}</div>
                       <div class="text-caption text-medium-emphasis">
-                        {{ t('بر اساس امتیاز (رویداد + منابع + اطلاعات + گزارش‌های خیرات)') }}
+                        {{ t('بر اساس امتیاز (اطلاعات + رویداد + گزارش‌های خیرات)') }}
                       </div>
                     </div>
                   </div>
@@ -521,6 +521,11 @@
                     <v-chip size="small" variant="tonal" color="amber">
                       <v-icon start size="16">mdi-crown</v-icon>
                       {{ t('بهترین') }}: {{ getTopEmployeeName }}
+                    </v-chip>
+
+                    <v-chip size="small" variant="tonal" color="primary">
+                      <v-icon start size="16">mdi-finance</v-icon>
+                      {{ t('دوره مالی') }}: {{ periodKeyLabel(financePeriod) }}
                     </v-chip>
                   </div>
                 </div>
@@ -722,34 +727,34 @@
                 </template>
 
                 <template #item.informations_count="{ item }">
-                  <v-btn
-                    size="small"
-                    variant="tonal"
-                    color="primary"
-                    class="text-none"
-                    @click.stop="goEmployeeInformations(item)"
-                  >
-                    <v-icon start size="16">mdi-file-document-multiple</v-icon>
-                    {{ num(item.informations_count) }}
-                  </v-btn>
+                  <div class="metric-with-point">
+                    <div class="metric-point">{{ pointLabel(employeeInformationPoints(item)) }}</div>
+                    <v-btn
+                      size="small"
+                      variant="tonal"
+                      color="primary"
+                      class="text-none"
+                      @click.stop="goEmployeeInformations(item)"
+                    >
+                      <v-icon start size="16">mdi-file-document-multiple</v-icon>
+                      {{ num(item.informations_count) }}
+                    </v-btn>
+                  </div>
                 </template>
 
                 <template #item.events_count="{ item }">
-                  <v-btn
-                    size="small"
-                    variant="tonal"
-                    color="deep-purple"
-                    class="text-none"
-                    @click.stop="goEmployeeEvents(item)"
-                  >
-                    <v-icon start size="16">mdi-calendar-alert</v-icon>
-                    {{ num(item.events_count) }}
-                  </v-btn>
-                </template>
-                <!-- Khayrat Reports (only in new mode) -->
-                <template #item.khayrat_reports_count="{ item }">
-                  <div class="metric-chip">
-                    <span class="font-weight-bold">{{ num(item.khayrat_reports_count || 0) }}</span>
+                  <div class="metric-with-point">
+                    <div class="metric-point">{{ pointLabel(employeeEventPoints(item)) }}</div>
+                    <v-btn
+                      size="small"
+                      variant="tonal"
+                      color="deep-purple"
+                      class="text-none"
+                      @click.stop="goEmployeeEvents(item)"
+                    >
+                      <v-icon start size="16">mdi-calendar-alert</v-icon>
+                      {{ num(item.events_count) }}
+                    </v-btn>
                   </div>
                 </template>
 
@@ -912,6 +917,11 @@
                     <v-chip size="small" variant="tonal" color="amber">
                       <v-icon start size="16">mdi-crown</v-icon>
                       {{ t('بهترین') }}: {{ getTopResourceName }}
+                    </v-chip>
+
+                    <v-chip size="small" variant="tonal" color="primary">
+                      <v-icon start size="16">mdi-finance</v-icon>
+                      {{ t('دوره مالی') }}: {{ periodKeyLabel(financePeriod) }}
                     </v-chip>
                   </div>
                 </div>
@@ -1297,7 +1307,18 @@
   const resourceSortKeys = ref(['score_desc']);
 
   const period = ref('all'); // main filter
-  const financePeriod = ref('monthly'); // affects money + oil + employee table
+  const financePeriod = ref('monthly'); // money + oil + employees + resources ranking
+
+  function periodKeyLabel(key) {
+    const map = {
+      daily: t('روزانه'),
+      weekly: t('هفته‌وار'),
+      monthly: t('ماهانه'),
+      yearly: t('سالانه'),
+      all: t('همه'),
+    };
+    return map[key] || key;
+  }
 
   // ✅ calendar comes from AppBar (fallback to repo or localStorage)
   const calendar = ref(localStorage.getItem('calendar') || repo.calendar || 'miladi');
@@ -1660,7 +1681,6 @@
     { title: t('پیښې (زیاد → کم)'), value: 'events_desc' },
     { title: t('منابع (زیاد → کم)'), value: 'resources_desc' },
     { title: t('اطلاعات (زیاد → کم)'), value: 'informations_desc' },
-    { title: t('خیریت راپور (زیاد → کم)'), value: 'khayrat_desc' },
     { title: t('نام (A → Z)'), value: 'name_asc' },
   ]);
 
@@ -1676,13 +1696,6 @@
       align: 'center',
     },
     { title: t('رویدادها'), key: 'events_count', width: 110, sortable: false, align: 'center' },
-    {
-      title: t('گزارش‌های خیرات'),
-      key: 'khayrat_reports_count',
-      width: 110,
-      sortable: false,
-      align: 'center',
-    },
     {
       title: t('ترسره شوی ارزونې'),
       key: 'security_assessments_count',
@@ -1831,16 +1844,25 @@
     return [...list].map((x) => ({ ...x, score: Number(x.score || x.total || 0) }));
   });
 
+  function employeeInformationPoints(item) {
+    const row = item?.raw ?? item ?? {};
+    if (row.information_points != null) return Number(row.information_points) || 0;
+    return Number(row.informations_count) || 0;
+  }
+
+  function employeeEventPoints(item) {
+    return Number((item?.raw ?? item)?.events_count) || 0;
+  }
+
   function employeeScoreNumber(item) {
     if (item?.score != null && Number.isFinite(Number(item.score))) return Number(item.score);
 
     const events = Number(item?.events_count) || 0;
-    const activeResources = Number(item?.active_resources_count) || 0;
-    const informations = Number(item?.informations_count) || 0;
     const khayrat = Number(item?.khayrat_reports_count) || 0;
+    const informationPoints = Number(item?.information_points) || 0;
 
-    // ✅ same weighting as the backend: 2 events = 1pt, 20 khayrat = 1pt
-    return activeResources + informations + Math.floor(events / 2) + Math.floor(khayrat / 20);
+    // same as resources: category info points + events - reports
+    return informationPoints + events - khayrat;
   }
   function cmpByKey(a, b, key) {
     if (key === 'score_desc') return employeeScoreNumber(b) - employeeScoreNumber(a);
@@ -1854,9 +1876,6 @@
 
     if (key === 'informations_desc')
       return (Number(b?.informations_count) || 0) - (Number(a?.informations_count) || 0);
-
-    if (key === 'khayrat_desc')
-      return (Number(b?.khayrat_reports_count) || 0) - (Number(a?.khayrat_reports_count) || 0);
 
     if (key === 'name_asc')
       return String(a?.nick_name || a?.name || '').localeCompare(

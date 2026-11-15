@@ -117,7 +117,7 @@
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
 
-  const props = defineProps({
+  defineProps({
     variant: { type: String, default: 'tables' },
     report: { type: Object, default: null },
     loading: { type: Boolean, default: false },
@@ -128,18 +128,19 @@
   const router = useRouter();
 
   const meetingHeaders = computed(() => [
-    { title: t('عنوان جلسه'), key: 'meeting_title' },
-    { title: t('ارگان'), key: 'organ' },
-    { title: t('ولایت'), key: 'province' },
-    { title: t('ولسوالی'), key: 'district' },
-    { title: t('تاریخ شروع'), key: 'start_date' },
+    { title: t('د غونډې عنوان'), key: 'meeting_title' },
+    { title: t('دايرونکی ارګان'), key: 'organ' },
+    { title: t('د پیل نیټه'), key: 'start_date' },
+    { title: t('د پای نیټه'), key: 'end_date' },
+    { title: t('د دوام موده'), key: 'total_time' },
   ]);
 
   const assessmentHeaders = computed(() => [
     { title: t('نام محل'), key: 'place_name' },
-    { title: t('نام مسؤول / مالک'), key: 'responsible_owner_name' },
-    { title: t('ولایت'), key: 'province' },
-    { title: t('ناحیه / ولسوالی'), key: 'district' },
+    { title: t('د مراجعینو ورځني تعداد'), key: 'daily_visitors_count' },
+    { title: t('د فزیکي چک وضعیت'), key: 'physical_check_status' },
+    { title: t('د تخنیکي چک وضعیت'), key: 'technical_check_status' },
+    { title: t('د امنیتي کامرو وضعیت'), key: 'security_cameras' },
   ]);
 
   function goMeetings() {
