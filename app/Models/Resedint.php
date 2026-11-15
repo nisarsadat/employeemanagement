@@ -63,7 +63,7 @@ class Resedint extends Model
     }
     public function resources()
     {
-        return $this->hasMany(\App\Models\Resource::class, 'officeemployee_id');
+        return $this->hasMany(\App\Models\Resource::class, 'office_employee_id');
     }
        public function documents()
     {

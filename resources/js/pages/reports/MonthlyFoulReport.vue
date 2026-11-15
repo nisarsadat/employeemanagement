@@ -436,6 +436,7 @@
 
   import AppBar from '@/components/AppBar.vue';
   import DateInput from '@/components/DateInput.vue';
+  import { useCalendar } from '../../../composables/useCalendar';
   import { useFoulReportsRepository } from '@/stores/FoulReportsRepository';
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
@@ -445,6 +446,7 @@
   watch(locale, (n) => (isRtl.value = n === 'fa'));
 
   const repo = useFoulReportsRepository();
+  const { formatDisplay } = useCalendar();
   const report = computed(() => repo.monthly);
 
   const router = useRouter();
@@ -543,29 +545,12 @@
   );
 
   const chipMonth = computed(() => {
-    const from = repo.selectedMonthFrom || report.value?.meta?.month || '';
+    const from = repo.selectedMonthFrom || '';
     const to = repo.selectedMonthTo || from;
     if (!from) return '';
-
-    const [y1, m1] = from.split('-').map(Number);
-    const [y2, m2] = to.split('-').map(Number);
-    if (!y1 || !m1) return from;
-
-    const dt1 = new Date(y1, m1 - 1, 1);
-    const t1 = dt1.toLocaleDateString(locale.value === 'fa' ? 'fa-IR' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-    });
-
-    if (!y2 || !m2 || from === to) return t1;
-
-    const dt2 = new Date(y2, m2 - 1, 1);
-    const t2 = dt2.toLocaleDateString(locale.value === 'fa' ? 'fa-IR' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-    });
-
-    return `${t1} - ${t2}`;
+    const left = formatDisplay(from, locale.value) || from;
+    const right = formatDisplay(to, locale.value) || to;
+    return left === right ? left : `${left} - ${right}`;
   });
 
   const eventRows = computed(() => {
@@ -630,23 +615,29 @@
     });
   }
 
-  function todayIso() {
-    const d = new Date();
-    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  function thisMonthRange() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const last = new Date(y, m + 1, 0).getDate();
+    return {
+      from: `${y}-${pad2(m + 1)}-01`,
+      to: `${y}-${pad2(m + 1)}-${pad2(last)}`,
+    };
   }
 
   async function resetToThisMonth() {
-    const cur = todayIso();
-    repo.selectedMonthFrom = cur;
-    repo.selectedMonthTo = cur;
+    const range = thisMonthRange();
+    repo.selectedMonthFrom = range.from;
+    repo.selectedMonthTo = range.to;
     await fetch();
   }
   usePageRefresh('/app/monthlyfoulreports', fetch);
 
   onMounted(() => {
-    const cur = todayIso();
-    if (!repo.selectedMonthFrom) repo.selectedMonthFrom = cur;
-    if (!repo.selectedMonthTo) repo.selectedMonthTo = cur;
+    const range = thisMonthRange();
+    if (!repo.selectedMonthFrom) repo.selectedMonthFrom = range.from;
+    if (!repo.selectedMonthTo) repo.selectedMonthTo = range.to;
     fetch();
   });
 </script>

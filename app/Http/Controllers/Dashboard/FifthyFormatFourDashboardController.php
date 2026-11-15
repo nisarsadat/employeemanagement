@@ -42,18 +42,10 @@ class FifthyFormatFourDashboardController extends Controller
         [$from, $to, $gran, $zone, $search] = $this->readFilters($request);
 
         // 1) CARDS (totals per format)
-        $cards = [];
-        foreach ($this->formats as $key => [$model, $label]) {
-            $count = $this->baseQuery(new $model, $from, $to, $zone, $search)->count();
-            $cards[] = ['key' => $key, 'label' => $label, 'total' => (int)$count];
-        }
+        $cards = $this->mergedCards($from, $to, $zone, $search);
 
         // 2) SERIES (time series per format)
-        $series = [];
-        foreach ($this->formats as $key => [$model, $label]) {
-            $points = $this->timeSeries(new $model, $from, $to, $gran, $zone, $search);
-            $series[] = ['key' => $key, 'label' => $label, 'points' => $points];
-        }
+        $series = $this->mergedSeries($from, $to, $gran, $zone, $search);
 
         // 3) BUCKETS (top resources per format)
         $buckets = [];
@@ -147,6 +139,72 @@ class FifthyFormatFourDashboardController extends Controller
         }
 
         return $q;
+    }
+
+    protected function mergedCards($from, $to, $zone, $search): array
+    {
+        $union = null;
+        foreach ($this->formats as $key => [$model]) {
+            if (!preg_match('/^[a-z0-9_]+$/', $key)) {
+                continue;
+            }
+            $part = $this->baseQuery(new $model, $from, $to, $zone, $search)->toBase();
+            $part->columns = [];
+            $part->selectRaw("'{$key}' as format_key, COUNT(*) as total");
+            $union = $union ? $union->unionAll($part) : $part;
+        }
+
+        $totals = [];
+        foreach (($union ? $union->get() : []) as $row) {
+            $totals[(string) $row->format_key] = (int) $row->total;
+        }
+
+        $cards = [];
+        foreach ($this->formats as $key => [, $label]) {
+            $cards[] = ['key' => $key, 'label' => $label, 'total' => $totals[$key] ?? 0];
+        }
+        return $cards;
+    }
+
+    protected function mergedSeries($from, $to, $gran, $zone, $search): array
+    {
+        $dateExpr = match ($gran) {
+            'yearly'  => "DATE_FORMAT(created_at, '%Y')",
+            'monthly' => "DATE_FORMAT(created_at, '%Y-%m')",
+            default   => "DATE_FORMAT(created_at, '%Y-%m-%d')",
+        };
+
+        $union = null;
+        foreach ($this->formats as $key => [$model]) {
+            if (!preg_match('/^[a-z0-9_]+$/', $key)) {
+                continue;
+            }
+            $part = $this->baseQuery(new $model, $from, $to, $zone, $search)->toBase();
+            $part->columns = [];
+            $part->selectRaw("'{$key}' as format_key, {$dateExpr} as d, COUNT(*) as c");
+            $part->groupBy('d');
+            $union = $union ? $union->unionAll($part) : $part;
+        }
+
+        $grouped = [];
+        foreach (($union ? $union->get() : []) as $row) {
+            $grouped[(string) $row->format_key][] = $row;
+        }
+
+        $series = [];
+        foreach ($this->formats as $key => [, $label]) {
+            $rows = $grouped[$key] ?? [];
+            usort($rows, fn ($a, $b) => strcmp((string) $a->d, (string) $b->d));
+            $series[] = [
+                'key' => $key,
+                'label' => $label,
+                'points' => array_map(fn ($r) => [
+                    'date' => $r->d,
+                    'count' => (int) $r->c,
+                ], $rows),
+            ];
+        }
+        return $series;
     }
 
     protected function timeSeries($model, $from, $to, $gran, $zone, $search): array

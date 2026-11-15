@@ -139,6 +139,7 @@ const search = ref('')
 
 const headersFT = computed(() => [
   { title: t('کتگوری'), key: 'information_category', align: 'center' },
+  { title: t('امتیاز'), key: 'points', align: 'center' },
 ])
 const rowsFT = computed(() => repo.InformationCategories || [])
 

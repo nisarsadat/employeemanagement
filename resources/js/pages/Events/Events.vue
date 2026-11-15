@@ -750,8 +750,8 @@
     (baseEvents.value || []).map((e) => ({
       ...e,
       event_date: formatDateYMD(e.event_date),
-      resource_display: e.resource?.code_number || e.resource_id || '',
-      office_employee_display: e.officeEmployee?.code_number || e.office_employee_id || '',
+      resource_display: [e.resource?.code_number, e.resource?.name].filter(Boolean).join(' - ') || e.resource_id || '',
+      office_employee_display: [ (e.officeEmployee || e.office_employee)?.code_number, (e.officeEmployee || e.office_employee)?.name ].filter(Boolean).join(' - ') || e.office_employee_id || '',
     }))
   );
 
@@ -759,7 +759,7 @@
     { title: t('آی ډی'), key: 'id' },
     { title: t('کود منبع'), key: 'resource_display' },
     { title: t('کود کارمند'), key: 'office_employee_display' },
-    { title: t('همغږی'), key: 'talks' },
+    { title: t('ترسره شوی همغږی'), key: 'talks' },
     { title: t('پول پرداخت شده'), key: 'finance_paid_amount' },
     { title: t('د پیسو د پرداخت وضعیت'), key: 'finance_status' },
     { title: t('نقشه'), key: 'map', sortable: false },

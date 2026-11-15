@@ -16,6 +16,10 @@ function enToFaDigits(val) {
   return String(val).replace(/\d/g, (d) => FA[Number(d)])
 }
 
+function keepLatinDigits(el) {
+  return !!(el && typeof el.closest === 'function' && el.closest('[data-latin-digits]'))
+}
+
 function isTextInput(el) {
   if (!el) return false
   const tag = (el.tagName || '').toLowerCase()
@@ -114,6 +118,12 @@ export function installInputDigitLocalizer(getLocale) {
   const applyDisplay = (el) => {
     if (!isTextInput(el)) return
 
+    if (keepLatinDigits(el)) {
+      const en = toEnDigits(el.value)
+      if (el.value !== en) el.value = en
+      return
+    }
+
     const faMode = isFaMode()
     patchNumericType(el, faMode)
 
@@ -131,6 +141,12 @@ export function installInputDigitLocalizer(getLocale) {
   const onInputCapture = (e) => {
     const el = e.target
     if (!isTextInput(el)) return
+
+    if (keepLatinDigits(el)) {
+      const en = toEnDigits(el.value)
+      if (el.value !== en) el.value = en
+      return
+    }
 
     const faMode = isFaMode()
     patchNumericType(el, faMode)
@@ -160,6 +176,11 @@ export function installInputDigitLocalizer(getLocale) {
   // on blur/change, force EN into v-model (so rules validate), then keep FA display
   const syncModelEnKeepFa = (el) => {
     if (!isTextInput(el)) return
+    if (keepLatinDigits(el)) {
+      const en = toEnDigits(el.value)
+      if (el.value !== en) el.value = en
+      return
+    }
     if (!isFaMode()) return
 
     const en = stripGroupingIfNeeded(el.value)

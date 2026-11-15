@@ -130,7 +130,7 @@ class OilReportController extends Controller
                 ->get();
 
             $expense = DB::table('expense_oils')
-                ->selectRaw("DATE(`date`) as bucket, SUM(oil_quantity) as total")
+                ->selectRaw("DATE(`date`) as bucket, SUM(liter_in_number) as total")
                 ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
                 ->groupBy('bucket')
                 ->orderBy('bucket')
@@ -149,7 +149,7 @@ class OilReportController extends Controller
                 ->get();
 
             $expense = DB::table('expense_oils')
-                ->selectRaw("DATE_FORMAT(`date`, '%x-%v') as bucket, SUM(oil_quantity) as total")
+                ->selectRaw("DATE_FORMAT(`date`, '%x-%v') as bucket, SUM(liter_in_number) as total")
                 ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
                 ->groupBy('bucket')
                 ->orderBy('bucket')
@@ -167,7 +167,7 @@ class OilReportController extends Controller
             ->get();
 
         $expense = DB::table('expense_oils')
-            ->selectRaw("DATE_FORMAT(`date`, '%Y-%m') as bucket, SUM(oil_quantity) as total")
+            ->selectRaw("DATE_FORMAT(`date`, '%Y-%m') as bucket, SUM(liter_in_number) as total")
             ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
             ->groupBy('bucket')
             ->orderBy('bucket')

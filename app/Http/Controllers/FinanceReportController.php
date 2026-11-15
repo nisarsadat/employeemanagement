@@ -50,9 +50,9 @@ class FinanceReportController extends Controller
         [$buckets, $labelFmt, $phpKeyFmt] = $this->makeBuckets($period, $from, $to);
 
         // 🔎 Auto-detect date column for expenses
-        $dateCol = $this->pickDateColumn('expenses', ['date', 'paid_at']);
+        $dateCol = $this->pickDateColumn('finances', ['date', 'created_at']);
 
-        $rows = $this->aggregateByPeriod('expenses', 'amount_price', $dateCol, $period, $from, $to);
+        $rows = $this->aggregateByPeriod('finances', 'money_amount_number', $dateCol, $period, $from, $to);
         $index = collect($rows)->keyBy('bucket')->map(fn($r) => (float)$r->total);
 
         $labels = [];

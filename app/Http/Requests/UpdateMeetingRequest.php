@@ -15,131 +15,131 @@ class UpdateMeetingRequest extends FormRequest
     {
         return [
             'meeting_title' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'organ' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'province' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'district' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'specific_place' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'coordinates' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'start_date' => [
-                'required',
+                'nullable',
                 'date',
             ],
 
             'end_date' => [
-                'required',
+                'nullable',
                 'date',
                 'after_or_equal:start_date',
             ],
 
             'total_time' => [
-                'required',
+                'nullable',
                 'string',
                 'max:100',
             ],
 
             'participant' => [
-                'required',
+                'nullable',
                 'string',
             ],
 
             'boss_participant' => [
-                'required',
+                'nullable',
                 'string',
             ],
 
             'office_employee_count' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
                 'max:1000000',
             ],
 
             'leader_name' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'done_actions' => [
-                'required',
+                'nullable',
                 'string',
             ],
 
             'mashkok_situations' => [
-                'required',
+                'nullable',
                 'string',
             ],
 
             'problems' => [
-                'required',
+                'nullable',
                 'string',
             ],
 
             'meeting_supplier' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'meeting_supplier_phone' => [
-                'required',
+                'nullable',
                 'string',
                 'max:30',
-                'regex:/^[0-9+\-\s()]+$/',
+                'regex:/^[\p{L}\p{N}+\-\s()]+$/u',
             ],
 
             'meeting_amniyat_responsable' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'meeting_amniyat_responsable_phone' => [
-                'required',
+                'nullable',
                 'string',
                 'max:30',
-                'regex:/^[0-9+\-\s()]+$/',
+                'regex:/^[\p{L}\p{N}+\-\s()]+$/u',
             ],
 
             'amniyat_mansobine_count' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
                 'max:1000000',
             ],
 
             'note' => [
-                'required',
+                'nullable',
                 'string',
             ],
 

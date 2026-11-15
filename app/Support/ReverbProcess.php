@@ -5,12 +5,13 @@ namespace App\Support;
 class ReverbProcess
 {
     /**
-     * Start the websocket server from the web request when it is not already
-     * listening. Herd and XAMPP can serve the site without a terminal command.
+     * Start the websocket server from a local web request when it is not
+     * already listening. Herd, XAMPP, and Laragon can serve the site without
+     * a terminal command. Production keeps Reverb under systemd instead.
      */
     public static function ensureRunning(): void
     {
-        if (app()->runningInConsole()) {
+        if (app()->runningInConsole() || ! app()->environment('local')) {
             return;
         }
 
@@ -31,7 +32,8 @@ class ReverbProcess
 
         try {
             if (! self::portOpen($port)) {
-                self::start($port);
+                self::start();
+                self::waitUntilOpen($port);
             }
         } finally {
             flock($lock, LOCK_UN);
@@ -51,9 +53,23 @@ class ReverbProcess
         return true;
     }
 
-    private static function start(int $port): void
+    private static function waitUntilOpen(int $port): void
+    {
+        $deadline = microtime(true) + 2;
+        do {
+            if (self::portOpen($port)) {
+                return;
+            }
+
+            usleep(100000);
+        } while (microtime(true) < $deadline);
+    }
+
+    private static function start(): void
     {
         if (! function_exists('exec') && ! function_exists('popen')) {
+            self::log('Reverb was not started because exec and popen are disabled.');
+
             return;
         }
 
@@ -63,6 +79,8 @@ class ReverbProcess
 
         if (PHP_OS_FAMILY === 'Windows') {
             if (! function_exists('popen')) {
+                self::log('Reverb was not started because popen is disabled.');
+
                 return;
             }
 
@@ -76,10 +94,12 @@ class ReverbProcess
         }
 
         if (! function_exists('exec')) {
+            self::log('Reverb was not started because exec is disabled.');
+
             return;
         }
 
-        $command = self::quote($php).' '.self::quote($artisan).' reverb:start >> '.self::quote($log).' 2>&1 &';
+        $command = 'nohup '.self::quote($php).' '.self::quote($artisan).' reverb:start >> '.self::quote($log).' 2>&1 &';
         @exec($command);
     }
 
@@ -104,5 +124,14 @@ class ReverbProcess
     private static function quote(string $value): string
     {
         return '"'.str_replace('"', '\"', $value).'"';
+    }
+
+    private static function log(string $message): void
+    {
+        @file_put_contents(
+            storage_path('logs/reverb.log'),
+            '['.date('c').'] '.$message.PHP_EOL,
+            FILE_APPEND
+        );
     }
 }

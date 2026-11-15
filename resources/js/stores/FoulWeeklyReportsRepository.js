@@ -905,7 +905,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
                 <!-- ✅ left texts (same structure as daily/monthly) -->
                 <div class="hero-info margintowline">
                   <div class="hero-system fontsizeb">${escapeHtml(systemName)} اوونیز راپور</div>
-                  <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو، پنځوس فارمټ او د خیریت راپور اوونیزه عمومي کتنه</p>
+                  <p class="hero-sub fontsizeb">د منابعو، اطلاعاتو، پېښو، پنځوس فارمټ او د حاضری راپور اوونیزه عمومي کتنه</p>
                 </div>
 
                 <!-- ✅ middle bismillah (same as daily/monthly “hero-mid”) -->
@@ -947,7 +947,7 @@ export const useFoulWeeklyReportsRepository = defineStore('FoulWeeklyReportsRepo
               </div></div></div>
 
               <div class="card"><div class="stat-card"><div>
-                <div class="stat-label">د خیریت راپور</div>
+                <div class="stat-label">د حاضری راپور</div>
                 <div class="stat-number">${safeNum(report?.khayrat_reports?.total)}</div>
                 <span class="badge b-success">ثبت شوې</span>
               </div></div></div>

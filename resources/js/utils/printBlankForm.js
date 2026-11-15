@@ -168,6 +168,24 @@ function optionTexts(control) {
     .filter(Boolean);
 }
 
+function fieldValue(control) {
+  const chips = [
+    ...control.querySelectorAll(
+      '.v-chip__content, .v-select__selection-text, .v-autocomplete__selection-text'
+    ),
+  ]
+    .map((el) => normalize(el.textContent))
+    .filter(Boolean);
+  if (chips.length) return chips.join('، ');
+
+  const input = control.matches?.('input, textarea, select')
+    ? control
+    : control.querySelector(
+        'input:not([type="hidden"]):not([type="file"]):not([type="checkbox"]):not([type="radio"]), textarea'
+      );
+  return normalize(input?.value);
+}
+
 function isPhotoField(control, col, label) {
   const scope = col || control;
   if (/\bpicture-picker\b/.test(classOf(scope))) return true;
@@ -185,7 +203,7 @@ function spanFromCol(col) {
 }
 
 /* ============================== collector ============================== */
-export function collectBlankFormSections(root) {
+export function collectBlankFormSections(root, keepValues = false) {
   if (!root) return [];
 
   /* --- section headings in DOM order (skip a heading nested in another one) --- */
@@ -224,6 +242,7 @@ export function collectBlankFormSections(root) {
       type: 'field',
       el: control,
       label,
+      value: keepValues ? fieldValue(control) : '',
       span: spanFromCol(col),
       kind,
       options: kind === 'options' ? optionTexts(control) : [],
@@ -272,7 +291,7 @@ function fieldHtml(field) {
       <div class="pf-field"${span}>
         <div class="pf-label">${esc(field.label)}</div>
         ${options}
-        <div class="pf-box"></div>
+        <div class="pf-box">${esc(field.value || '')}</div>
       </div>`;
 }
 
@@ -598,7 +617,7 @@ export function printBlankForm(target, options = {}) {
   const { onError, root, ...rest } = options;
 
   const container = resolveContainer(target, root);
-  const sections = collectBlankFormSections(container);
+  const sections = collectBlankFormSections(container, !!options.keepValues);
 
   if (!container || !sections.length) {
     onError?.(t('در این فرم چیزی برای چاپ پیدا نشد'));

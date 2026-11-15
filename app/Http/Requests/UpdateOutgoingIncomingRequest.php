@@ -31,7 +31,9 @@ class UpdateOutgoingIncomingRequest extends FormRequest
             'answer_date' => ['sometimes','nullable','date'],
             'answer_page' => ['sometimes','nullable','string'],
 
-            'peshnehad' => ['sometimes','nullable','date'],
+            'peshnehad' => ['sometimes','nullable','string'],
+            'documents' => ['sometimes','nullable','array'],
+            'documents.*' => ['file','max:20480'],
             'outgoing_incoming_date' => ['sometimes','nullable','date'],
 
             'who_sighn' => ['sometimes','nullable','string'],

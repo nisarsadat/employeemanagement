@@ -565,36 +565,24 @@ private function applyFinanceQueueFilter($query, bool $onlyFinanceQueue = false)
                 $q->whereDate($dateField, '<=', $dateTo);
             });
 
+        $row = (clone $base)->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN syasi_info_type = 'ساعین بالفساد' OR jenayee_info_type = 'ساعین بالفساد' THEN 1 ELSE 0 END) as saeen,
+            SUM(CASE WHEN syasi_info_type = 'شر او فساد' OR jenayee_info_type = 'شر او فساد' THEN 1 ELSE 0 END) as shar,
+            SUM(CASE WHEN syasi_info_type IN ('جاسوسی', ' جاسوسي', 'جواسیس') OR jenayee_info_type IN ('جاسوسی', ' جاسوسي', 'جواسیس') THEN 1 ELSE 0 END) as spy,
+            SUM(CASE WHEN DATE(information_saved_date) = ? THEN 1 ELSE 0 END) as today,
+            SUM(CASE WHEN information_category = 'الف' THEN 1 ELSE 0 END) as cat_alef,
+            SUM(CASE WHEN LOWER(TRIM(finance_status)) IN ('unpaid', 'pending', 'ناپرداخت', 'not_paid') THEN 1 ELSE 0 END) as unpaid
+        ", [now()->toDateString()])->first();
+
         return [
-            'total'    => (clone $base)->count(),
-
-            'saeen'    => (clone $base)->where(function ($q) {
-                $q->where('syasi_info_type', 'ساعین بالفساد')
-                  ->orWhere('jenayee_info_type', 'ساعین بالفساد');
-            })->count(),
-
-            'shar'     => (clone $base)->where(function ($q) {
-                $q->where('syasi_info_type', 'شر او فساد')
-                  ->orWhere('jenayee_info_type', 'شر او فساد');
-            })->count(),
-
-            'spy'      => (clone $base)->where(function ($q) {
-                $q->whereIn('syasi_info_type', ['جاسوسی', ' جاسوسي', 'جواسیس'])
-                  ->orWhereIn('jenayee_info_type', ['جاسوسی', ' جاسوسي', 'جواسیس']);
-            })->count(),
-
-            'today'    => (clone $base)->whereDate('information_saved_date', now()->toDateString())->count(),
-
-            'cat_alef' => (clone $base)->where('information_category', 'الف')->count(),
-
-            'unpaid'   => (clone $base)->where(function ($q) {
-                $q->whereIn(DB::raw('LOWER(TRIM(finance_status))'), [
-                    'unpaid',
-                    'pending',
-                    'ناپرداخت',
-                    'not_paid',
-                ]);
-            })->count(),
+            'total'    => (int) ($row->total ?? 0),
+            'saeen'    => (int) ($row->saeen ?? 0),
+            'shar'     => (int) ($row->shar ?? 0),
+            'spy'      => (int) ($row->spy ?? 0),
+            'today'    => (int) ($row->today ?? 0),
+            'cat_alef' => (int) ($row->cat_alef ?? 0),
+            'unpaid'   => (int) ($row->unpaid ?? 0),
         ];
     }
 
@@ -610,6 +598,7 @@ private function applyFinanceQueueFilter($query, bool $onlyFinanceQueue = false)
 
         $dates = Information::query()
             ->whereNotNull($dateField)
+            ->distinct()
             ->pluck($dateField);
 
         $yearsMap = [];
@@ -1201,6 +1190,22 @@ private function applyFinanceQueueFilter($query, bool $onlyFinanceQueue = false)
     {
         return "DATEDIFF(CURDATE(), DATE(COALESCE({$table}.information_saved_date, {$table}.created_at)))";
     }
+    private function codeWithName($code, $name, $fallback = null): string
+    {
+        $parts = collect([$code, $name])
+            ->map(fn ($value) => trim((string) $value))
+            ->filter()
+            ->values();
+
+        if ($parts->isNotEmpty()) {
+            return $parts->implode(' - ');
+        }
+
+        $fallbackText = trim((string) $fallback);
+
+        return $fallbackText !== '' ? $fallbackText : '-';
+    }
+
     public function printView(Request $request)
 {
     $query = $this->baseListQuery();
@@ -1237,27 +1242,30 @@ private function applyFinanceQueueFilter($query, bool $onlyFinanceQueue = false)
 
     $rows = $query
         ->with([
-            'resource:id,code_number',
-            'officeEmployee:id,code_number',
-            'officeEmployeeInfo:id,code_number',
+            'resource:id,code_number,name',
+            'officeEmployee:id,code_number,name',
+            'officeEmployeeInfo:id,code_number,name',
         ])
         ->latest()
         ->get()
         ->map(function ($info) {
-            $info->resource_display =
-                $info->resource?->code_number
-                ?? $info->resource_id
-                ?? '-';
+            $info->resource_display = $this->codeWithName(
+                $info->resource?->code_number,
+                $info->resource?->name,
+                $info->resource_id
+            );
 
-            $info->office_employee_display =
-                $info->officeEmployee?->code_number
-                ?? $info->office_employee_id
-                ?? '-';
+            $info->office_employee_display = $this->codeWithName(
+                $info->officeEmployee?->code_number,
+                $info->officeEmployee?->name,
+                $info->office_employee_id
+            );
 
-            $info->office_employee_info_display =
-                $info->officeEmployeeInfo?->code_number
-                ?? $info->office_employee_info_id
-                ?? '-';
+            $info->office_employee_info_display = $this->codeWithName(
+                $info->officeEmployeeInfo?->code_number,
+                $info->officeEmployeeInfo?->name,
+                $info->office_employee_info_id
+            );
 
             if (!empty($info->information_saved_date)) {
                 try {

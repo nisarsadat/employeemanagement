@@ -1,0 +1,23 @@
+# Laravel Reverb for an Ubuntu server.
+# Copy to /etc/systemd/system/reverb.service, replace the two paths below, then:
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now reverb
+#
+# Restart on failure. Do not open port 6001 to the internet.
+# Pair this with deploy/reverb-nginx.conf so HTTPS clients use wss://your-domain/app.
+
+[Unit]
+Description=Laravel Reverb websocket server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+Restart=on-failure
+RestartSec=3
+WorkingDirectory=/var/www/employeemanagement
+ExecStart=/usr/bin/php artisan reverb:start
+
+[Install]
+WantedBy=multi-user.target

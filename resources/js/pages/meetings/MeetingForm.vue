@@ -2,6 +2,7 @@
   <v-container
     fluid
     class="page-bg"
+    data-latin-digits
     :dir="isRtl ? 'rtl' : 'ltr'"
   >
     <AppBar
@@ -1529,41 +1530,9 @@ const employeeOptions =
 ========================================================= */
 
 const rules = {
-  required: (
-    value
-  ) => {
-    if (
-      value === null ||
-      value === undefined ||
-      String(
-        value
-      ).trim() === ''
-    ) {
-      return t(
-        'این فیلد الزامی است'
-      );
-    }
+  required: () => true,
 
-    return true;
-  },
-
-  phone: (
-    value
-  ) => {
-    if (!value)
-      return true;
-
-    return (
-      /^[0-9+\-\s()]{7,30}$/.test(
-        String(
-          value
-        )
-      ) ||
-      t(
-        'شماره تماس نامعتبر است'
-      )
-    );
-  },
+  phone: () => true,
 
   nonNegativeInteger: (
     value
@@ -2040,24 +2009,7 @@ const requiredFields =
   ];
 
 function allRequiredFieldsFilled() {
-  return requiredFields
-    .every(
-      (field) => {
-        const value =
-          form.value[
-            field
-          ];
-
-        return (
-          value !== null &&
-          value !== undefined &&
-          String(
-            value
-          ).trim() !==
-            ''
-        );
-      }
-    );
+  return true;
 }
 
 /* =========================================================
@@ -2551,8 +2503,11 @@ const steps =
 
 onMounted(
   async () => {
-    employeeOptions.value =
-      await repo.FetchOfficeEmployeeOptions();
+    const rows = await repo.FetchOfficeEmployeeOptions();
+    employeeOptions.value = (Array.isArray(rows) ? rows : []).map((row) => ({
+      value: row.value,
+      title: row.code || row.title,
+    }));
 
     await loadForEdit();
   }

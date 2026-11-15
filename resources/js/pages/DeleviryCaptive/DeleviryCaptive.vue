@@ -72,7 +72,7 @@
             prepend-icon="mdi-plus"
             @click="goCreate"
           >
-            {{ t('حدید') }}
+            {{ t('د نوې بندې ثبت') }}
           </v-btn>
         </v-col>
 

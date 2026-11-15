@@ -52,6 +52,11 @@ class SecurityAssessment extends Model
     /**
      * ✅ ترسره کوونکي — office employees who performed this assessment.
      */
+    public function documents()
+    {
+        return $this->hasMany(SecurityAssessmentDocument::class);
+    }
+
     public function officeEmployees()
     {
         return $this->belongsToMany(

@@ -2,6 +2,7 @@
   <v-container
     fluid
     class="page-bg"
+    data-latin-digits
     :dir="isRtl ? 'rtl' : 'ltr'"
   >
     <AppBar
@@ -1160,6 +1161,45 @@
             </v-row>
           </v-sheet>
 
+          <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
+            <div class="section-header">
+              <span class="text-subtitle-2 font-weight-medium">{{ t('اسناد / ضمایم') }}</span>
+            </div>
+            <v-divider />
+            <div class="pa-3">
+              <input
+                ref="docsInput"
+                class="d-none"
+                type="file"
+                multiple
+                @change="onPickDocs"
+              />
+              <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-paperclip" @click="docsInput?.click()">
+                {{ t('انتخاب و آپلود فایل‌ها') }}
+              </v-btn>
+              <div class="mt-2 d-flex flex-wrap ga-2">
+                <v-chip
+                  v-for="doc in form.existingDocs"
+                  :key="doc.id"
+                  tag="a"
+                  :href="doc.url"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  {{ doc.file_name || doc.original_name }}
+                </v-chip>
+                <v-chip
+                  v-for="(file, index) in form._newDocs"
+                  :key="`new-${index}`"
+                  closable
+                  @click:close="form._newDocs.splice(index, 1)"
+                >
+                  {{ file.name }}
+                </v-chip>
+              </div>
+            </div>
+          </v-sheet>
+
           <!-- ================= ACTIONS ================= -->
 
           <div
@@ -1509,8 +1549,11 @@ const blankForm =
 
     note: '',
 
-    // ✅ ترسره کوونکي
     office_employee_ids: [],
+
+    existingDocs: [],
+
+    _newDocs: [],
   });
 
 const form =
@@ -1518,46 +1561,21 @@ const form =
     blankForm()
   );
 
+const docsInput = ref(null);
+
+function onPickDocs(event) {
+  form.value._newDocs = Array.from(event.target.files || []);
+  if (docsInput.value) docsInput.value.value = '';
+}
+
 /* =========================================================
    RULES
 ========================================================= */
 
 const rules = {
-  required: (
-    value
-  ) => {
-    if (
-      value === null ||
-      value === undefined ||
-      String(
-        value
-      ).trim() === ''
-    ) {
-      return t(
-        'این فیلد الزامی است'
-      );
-    }
+  required: () => true,
 
-    return true;
-  },
-
-  phone: (
-    value
-  ) => {
-    if (!value)
-      return true;
-
-    return (
-      /^[0-9+\-\s()]{7,30}$/.test(
-        String(
-          value
-        )
-      ) ||
-      t(
-        'شماره تماس نامعتبر است'
-      )
-    );
-  },
+  phone: () => true,
 
   nonNegativeInteger: (
     value
@@ -1745,6 +1763,9 @@ function mapFromApi(
         )
       : [];
 
+  mapped.existingDocs = Array.isArray(item.documents) ? item.documents : [];
+  mapped._newDocs = [];
+
   return mapped;
 }
 
@@ -1817,6 +1838,8 @@ function buildCreateFormData() {
   const excludedKeys =
     [
       'id',
+      'existingDocs',
+      '_newDocs',
     ];
 
   Object.entries(
@@ -1858,6 +1881,10 @@ function buildCreateFormData() {
     }
   );
 
+  (form.value._newDocs || []).forEach((file) => {
+    formData.append('documents[]', file);
+  });
+
   return formData;
 }
 
@@ -1896,24 +1923,7 @@ const requiredFields =
   ];
 
 function allRequiredFieldsFilled() {
-  return requiredFields
-    .every(
-      (field) => {
-        const value =
-          form.value[
-            field
-          ];
-
-        return (
-          value !== null &&
-          value !== undefined &&
-          String(
-            value
-          ).trim() !==
-            ''
-        );
-      }
-    );
+  return true;
 }
 
 /* =========================================================

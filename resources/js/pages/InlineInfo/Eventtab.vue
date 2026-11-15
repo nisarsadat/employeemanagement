@@ -479,10 +479,10 @@
               <!-- organ (kept exactly as you wrote: v-model="draft.talks") -->
               <v-col cols="12" md="12">
                 <v-card-item>
-                  <v-card-subtitle class="field-label">{{ t('همغږی') }}</v-card-subtitle>
+                  <v-card-subtitle class="field-label">{{ t('ترسره شوی همغږی') }}</v-card-subtitle>
                 </v-card-item>
                 <v-card-text>
-                  <OrganSelect v-model="draft.talks" :label="t('ارگان')" :disabled="submitting" />
+                  <OrganSelect v-model="draft.talks" :label="t('ترسره شوی همغږی')" :disabled="submitting" />
                 </v-card-text>
               </v-col>
             </v-row>
@@ -630,71 +630,53 @@
   /* fixed options — mirror the editor */
   const eventTypeOptions = ['سیاسی', 'جنایی', 'الهی'];
   const eventSpecificTypeOptions = ['قتل', 'چاودنه', 'ټکر', 'سرقت', 'مسلحانه برید'];
-  function printEventForm() {
-    repo.DownloadEventFormPdf({
+  function codeAndName(record, fallback = '') {
+    const code = String(record?.code_number ?? '').trim();
+    const name = String(record?.name ?? '').trim();
+    const text = [code, name].filter(Boolean).join(' - ');
+    return text || (fallback == null ? '' : String(fallback));
+  }
+
+  function eventPrintPayload() {
+    const resource =
+      pickedResource.value?.id === draft.resource_id
+        ? pickedResource.value
+        : resourceCodeItems.value.find((item) => item?.id === draft.resource_id);
+    const employee = officeEmployeesCodeItems.value.find(
+      (item) => item?.id === draft.office_employee_id
+    );
+
+    return {
       logo_url: window.systemLogo || '/logo.jpeg',
-      form_number: '',
-
-      source_code: draft.resource_id,
-      employee_code: draft.office_employee_id,
-
+      id: draft.id || '',
+      source_code: codeAndName(resource, ''),
+      employee_code: codeAndName(employee, ''),
       event_date: draft.event_date,
       event_hour: draft.event_hour,
-
       event_type: draft.event_type,
       event_specific_type: draft.event_specific_type,
-
       target_person: draft.target_person,
       criminal: draft.criminal,
-
+      hamghagi: draft.talks,
       zone: draft.event_zone,
       hawza: draft.event_hawza,
       specific_place: draft.event_specific_place,
-
       talafat_mali: draft.talafat_mali,
       killed: draft.killed,
       injured: draft.injured,
       coordinates: draft.coordinates,
-
       tafseel_text: draft.tafseel,
       note_text: draft.note,
       evidence_text: draft.docs_note,
-    });
+    };
+  }
+
+  function printEventForm() {
+    repo.DownloadEventFormPdf(eventPrintPayload());
   }
 
   function downloadEventFormWord() {
-    repo.DownloadEventFormWord(
-      {
-        logo_url: window.systemLogo || '/logo.jpeg',
-        form_number: '',
-
-        source_code: draft.resource_id,
-        employee_code: draft.office_employee_id,
-
-        event_date: draft.event_date,
-        event_hour: draft.event_hour,
-
-        event_type: draft.event_type,
-        event_specific_type: draft.event_specific_type,
-
-        target_person: draft.target_person,
-        criminal: draft.criminal,
-
-        zone: draft.event_zone,
-        hawza: draft.event_hawza,
-        specific_place: draft.event_specific_place,
-
-        talafat_mali: draft.talafat_mali,
-        killed: draft.killed,
-        injured: draft.injured,
-        coordinates: draft.coordinates,
-
-        tafseel_text: draft.tafseel,
-        note_text: draft.note,
-        evidence_text: draft.docs_note,
-      },
-      'event_form.doc'
-    );
+    repo.DownloadEventFormWord(eventPrintPayload());
   }
 
   /* form model (EXACT keys as the editor) */
@@ -730,6 +712,7 @@
     _newDocs: [],
   });
   const draft = reactive(baseDraft());
+  const pickedResource = ref(null);
 
   /* validation */
   const rules = {
@@ -818,6 +801,7 @@
     }
   }
   function onReset() {
+    pickedResource.value = null;
     Object.assign(draft, baseDraft());
     form.value?.resetValidation();
     if (fileInput.value) fileInput.value.value = '';
@@ -901,7 +885,7 @@
       { key: 'docs_note', label: t('نوت راجع به اسناد'), value: displayValue(draft.docs_note) },
       { key: 'tafseel', label: t('تفصیل'), value: displayValue(draft.tafseel) },
 
-      { key: 'talks', label: t('ارگان'), value: displayValue(draft.talks) },
+      { key: 'talks', label: t('ترسره شوی همغږی'), value: displayValue(draft.talks) },
 
       {
         key: 'office_employee_akhistonky_id',
@@ -962,6 +946,7 @@
   function onResourceSelected(r) {
     if (!r) return;
 
+    pickedResource.value = r;
     draft.resource_id = r.id ?? null;
 
     draft.trust_percentage =
@@ -982,6 +967,7 @@
   }
 
   function onResourceCleared() {
+    pickedResource.value = null;
     draft.resource_id = null;
     draft.office_employee_id = null;
     draft.trust_percentage = '';

@@ -114,9 +114,7 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
     try {
       const isFormData = payload instanceof FormData;
 
-      const res = await axios.post('/outgoing-incomings', payload, {
-        headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
-      });
+      const res = await axios.post('/outgoing-incomings', payload);
 
       return res?.data?.data ?? res?.data ?? null;
     } catch (e) {
@@ -168,9 +166,7 @@ export const useOutgoingIncomingRepository = defineStore('OutgoingIncomingReposi
         payload.delete('_method');
         payload.set('_method', 'PUT');
 
-        const res = await axios.post(`/outgoing-incomings/${id}`, payload, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        const res = await axios.post(`/outgoing-incomings/${id}`, payload);
 
         return res?.data?.data ?? res?.data ?? null;
       }

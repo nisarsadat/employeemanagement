@@ -8,5 +8,10 @@ class InformationCategory extends Model
 {
     protected $fillable = [
         'information_category',
+        'points',
+    ];
+
+    protected $casts = [
+        'points' => 'integer',
     ];
 }

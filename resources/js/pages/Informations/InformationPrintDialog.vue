@@ -79,6 +79,46 @@
         </div>
       </section>
 
+      <section class="section info-table-wrap">
+        <div class="section-h">
+          <div class="section-title">{{ t('جدول اطلاعات') }}</div>
+        </div>
+        <table class="info-table">
+          <tbody>
+            <tr>
+              <th>{{ t('نام منبع') }}</th>
+              <td>{{ resourceName }}</td>
+              <th>{{ t('نام کارمند مربوط') }}</th>
+              <td>{{ employeeName }}</td>
+            </tr>
+            <tr>
+              <th>{{ t('نام') }}</th>
+              <td>{{ item.name || '—' }}</td>
+              <th>{{ t('نام پدر') }}</th>
+              <td>{{ item.father_name || '—' }}</td>
+            </tr>
+            <tr>
+              <th>{{ t('موقعیت مشخص') }}</th>
+              <td>{{ item.specefic_place || '—' }}</td>
+              <th>{{ t('شماره سرک') }}</th>
+              <td>{{ item.street_number || '—' }}</td>
+            </tr>
+            <tr>
+              <th>{{ t('شماره خانه') }}</th>
+              <td>{{ item.home_number || '—' }}</td>
+              <th>{{ t('قریه فعلی') }}</th>
+              <td>{{ item.now_village || '—' }}</td>
+            </tr>
+            <tr>
+              <th>{{ t('ولایت فعلی') }}</th>
+              <td>{{ item.now_province || '—' }}</td>
+              <th>{{ t('ولسوالی فعلی') }}</th>
+              <td>{{ item.now_district || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
       <main class="content">
         <!-- ✅ Tafseel should take MORE height (main filler) -->
         <section class="section tafseel-section">
@@ -169,6 +209,13 @@
     if (Array.isArray(raw)) return raw[0] || {};
     return raw || {};
   });
+
+  const resourceName = computed(
+    () => item.value?.resource?.name || item.value?.resource_name || '—'
+  );
+  const employeeName = computed(
+    () => item.value?.office_employee?.name || item.value?.office_employee_name || '—'
+  );
 
   const docsCount = computed(() =>
     Array.isArray(item.value?.documents) ? item.value.documents.length : 0
@@ -536,6 +583,24 @@
       background: #E3F4F4 !important;
       min-width: 0;
       overflow: hidden;
+    }
+
+    .info-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    .info-table th,
+    .info-table td {
+      border: 1px solid #c9d7d7;
+      padding: 6px 8px;
+      text-align: right;
+      font-size: 13px;
+    }
+    .info-table th {
+      width: 18%;
+      background: #e3f4f4;
+      font-weight: 700;
     }
 
     .k {
@@ -1301,6 +1366,24 @@
     padding: 9px 10px;
     background: #e3f4f4; /* E3F4F4 */
     min-width: 0;
+  }
+
+  .info-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+  }
+  .info-table th,
+  .info-table td {
+    border: 1px solid #c9d7d7;
+    padding: 6px 8px;
+    text-align: right;
+    vertical-align: top;
+  }
+  .info-table th {
+    width: 18%;
+    background: #e3f4f4;
+    font-weight: 700;
   }
 
   .k {

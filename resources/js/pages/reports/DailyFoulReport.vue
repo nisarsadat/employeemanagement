@@ -3,7 +3,7 @@
     <!-- APP BAR -->
     <AppBar
       :title="t('گزارش روزانه سیستم ')"
-      :subtitle="t('نمای کلی روزانه منابع، اطلاعات، رویدادها، فورم‌ها و راپور خیریت')"
+      :subtitle="t('نمای کلی روزانه منابع، اطلاعات، رویدادها و فورم‌ها')"
     />
 
     <!-- HEADER / FILTER -->
@@ -14,7 +14,7 @@
             {{ t('گزارش روزانه سیستم ') }}
           </h1>
           <div class="subtitle-text fontfamily">
-            {{ t('نمای کلی روزانه منابع، اطلاعات، رویدادها، فورم‌ها و راپور خیریت') }}
+            {{ t('نمای کلی روزانه منابع، اطلاعات، رویدادها و فورم‌ها') }}
           </div>
         </div>
 
@@ -519,9 +519,11 @@
 
   import AppBar from '@/components/AppBar.vue';
   import DateInput from '@/components/DateInput.vue';
+  import { useCalendar } from '../../../composables/useCalendar';
   import { useFoulReportsRepository } from '@/stores/FoulReportsRepository';
 
   const { t, locale } = useI18n();
+  const { formatDisplay } = useCalendar();
   import { usePageRefresh } from '@/composables/usePageRefresh';
 
   // ✅ RTL/LTR exactly like your employee page
@@ -607,18 +609,7 @@
   const chipDate = computed(() => {
     const iso = repo.selectedDate || report.value?.meta?.date || '';
     if (!iso) return '';
-
-    const [y, m, d] = iso.split('-').map(Number);
-    if (!y || !m || !d) return iso;
-
-    const dt = new Date(y, m - 1, d);
-
-    return dt.toLocaleDateString(locale.value === 'fa' ? 'fa-IR' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'long',
-    });
+    return formatDisplay(String(iso).slice(0, 10), locale.value) || iso;
   });
 
   const eventRows = computed(() => {

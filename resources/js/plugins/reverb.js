@@ -4,6 +4,13 @@ import axios from 'axios';
 
 window.Pusher = Pusher;
 
+const REVERB_PORT = 6001;
+const MAX_ATTEMPTS = 5;
+const RETRY_DELAY_MS = 700;
+
+let attempt = 0;
+let retryTimer = 0;
+
 function broadcastAuthUrl() {
   const base = String(axios.defaults.baseURL || '').replace(/\/$/, '');
 
@@ -22,18 +29,31 @@ function socketHost() {
   return host;
 }
 
-function directPort() {
-  const configured = Number(import.meta.env.VITE_REVERB_PORT || 6001);
-  return configured === 80 || configured === 443 ? 6001 : configured;
-}
-
-function connect(mode) {
+function socketEndpoint() {
   const httpsPage = window.location.protocol === 'https:';
   const host = socketHost();
-  const pagePort = Number(window.location.port || (httpsPage ? 443 : 80));
-  const endpoint = mode === 'direct'
-    ? { wsHost: host, wsPort: directPort(), wssPort: directPort(), forceTLS: false }
-    : { wsHost: host, wsPort: pagePort, wssPort: pagePort, forceTLS: httpsPage };
+
+  if (httpsPage) {
+    const pagePort = Number(window.location.port || 443);
+
+    return {
+      wsHost: host,
+      wsPort: pagePort,
+      wssPort: pagePort,
+      forceTLS: true,
+    };
+  }
+
+  return {
+    wsHost: host,
+    wsPort: REVERB_PORT,
+    wssPort: REVERB_PORT,
+    forceTLS: false,
+  };
+}
+
+function connect() {
+  const endpoint = socketEndpoint();
 
   if (window.Echo) {
     try {
@@ -76,24 +96,40 @@ function connect(mode) {
   return window.Echo;
 }
 
-export function initReverb() {
-  const port = window.location.port;
-  const proxiedByWebServer = port === '' || port === '80' || port === '443';
-  const echo = connect(proxiedByWebServer ? 'same-origin' : 'direct');
+function scheduleRetry() {
+  if (attempt >= MAX_ATTEMPTS) return;
 
-  if (!proxiedByWebServer || window.location.protocol === 'https:') {
-    return echo;
-  }
+  window.clearTimeout(retryTimer);
+  retryTimer = window.setTimeout(connectWithRetry, RETRY_DELAY_MS);
+}
 
-  let fellBack = false;
-  const fallback = () => {
-    if (fellBack) return;
-    fellBack = true;
-    connect('direct');
+function connectWithRetry() {
+  attempt += 1;
+  const echo = connect();
+  const connection = echo.connector?.pusher?.connection;
+  if (!connection) return echo;
+
+  const onConnected = () => {
+    window.clearTimeout(retryTimer);
+    connection.unbind('unavailable', onGiveUp);
+    connection.unbind('failed', onGiveUp);
   };
 
-  echo.connector.pusher.connection.bind('unavailable', fallback);
-  echo.connector.pusher.connection.bind('failed', fallback);
+  const onGiveUp = () => {
+    connection.unbind('connected', onConnected);
+    scheduleRetry();
+  };
+
+  connection.bind('connected', onConnected);
+  connection.bind('unavailable', onGiveUp);
+  connection.bind('failed', onGiveUp);
 
   return echo;
+}
+
+export function initReverb() {
+  attempt = 0;
+  window.clearTimeout(retryTimer);
+
+  return connectWithRetry();
 }

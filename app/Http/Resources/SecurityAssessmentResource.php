@@ -52,6 +52,16 @@ class SecurityAssessmentResource extends JsonResource
 
             'note' => $this->note,
 
+            'documents' => $this->when(
+                $this->relationLoaded('documents'),
+                fn () => $this->documents->map(fn ($document) => [
+                    'id' => $document->id,
+                    'file_name' => $document->file_name,
+                    'original_name' => $document->file_name,
+                    'url' => $document->file_path ? asset('storage/'.$document->file_path) : null,
+                ])->values()
+            ),
+
             // ✅ ترسره کوونکي
             'office_employee_ids' => $this->whenLoaded(
                 'officeEmployees',

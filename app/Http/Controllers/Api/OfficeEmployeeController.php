@@ -266,7 +266,11 @@ class OfficeEmployeeController extends Controller
 
     private function applyEffectiveActivity($employee)
     {
-        $employee->activity = ($this->isEdariEmployee($employee) || $employee->hasActiveResource())
+        $hasActiveResource = array_key_exists('resources_active_count', $employee->getAttributes())
+            ? ((int) $employee->resources_active_count) > 0
+            : $employee->hasActiveResource();
+
+        $employee->activity = ($this->isEdariEmployee($employee) || $hasActiveResource)
             ? OfficeEmployee::ACTIVE
             : OfficeEmployee::INACTIVE;
 
@@ -414,6 +418,7 @@ class OfficeEmployeeController extends Controller
 
         $dates = OfficeEmployee::query()
             ->whereNotNull($dateField)
+            ->distinct()
             ->pluck($dateField);
 
         $yearsMap = [];

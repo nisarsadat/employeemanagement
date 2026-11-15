@@ -146,17 +146,43 @@ class FifthyFormatThreeDashboardController extends Controller
         return in_array($g, ['daily','monthly','yearly'], true) ? $g : 'daily';
     }
 
+    /** One count, or one date-bucket count, across every format. Filters stay on each table. */
+    protected function mergedFormatRows(Request $request, ?string $dateExpr = null): array
+    {
+        $union = null;
+        foreach ($this->formats as $key => $cfg) {
+            if (!preg_match('/^[a-z0-9_]+$/', $key)) {
+                continue;
+            }
+            $part = $this->baseQuery($cfg, $request)->toBase();
+            $part->columns = [];
+            if ($dateExpr === null) {
+                $part->selectRaw("'{$key}' as format_key, COUNT(*) as total");
+            } else {
+                $part->selectRaw("'{$key}' as format_key, {$dateExpr} as d, COUNT(*) as c");
+                $part->groupBy('d');
+            }
+            $union = $union ? $union->unionAll($part) : $part;
+        }
+
+        return $union ? $union->get()->all() : [];
+    }
+
     // --------------------------- ENDPOINTS ---------------------------
 
     public function summary(Request $request)
     {
+        $totals = [];
+        foreach ($this->mergedFormatRows($request) as $row) {
+            $totals[(string) $row->format_key] = (int) $row->total;
+        }
+
         $cards = [];
         foreach ($this->formats as $key => $cfg) {
-            $label = $cfg['label'] ?? ucfirst($key);
             $cards[] = [
                 'key'   => $key,
-                'label' => $label,
-                'total' => (int) $this->baseQuery($cfg, $request)->count(),
+                'label' => $cfg['label'] ?? ucfirst($key),
+                'total' => $totals[$key] ?? 0,
             ];
         }
         return response()->json(['cards' => $cards]);
@@ -165,28 +191,28 @@ class FifthyFormatThreeDashboardController extends Controller
     public function timeseries(Request $request)
     {
         $gran = $this->normalizeGranularity($request->get('granularity', 'daily'));
-        [$select, $format] = match ($gran) {
-            'monthly' => ["DATE_FORMAT(created_at, '%Y-%m') as d", 'Y-m'],
-            'yearly'  => ["DATE_FORMAT(created_at, '%Y') as d", 'Y'],
-            default   => ["DATE(created_at) as d", 'Y-m-d'],
+        [$dateExpr, $format] = match ($gran) {
+            'monthly' => ["DATE_FORMAT(created_at, '%Y-%m')", 'Y-m'],
+            'yearly'  => ["DATE_FORMAT(created_at, '%Y')", 'Y'],
+            default   => ["DATE(created_at)", 'Y-m-d'],
         };
+
+        $grouped = [];
+        foreach ($this->mergedFormatRows($request, $dateExpr) as $row) {
+            $grouped[(string) $row->format_key][] = $row;
+        }
 
         $series = [];
         foreach ($this->formats as $key => $cfg) {
-            $label = $cfg['label'] ?? ucfirst($key);
-            $rows = $this->baseQuery($cfg, $request)
-                ->selectRaw("$select, COUNT(*) as c")
-                ->groupBy('d')
-                ->orderBy('d')
-                ->get();
-
+            $rows = $grouped[$key] ?? [];
+            usort($rows, fn ($a, $b) => strcmp((string) $a->d, (string) $b->d));
             $series[] = [
                 'key'    => $key,
-                'label'  => $label,
-                'points' => $rows->map(fn($r) => [
+                'label'  => $cfg['label'] ?? ucfirst($key),
+                'points' => array_map(fn ($r) => [
                     'date'  => Carbon::parse($r->d)->format($format),
                     'count' => (int) $r->c,
-                ])->values(),
+                ], $rows),
             ];
         }
 

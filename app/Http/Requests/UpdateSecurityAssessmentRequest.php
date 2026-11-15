@@ -15,37 +15,37 @@ class UpdateSecurityAssessmentRequest extends FormRequest
     {
         return [
             'place_name' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'responsible_owner_name' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'province' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'district' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'specific_place' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'coordinates' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
@@ -71,121 +71,131 @@ class UpdateSecurityAssessmentRequest extends FormRequest
             ],
 
             'daily_visitors_count' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
                 'max:1000000',
             ],
 
             'risk_places' => [
-                'required',
+                'nullable',
                 'string',
             ],
 
             'vulnerable_places' => [
-                'required',
+                'nullable',
                 'string',
             ],
 
             'security_gaps' => [
-                'required',
+                'nullable',
                 'string',
             ],
 
             'weak_points' => [
-                'required',
+                'nullable',
                 'string',
             ],
 
             'security_incidents' => [
-                'required',
+                'nullable',
                 'string',
             ],
 
             'entrance_gate' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'exit_gate' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'emergency_gate' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'secondary_gate' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'physical_check_status' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'technical_check_status' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'security_cameras' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'guards_count' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
                 'max:1000000',
             ],
 
             'active_towers_count' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
                 'max:1000000',
             ],
 
             'active_guard_posts_count' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
                 'max:1000000',
             ],
 
             'security_responsible_name' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
 
             'security_responsible_phone' => [
-                'required',
+                'nullable',
                 'string',
                 'max:30',
-                'regex:/^[0-9+\-\s()]+$/',
+                'regex:/^[\p{L}\p{N}+\-\s()]+$/u',
             ],
 
             'other_problems' => [
-                'required',
+                'nullable',
                 'string',
             ],
 
             'note' => [
-                'required',
+                'nullable',
                 'string',
+            ],
+
+            'documents' => [
+                'nullable',
+                'array',
+            ],
+
+            'documents.*' => [
+                'file',
+                'max:20480',
             ],
 
             // ✅ ترسره کوونکي (one or more office employees)

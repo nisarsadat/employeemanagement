@@ -7,6 +7,7 @@ use App\Http\Requests\StoreMeetingRequest;
 use App\Http\Requests\UpdateMeetingRequest;
 use App\Http\Resources\MeetingResource;
 use App\Models\Meeting;
+use App\Models\MeetingDayPoint;
 use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -249,6 +250,14 @@ class MeetingController extends Controller
             );
         }
 
+        if ($stat === 'suspicious') {
+            $query->whereRaw("CHAR_LENGTH(TRIM(COALESCE(mashkok_situations, ''))) > 0");
+        }
+
+        if ($stat === 'problems') {
+            $query->whereRaw("CHAR_LENGTH(TRIM(COALESCE(problems, ''))) > 0");
+        }
+
         return $query;
     }
 
@@ -293,49 +302,24 @@ class MeetingController extends Controller
             $searchValue
         );
 
+        $row = (clone $base)->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN DATE(start_date) = ? THEN 1 ELSE 0 END) as today,
+            SUM(CASE WHEN DATE(start_date) > ? THEN 1 ELSE 0 END) as upcoming,
+            SUM(CASE WHEN DATE(start_date) <= ? AND DATE(end_date) >= ? THEN 1 ELSE 0 END) as ongoing,
+            SUM(CASE WHEN DATE(end_date) < ? THEN 1 ELSE 0 END) as completed,
+            SUM(CASE WHEN CHAR_LENGTH(TRIM(COALESCE(mashkok_situations, ''))) > 0 THEN 1 ELSE 0 END) as suspicious,
+            SUM(CASE WHEN CHAR_LENGTH(TRIM(COALESCE(problems, ''))) > 0 THEN 1 ELSE 0 END) as problems
+        ", [$today, $today, $today, $today, $today])->first();
+
         return [
-            'total' =>
-                (clone $base)->count(),
-
-            'today' =>
-                (clone $base)
-                    ->whereDate(
-                        'start_date',
-                        $today
-                    )
-                    ->count(),
-
-            'upcoming' =>
-                (clone $base)
-                    ->whereDate(
-                        'start_date',
-                        '>',
-                        $today
-                    )
-                    ->count(),
-
-            'ongoing' =>
-                (clone $base)
-                    ->whereDate(
-                        'start_date',
-                        '<=',
-                        $today
-                    )
-                    ->whereDate(
-                        'end_date',
-                        '>=',
-                        $today
-                    )
-                    ->count(),
-
-            'completed' =>
-                (clone $base)
-                    ->whereDate(
-                        'end_date',
-                        '<',
-                        $today
-                    )
-                    ->count(),
+            'total' => (int) ($row->total ?? 0),
+            'today' => (int) ($row->today ?? 0),
+            'upcoming' => (int) ($row->upcoming ?? 0),
+            'ongoing' => (int) ($row->ongoing ?? 0),
+            'completed' => (int) ($row->completed ?? 0),
+            'suspicious' => (int) ($row->suspicious ?? 0),
+            'problems' => (int) ($row->problems ?? 0),
         ];
     }
 
@@ -358,7 +342,7 @@ class MeetingController extends Controller
                 'nullable|string',
 
             'stat' =>
-                'nullable|string|in:all,today,upcoming,ongoing,completed',
+                'nullable|string|in:all,today,upcoming,ongoing,completed,suspicious,problems',
 
             'year' =>
                 'nullable|integer|min:1900|max:2500',
@@ -635,6 +619,8 @@ class MeetingController extends Controller
                 ->officeEmployees()
                 ->sync($employeeIds);
 
+            $this->awardDayPoints($meeting, $employeeIds);
+
             if (
                 $request->hasFile(
                     'documents'
@@ -767,6 +753,8 @@ class MeetingController extends Controller
             $meeting
                 ->officeEmployees()
                 ->sync($employeeIds);
+
+            $this->awardDayPoints($meeting, $employeeIds);
 
             $removedIds =
                 $request->input(
@@ -987,7 +975,7 @@ class MeetingController extends Controller
                 'nullable|string',
 
             'stat' =>
-                'nullable|string|in:all,today,upcoming,ongoing,completed',
+                'nullable|string|in:all,today,upcoming,ongoing,completed,suspicious,problems',
 
             'year' =>
                 'nullable|integer',
@@ -1356,5 +1344,29 @@ class MeetingController extends Controller
             $jm,
             $jd,
         ];
+    }
+
+    /**
+     * One point per employee per calendar day. A later meeting on the same day does not add another point.
+     */
+    private function awardDayPoints(Meeting $meeting, array $employeeIds): void
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $employeeIds))));
+
+        if ($ids === [] || blank($meeting->start_date)) {
+            return;
+        }
+
+        $day = Carbon::parse($meeting->start_date)->toDateString();
+
+        foreach ($ids as $employeeId) {
+            MeetingDayPoint::query()->firstOrCreate(
+                [
+                    'office_employee_id' => $employeeId,
+                    'point_date' => $day,
+                ],
+                ['points' => 1]
+            );
+        }
     }
 }

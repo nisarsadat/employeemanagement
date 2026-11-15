@@ -37,6 +37,7 @@ const DeleviryCaptiveForm = () => import('../pages/DeleviryCaptive/DeleviryCapti
 // ================= MEETINGS =================
 const Meetings = () => import('@/pages/Meetings/Meetings.vue');
 const MeetingForm = () => import('@/pages/Meetings/MeetingForm.vue');
+const MeetingPrint = () => import('@/pages/meetings/MeetingPrint.vue');
 
 // ================= SECURITY ASSESSMENTS =================
 const SecurityAssessments = () => import('@/pages/SecurityAssessments/SecurityAssessments.vue');
@@ -397,6 +398,16 @@ const router = createRouter({
           path: 'meetings/form/:id',
           name: 'MeetingEdit',
           component: MeetingForm,
+          props: true,
+          meta: {
+            requiresAuth: true,
+            perm: permFor('meetings'),
+          },
+        },
+        {
+          path: 'meetings/print/:id',
+          name: 'MeetingPrint',
+          component: MeetingPrint,
           props: true,
           meta: {
             requiresAuth: true,

@@ -344,30 +344,6 @@
                   clearable
                 />
               </v-col>
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.specefic_place"
-                  :label="t('موقعیت مشخص')"
-                  density="compact"
-                  variant="outlined"
-                />
-              </v-col>
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.home_number"
-                  :label="t('شماره خانه')"
-                  density="compact"
-                  variant="outlined"
-                />
-              </v-col>
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.street_number"
-                  :label="t('شماره سرک')"
-                  density="compact"
-                  variant="outlined"
-                />
-              </v-col>
             </v-row>
           </v-sheet>
 
@@ -444,6 +420,30 @@
                   variant="outlined"
                   :error="hasError('now_village')"
                   :error-messages="getErrorMessages('now_village')"
+                />
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="form.specefic_place"
+                  :label="t('موقعیت مشخص')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="form.street_number"
+                  :label="t('شماره سرک')"
+                  density="compact"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="form.home_number"
+                  :label="t('شماره خانه')"
+                  density="compact"
+                  variant="outlined"
                 />
               </v-col>
             </v-row>
@@ -773,7 +773,7 @@
               </v-col>
 
               <v-col cols="12" md="4">
-                <OrganSelect v-model="form.organ" :label="t('ارگان')" :disabled="saving" />
+                <OrganSelect v-model="form.organ" :label="t('ارگان اطلاع')" :disabled="saving" />
               </v-col>
             </v-row>
           </v-sheet>
@@ -1005,7 +1005,7 @@
 
   /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
   function printForm(e) {
-    printBlankForm(e, { onError: showErrorMessage });
+    printBlankForm(e, { keepValues: true, onError: showErrorMessage });
   }
 
   function showErrorMessage(message) {

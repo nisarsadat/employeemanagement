@@ -46,6 +46,22 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 axios.interceptors.request.use((config) => {
   const token = sessionStorage.getItem('token'); // ✅ same place
   if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  // Wide tables send every column label. A GET query string is cut off and
+  // the print request fails, so every red print button posts the payload.
+  const path = String(config.url || '')
+    .split('?')[0]
+    .replace(/\/+$/, '');
+  const method = String(config.method || 'get').toLowerCase();
+  if (method === 'get' && /\/print$/.test(path) && config.params) {
+    config.method = 'post';
+    config.data = config.params;
+    config.params = undefined;
+    config.headers = config.headers || {};
+    config.headers['Content-Type'] = 'application/json';
+    config.headers.Accept = 'text/html';
+  }
+
   return config;
 });
 

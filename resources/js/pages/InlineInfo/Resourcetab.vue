@@ -749,12 +749,12 @@
               <!-- ✅ organ -->
               <v-col cols="12" md="12">
                 <v-card-item>
-                  <v-card-subtitle class="field-label">{{ t('ارگان') }}</v-card-subtitle>
+                  <v-card-subtitle class="field-label">{{ t('ترسره شوی همغږی') }}</v-card-subtitle>
                 </v-card-item>
                 <v-card-text>
                   <OrganSelect
                     v-model="draft.organ"
-                    :label="t('ارگان')"
+                    :label="t('ترسره شوی همغږی')"
                     :disabled="submitting || isNotUrgent"
                   />
                 </v-card-text>
@@ -1216,7 +1216,7 @@
         label: t('تاریخ هم‌آهنگی'),
         value: formatReviewDate(draft.hamahangi_date),
       },
-      { key: 'organ', label: t('ارگان'), value: displayValue(draft.organ) },
+      { key: 'organ', label: t('ترسره شوی همغږی'), value: displayValue(draft.organ) },
 
       {
         key: 'office_employee_info_id',

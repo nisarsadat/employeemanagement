@@ -45,9 +45,9 @@ class KhayratReportController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'د خیریت راپور',
+                module: 'د حاضری راپور',
                 action: 'created',
-                title: 'د خیریت راپور ثبت شوو',
+                title: 'د حاضری راپور ثبت شوو',
                 message: 'کوډ: ' . ($item->id ?? ''),
                 routeName: 'KhayratReportsIndex',
                 routeParams: ['id' => $item->id],
@@ -100,9 +100,9 @@ class KhayratReportController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'د خیریت راپور',
+                module: 'د حاضری راپور',
                 action: 'updated',
-                title: 'د خیریت راپور اصلاح شوو',
+                title: 'د حاضری راپور اصلاح شوو',
                 message: 'کوډ: ' . ($khayratReport->id ?? ''),
                 routeName: 'KhayratReportsIndex',
                 routeParams: ['id' => $khayratReport->id],
@@ -125,9 +125,9 @@ class KhayratReportController extends Controller
 
             NotificationService::record(
                 $user,
-                module: 'د خیریت راپور',
+                module: 'د حاضری راپور',
                 action: 'deleted',
-                title: 'د خیریت راپور حذف شوو',
+                title: 'د حاضری راپور حذف شوو',
                 message: 'کوډ: ' . ($id ?? ''),
                 routeName: null,
                 routeParams: [],

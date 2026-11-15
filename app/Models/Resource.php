@@ -62,6 +62,7 @@ use App\Models\fifthyformatsthree\Sarayano;
 use App\Models\fifthyformatsthree\Tujaran;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Resource extends Model
 {
@@ -355,16 +356,16 @@ class Resource extends Model
         ['relation' => 'masjids', 'table' => 'masjids', 'type' => 'masjids', 'label' => 'مسجد، خاناقا او تکیه خانه', 'path' => '/app/masjids'],
         ['relation' => 'highways', 'table' => 'highways', 'type' => 'highways', 'label' => 'څلور لارې او درې لارې', 'path' => '/app/highways'],
         ['relation' => 'companies', 'table' => 'companies', 'type' => 'companies', 'label' => 'فابریکه او شرکت', 'path' => '/app/companies'],
-        ['relation' => 'donelostplaces', 'table' => 'done_lost_places', 'type' => 'done_lost_places', 'label' => 'هغه ساحه چې اختطاف پکې ترسره شوی', 'path' => '/app/donelostplaces'],
+        ['relation' => 'donelostplaces', 'table' => 'donelostplaces', 'type' => 'done_lost_places', 'label' => 'هغه ساحه چې اختطاف پکې ترسره شوی', 'path' => '/app/donelostplaces'],
         ['relation' => 'econemyProjects', 'table' => 'econemy_projects', 'type' => 'econemy_projects', 'label' => 'مهم تاسیسات او اقتصادي پرو‌ژه', 'path' => '/app/econemyprojects'],
         ['relation' => 'criminalCapturePlaces', 'table' => 'criminal_capture_places', 'type' => 'criminal_capture_places', 'label' => 'هغې ساحه چې مجرم پکې نیول شوی', 'path' => '/app/criminalcaptureplaces'],
         ['relation' => 'pumps', 'table' => 'pumps', 'type' => 'pumps', 'label' => 'پمپ', 'path' => '/app/pumps'],
         ['relation' => 'shoras', 'table' => 'shoras', 'type' => 'shoras', 'label' => 'محلي شورا', 'path' => '/app/shoras'],
-        ['relation' => 'governmentplaces', 'table' => 'governmentplaces', 'type' => 'governmentplaces', 'label' => 'امارتي ځاي', 'path' => '/app/governmentplaces'],
-        ['relation' => 'supermarkets', 'table' => 'supermarkets', 'type' => 'supermarkets', 'label' => 'تجارتي مرکز او سوپر مارکیټ', 'path' => '/app/supermarkets'],
+        ['relation' => 'governmentplaces', 'table' => 'government_places', 'type' => 'governmentplaces', 'label' => 'امارتي ځاي', 'path' => '/app/governmentplaces'],
+        ['relation' => 'supermarkets', 'table' => 'super_markets', 'type' => 'supermarkets', 'label' => 'تجارتي مرکز او سوپر مارکیټ', 'path' => '/app/supermarkets'],
         ['relation' => 'parks', 'table' => 'parks', 'type' => 'parks', 'label' => 'تفریحي پارک او سیاحتي سیمه', 'path' => '/app/parks'],
         ['relation' => 'complexes', 'table' => 'complexes', 'type' => 'complexes', 'label' => 'داخلي موسسه او بنسټ', 'path' => '/app/complexes'],
-        ['relation' => 'deplomaticplaces', 'table' => 'deplomaticplaces', 'type' => 'deplomaticplaces', 'label' => 'دیپلوماتیک ځای،خارجي موسسه،دبهرنیانو د اوسیدو او کار ځای', 'path' => '/app/deplomaticplaces'],
+        ['relation' => 'deplomaticplaces', 'table' => 'deplomatic_places', 'type' => 'deplomaticplaces', 'label' => 'دیپلوماتیک ځای،خارجي موسسه،دبهرنیانو د اوسیدو او کار ځای', 'path' => '/app/deplomaticplaces'],
         ['relation' => 'universities', 'table' => 'universities', 'type' => 'universities', 'label' => 'پوهنتونون ، دلوړو زده کړو موسسه او انسټیټیوټ', 'path' => '/app/universities'],
         ['relation' => 'wakilanos', 'table' => 'wakilanos', 'type' => 'wakilanos', 'label' => 'وکیل او ملک', 'path' => '/app/wakilanos'],
     ];
@@ -420,21 +421,17 @@ public function fiftySixFormatsTotalCount(): int
     {
         $since = now()->subDays(self::ACTIVITY_WINDOW_DAYS)->toDateString();
 
-        $isActive =
-            $this->events()
-                ->whereNotNull('event_date')
-                ->whereDate('event_date', '>=', $since)
-                ->exists()
-            ||
-            $this->informations()
-                ->whereNotNull('information_saved_date')
-                ->whereDate('information_saved_date', '>=', $since)
-                ->exists()
-            ||
-            $this->khayratReports()
-                ->whereNotNull('saved_date')
-                ->whereDate('saved_date', '>=', $since)
-                ->count() >= self::MIN_KHAYRAT_REPORTS_FOR_ACTIVE;
+        $row = DB::selectOne(
+            'SELECT
+                EXISTS(SELECT 1 FROM events WHERE resource_id = ? AND event_date IS NOT NULL AND DATE(event_date) >= ?) AS has_event,
+                EXISTS(SELECT 1 FROM information WHERE resource_id = ? AND information_saved_date IS NOT NULL AND DATE(information_saved_date) >= ?) AS has_info,
+                (SELECT COUNT(*) FROM khayrat_reports WHERE resource_id = ? AND saved_date IS NOT NULL AND DATE(saved_date) >= ?) AS khayrat_count',
+            [$this->id, $since, $this->id, $since, $this->id, $since]
+        );
+
+        $isActive = (bool) ($row->has_event ?? false)
+            || (bool) ($row->has_info ?? false)
+            || (int) ($row->khayrat_count ?? 0) >= self::MIN_KHAYRAT_REPORTS_FOR_ACTIVE;
 
         $newActivity = $isActive ? 'فعال' : 'غیر فعال';
 

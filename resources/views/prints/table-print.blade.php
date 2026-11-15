@@ -5,10 +5,32 @@
     <meta charset="UTF-8">
     <title>{{ $title }}</title>
 
+    @php
+        $selectedColumns = $selectedColumns ?? [];
+        if (is_string($selectedColumns)) {
+            $decodedColumns = json_decode($selectedColumns, true);
+            $selectedColumns = is_array($decodedColumns) ? $decodedColumns : [$selectedColumns];
+        }
+        if (! is_array($selectedColumns)) {
+            $selectedColumns = [];
+        }
+        $selectedColumns = array_values(array_filter(
+            $selectedColumns,
+            fn ($column) => is_string($column) && $column !== ''
+        ));
+
+        $columnLabels = is_array($columnLabels ?? null) ? $columnLabels : [];
+        $printLabels = is_array($printLabels ?? null) ? $printLabels : [];
+
+        $printColumnCount = max(1, count($selectedColumns) + 1);
+        $pageWidthMm = max(297, min(2200, 24 + ($printColumnCount * 32)));
+        $pageHeightMm = 210;
+    @endphp
+
     <style>
         @page {
-            size: A4 landscape;
-            margin: 10mm;
+            size: {{ $pageWidthMm }}mm {{ $pageHeightMm }}mm;
+            margin: 8mm;
         }
 
         @font-face {
@@ -33,7 +55,10 @@
             font-size: 11px;
         }
 
-        .page { width: 100%; }
+        .page {
+            width: {{ $pageWidthMm }}mm;
+            max-width: none;
+        }
 
         .header {
             margin-bottom: 12px;
@@ -61,13 +86,13 @@
         .table-shell {
             border: 1px solid #76a9bb;
             border-radius: 8px;
-            overflow: hidden;
+            overflow: visible;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: auto;
+            table-layout: fixed;
         }
 
         .print-image {
@@ -86,7 +111,8 @@
             font-weight: 700;
             text-align: center;
             padding: 11px 6px;
-            white-space: nowrap;
+            white-space: normal;
+            overflow-wrap: anywhere;
             border-left: 1px solid rgba(255,255,255,0.15);
         }
 
@@ -98,6 +124,7 @@
             vertical-align: middle;
             padding: 10px 6px;
             border-bottom: 1px solid #dde4e8;
+            overflow-wrap: anywhere;
             word-break: break-word;
             color: #374151;
         }
@@ -199,6 +226,43 @@
 
         .status-active { background: #22c55e; }
         .status-inactive { background: #ef4444; }
+
+        @media screen {
+            html {
+                overflow: auto;
+            }
+
+            body {
+                overflow: visible;
+                width: max-content;
+                min-width: 100%;
+            }
+
+            .page {
+                min-width: {{ $pageWidthMm }}mm;
+            }
+        }
+
+        @media print {
+            html, body {
+                overflow: visible;
+                width: auto;
+            }
+
+            .page {
+                width: 100%;
+                min-width: 0;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            tr {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
     </style>
 </head>
 
@@ -243,6 +307,10 @@
                         $imageValue = $selectedImageColumn
                             ? data_get($row, $selectedImageColumn)
                             : null;
+
+                        if (! is_string($imageValue) || trim($imageValue) === '') {
+                            $imageValue = null;
+                        }
                     @endphp
 
                     <tr>
@@ -280,6 +348,12 @@
 
                             @php
                                 $value = data_get($row, $column, '-');
+
+                                if (is_array($value) || is_object($value)) {
+                                    $value = '';
+                                }
+
+                                $value = trim((string) ($value ?? ''));
 
                                $dateColumns = [
                                         'event_date',

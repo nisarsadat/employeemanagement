@@ -344,20 +344,17 @@ class ResourceController extends Controller
 
         $today = now()->toDateString();
 
-        $totalCount = (clone $baseQuery)->count();
+        $statRow = (clone $baseQuery)->selectRaw("
+            COUNT(*) as total_count,
+            SUM(CASE WHEN `{$dateField}` IS NOT NULL AND DATE(`{$dateField}`) = ? THEN 1 ELSE 0 END) as today_added_count,
+            SUM(CASE WHEN activity = 'فعال' THEN 1 ELSE 0 END) as active_count,
+            SUM(CASE WHEN activity = 'غیر فعال' THEN 1 ELSE 0 END) as inactive_count
+        ", [$today])->first();
 
-        $todayAddedCount = (clone $baseQuery)
-            ->whereNotNull($dateField)
-            ->whereDate($dateField, $today)
-            ->count();
-
-        $activeCount = (clone $baseQuery)
-            ->where('activity', 'فعال')
-            ->count();
-
-        $inactiveCount = (clone $baseQuery)
-            ->where('activity', 'غیر فعال')
-            ->count();
+        $totalCount = (int) ($statRow->total_count ?? 0);
+        $todayAddedCount = (int) ($statRow->today_added_count ?? 0);
+        $activeCount = (int) ($statRow->active_count ?? 0);
+        $inactiveCount = (int) ($statRow->inactive_count ?? 0);
 
             $q = Resource::query()
     ->with(['officeEmployee:id,name,code_number,father_name'])
@@ -767,6 +764,7 @@ class ResourceController extends Controller
 
         $dates = Resource::query()
             ->whereNotNull($dateField)
+            ->distinct()
             ->pluck($dateField);
 
         $yearsMap = [];

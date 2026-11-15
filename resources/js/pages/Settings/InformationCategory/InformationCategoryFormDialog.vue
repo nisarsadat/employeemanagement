@@ -46,6 +46,22 @@
                 :error-messages="getErrorMessages('information_category')"
                 class="field"
               />
+
+              <v-text-field
+                v-model="draft.points"
+                data-latin-digits
+                :label="t('امتیاز') + ' *'"
+                density="compact"
+                variant="outlined"
+                type="number"
+                min="0"
+                prepend-inner-icon="mdi-star-outline"
+                :rules="[rules.required, rules.points]"
+                :disabled="loadingEdit"
+                :error="hasError('points')"
+                :error-messages="getErrorMessages('points')"
+                class="field"
+              />
             </div>
           </div>
 
@@ -107,15 +123,17 @@ const formRef = ref(null)
 const saving = ref(false)
 const loadingEdit = ref(false)
 
-const draft = reactive({ information_category: '' })
+const draft = reactive({ information_category: '', points: 1 })
 const backendErrors = reactive({})
 
 const rules = {
-  required: (v) => !!v || v === 0 || t('این فیلد ضروری است'),
+  required: (v) => !!v || v === 0 || v === '0' || t('این فیلد ضروری است'),
+  points: (v) => /^\d+$/.test(String(v ?? '').trim()) || t('امتیاز باید عدد باشد'),
 }
 
 function resetDraft() {
   draft.information_category = ''
+  draft.points = 1
 }
 function clearErrors() {
   Object.keys(backendErrors).forEach((k) => delete backendErrors[k])
@@ -140,6 +158,7 @@ async function loadForEdit() {
     const res = await repo.FetchInformationCategory(props.editId)
     const item = unwrapItem(res)
     draft.information_category = item?.information_category ?? ''
+    draft.points = item?.points ?? 1
   } catch (e) {
     console.error('loadForEdit error', e)
     backendErrors.general = [t('خطا در دریافت معلومات کتگوری')]
@@ -183,7 +202,10 @@ async function onSubmit() {
 
   saving.value = true
   try {
-    const payload = { information_category: draft.information_category }
+    const payload = {
+      information_category: draft.information_category,
+      points: Number(draft.points),
+    }
 
     if (isEdit.value) {
       await repo.UpdateInformationCategory(props.editId, payload)

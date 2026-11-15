@@ -377,7 +377,7 @@
                 />
               </v-col>
               <v-col cols="12" md="12">
-                <OrganSelect v-model="form.talks" :label="t('ارگان')" />
+                <OrganSelect v-model="form.talks" :label="t('ترسره شوی همغږی')" />
               </v-col>
               <v-col cols="12" md="12">
                 <v-text-field
@@ -646,7 +646,7 @@
 
   /* PRINT BLANK FORM (empty fields, same design, one A4 page) */
   function printForm(e) {
-    printBlankForm(e, { onError: showErrorMessage });
+    printBlankForm(e, { keepValues: true, onError: showErrorMessage });
   }
 
   function showErrorMessage(msg) {

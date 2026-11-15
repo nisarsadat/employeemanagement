@@ -73,6 +73,15 @@ class OutgoingIncomingResource extends JsonResource
             // Notes
             'notes' => $this->notes,
 
+            'documents' => $this->when(
+                $this->relationLoaded('documents'),
+                fn () => $this->documents->map(fn ($document) => [
+                    'id' => $document->id,
+                    'file_name' => $document->file_name,
+                    'url' => $document->file_path ? asset('storage/'.$document->file_path) : null,
+                ])->values()
+            ),
+
             // Timestamps
             'created_at' => $this->formatDate($this->created_at, 'Y-m-d H:i'),
             'updated_at' => $this->formatDate($this->updated_at, 'Y-m-d H:i'),

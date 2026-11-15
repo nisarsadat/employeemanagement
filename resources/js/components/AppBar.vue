@@ -59,6 +59,8 @@
 
     <v-spacer />
 
+    <GlobalSearch />
+
     <div v-if="$slots.actions" class="appbar-actions">
       <slot name="actions" />
     </div>
@@ -164,6 +166,7 @@ import { useLoginRepository } from '@/stores/LoginRepository';
 import { useSystemProfileRepository } from '@/stores/SystemProfileRepository';
 import NotificationMenu from './NotificationBell.vue';
 import ChatMenu from './chat/ChatMenu.vue';
+import GlobalSearch from './GlobalSearch.vue';
 import { runPageRefresh } from '@/composables/usePageRefresh';
 
 const login = useLoginRepository();

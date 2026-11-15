@@ -386,7 +386,7 @@ class ResourcesExport implements FromQuery, WithHeadings, WithMapping, WithEvent
             'ورکړل شوې پیسې',
             'د پېښو شمېر',
             'د معلوماتو شمېر',
-            'د خیرات راپورونو شمېر',
+            'د حاضری راپورونو شمېر',
             'د ۵۶ فورمټ نوم',
             'د کارکوونکي کوډ',
             'د کارکوونکي نوم',

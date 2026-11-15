@@ -86,7 +86,7 @@ export function foulActivitySections(report, escapeHtml) {
         <div class="section">
           <div class="card">
             <div class="header-strip bg-success">
-              <div><div class="strip-title">د خیریت راپور</div><div class="strip-sub">د دې مودې د خیریت راپورونه</div></div>
+              <div><div class="strip-title">د حاضری راپور</div><div class="strip-sub">د دې مودې د حاضری راپورونه</div></div>
               <span class="chip chip-success">${khayratTotal}</span>
             </div>
             <div style="padding:0;">

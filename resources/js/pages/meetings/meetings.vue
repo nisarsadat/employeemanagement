@@ -140,6 +140,27 @@
 
     </v-container>
 
+    <v-row class="px-2 mt-3">
+      <v-col
+        v-for="card in statCards"
+        :key="card.key"
+        cols="12"
+        sm="6"
+        md="3"
+      >
+        <v-card
+          class="pa-3"
+          rounded="lg"
+          :color="activeStat === card.key ? 'primary' : undefined"
+          :variant="activeStat === card.key ? 'flat' : 'outlined'"
+          @click="setStat(card.key)"
+        >
+          <div class="text-caption">{{ card.title }}</div>
+          <div class="text-h6 font-weight-bold">{{ card.count }}</div>
+        </v-card>
+      </v-col>
+    </v-row>
+
     <v-container fluid>
       <PeekButton
         v-model="expanded"
@@ -236,6 +257,22 @@
                 @click.stop="openPeek(item)"
               >
                 mdi-eye
+              </v-icon>
+            </template>
+          </v-tooltip>
+
+          <v-tooltip
+            :text="t('چاپ فورم')"
+            location="top"
+          >
+            <template #activator="{ props }">
+              <v-icon
+                v-bind="props"
+                size="small"
+                color="red-darken-2"
+                @click.stop="goFinalForm(item)"
+              >
+                mdi-file-document-outline
               </v-icon>
             </template>
           </v-tooltip>
@@ -458,6 +495,9 @@ watch(
 
 const searchField =
   ref(null);
+
+const activeStat =
+  ref('all');
 
 const selectedColumnValue =
   ref(null);
@@ -1184,6 +1224,10 @@ async function fetchAll() {
 
         date_field:
           'start_date',
+
+        stat:
+          activeStat.value ||
+          'all',
       });
   } catch (error) {
     console.error(error);
@@ -1194,6 +1238,27 @@ async function fetchAll() {
       )
     );
   }
+}
+
+const statCards = computed(() => {
+  const counts = repo.meetingCardCounts || {};
+  return [
+    { key: 'all', title: t('همه جلسات'), count: counts.total || 0 },
+    { key: 'today', title: t('جلسات امروز'), count: counts.today || 0 },
+    { key: 'suspicious', title: t('د مشکوکو حرکاتو درلودونکې غونډی'), count: counts.suspicious || 0 },
+    { key: 'problems', title: t('د ستونزو درلودونکې غونډي'), count: counts.problems || 0 },
+  ];
+});
+
+function setStat(key) {
+  activeStat.value = key;
+  fetchAll();
+}
+
+function goFinalForm(payload) {
+  const row = getRow(payload);
+  if (!row?.id) return;
+  router.push(`/app/meetings/print/${row.id}`);
 }
 
 async function fetchColumnValues(

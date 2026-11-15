@@ -319,34 +319,38 @@ class EmployeeManagementDashboardController extends Controller
         // Totals per format (all hawzas)
         $totalPerFormat = array_fill_keys($formatKeys, 0);
 
+        $union = null;
         foreach ($formatModels as $key => $modelClass) {
-            /** @var \Illuminate\Database\Eloquent\Model $instance */
-            $instance = new $modelClass();
-            $table    = $instance->getTable();
+            $table = (new $modelClass())->getTable();
+            $formatKey = preg_replace('/[^a-z_]/', '', $key);
 
-            $rows = DB::table($table)
+            $part = DB::table($table)
                 ->join('resources', 'resources.id', '=', $table . '.resource_id')
                 ->join('office_employees', 'office_employees.id', '=', 'resources.office_employee_id')
-                ->selectRaw('COALESCE(office_employees.hawza, "نامعلوم") as hawza, COUNT(*) as count')
-                ->groupBy('hawza')
-                ->get();
+                ->selectRaw("'$formatKey' as format_key, COALESCE(office_employees.hawza, \"نامعلوم\") as hawza, COUNT(*) as count")
+                ->groupBy('hawza');
 
-            foreach ($rows as $row) {
-                $hawza = $row->hawza ?? 'نامعلوم';
-                $count = (int) $row->count;
+            $union = $union ? $union->unionAll($part) : $part;
+        }
 
-                // Ensure hawza row exists and has all format keys initialized with 0
-                if (!isset($matrix[$hawza])) {
-                    $matrix[$hawza] = array_fill_keys($formatKeys, 0);
-                }
+        $rows = $union ? $union->get() : collect();
 
-                // Set this format count
-                $matrix[$hawza][$key] = $count;
-
-                // Accumulate totals
-                $totalByHawza[$hawza] = ($totalByHawza[$hawza] ?? 0) + $count;
-                $totalPerFormat[$key] = ($totalPerFormat[$key] ?? 0) + $count;
+        foreach ($rows as $row) {
+            $key = $row->format_key;
+            if (!array_key_exists($key, $formatModels)) {
+                continue;
             }
+
+            $hawza = $row->hawza ?? 'نامعلوم';
+            $count = (int) $row->count;
+
+            if (!isset($matrix[$hawza])) {
+                $matrix[$hawza] = array_fill_keys($formatKeys, 0);
+            }
+
+            $matrix[$hawza][$key] = $count;
+            $totalByHawza[$hawza] = ($totalByHawza[$hawza] ?? 0) + $count;
+            $totalPerFormat[$key] = ($totalPerFormat[$key] ?? 0) + $count;
         }
 
         // Build final rows: each hawza has all formats + total

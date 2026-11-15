@@ -31,7 +31,9 @@ class StoreOutgoingIncomingRequest extends FormRequest
             'answer_date' => ['nullable','date'],
             'answer_page' => ['nullable','string'],
 
-            'peshnehad' => ['nullable','date'],
+            'peshnehad' => ['nullable','string'],
+            'documents' => ['nullable','array'],
+            'documents.*' => ['file','max:20480'],
             'outgoing_incoming_date' => ['nullable','date'],
 
             'who_sighn' => ['nullable','string'],

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OutgoingIncoming extends Model
 {
@@ -44,6 +45,11 @@ class OutgoingIncoming extends Model
         'docs_sign_date' => 'date',
         'outgoing_incoming_date' => 'date',
     ];
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(SundryDocument::class, 'outgoing_incoming_id');
+    }
 
     public function scopeSearch(Builder $q, ?string $search): Builder
     {

@@ -25,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
         Information::observe(InformationObserver::class);
         Event::observe(EventObserver::class);
 
-        ReverbProcess::ensureRunning();
+        if ($this->app->environment('local')) {
+            ReverbProcess::ensureRunning();
+        }
     }
 }

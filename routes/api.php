@@ -1,5 +1,6 @@
 ﻿<?php
 
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\AccountTypeController;
 
@@ -219,6 +220,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Who am I + logout
     Route::get('/user', fn(Request $r) => $r->user());
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/global-search', [GlobalSearchController::class, 'index']);
 
     // ---------------------- RBAC admin (still behind auth only) ----------------------
     Route::apiResource('roles', RoleController::class);
@@ -257,83 +259,83 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('office-employees/inactive', [AE::class, 'inactive']);
 
     Route::get('officeemployees/date-options', [OfficeEmployeeController::class, 'dateOptions']);
-    Route::get('/finances/print', [FinanceController::class, 'printView']);
-    Route::get('/office-employees/print', [OfficeEmployeeController::class, 'printView']);
-    Route::get('/captive-deliveries/print', [CaptiveDeliveryController::class, 'printView']);
-    Route::get('informations/print', [InformationController::class, 'printView']);
+    Route::match(['get', 'post'], '/finances/print', [FinanceController::class, 'printView']);
+    Route::match(['get', 'post'], '/office-employees/print', [OfficeEmployeeController::class, 'printView']);
+    Route::match(['get', 'post'], '/captive-deliveries/print', [CaptiveDeliveryController::class, 'printView']);
+    Route::match(['get', 'post'], 'informations/print', [InformationController::class, 'printView']);
     Route::get('/officeemployee/filter-options', [OfficeEmployeeController::class, 'filterOptions']);
     protectResource('office-employees', 'office_employees', OfficeEmployeeController::class);
-    Route::get('/events/print', [EventController::class, 'printView']);
+    Route::match(['get', 'post'], '/events/print', [EventController::class, 'printView']);
 
     Route::get('officeemployees/date-options', [OfficeEmployeeController::class, 'dateOptions']);
 
     Route::get('office-employees/{officeEmployee}/documents/download-all', [OfficeEmployeeDocumentController::class, 'downloadAll']);
     Route::delete('office-employees/{officeEmployee}/documents/{document}', [OfficeEmployeeController::class, 'destroyDocument']);
-    Route::get('/expense-oils/print', [ExpenseOilController::class, 'printView']);
+    Route::match(['get', 'post'], '/expense-oils/print', [ExpenseOilController::class, 'printView']);
     Route::get('/resources/{id}/fifty-six-format-counts', [ResourceController::class, 'fiftySixFormatCounts']);
-    Route::get('/resources/print', [ResourceController::class, 'printView'])
+    Route::match(['get', 'post'], '/resources/print', [ResourceController::class, 'printView'])
         ->name('resources.print');
-    Route::get('/saeen-fasadas/print', [SaeenFasadController::class, 'printView']);
-    Route::get('/fasads/print', [FasadController::class, 'printView']);
-    Route::get('/jawasis/print', [JawasisController::class, 'printView']);
-    Route::get('/heists/print', [HeistController::class, 'printView']);
-    Route::get('/captives/print', [CaptiveController::class, 'printView']);
-    Route::get('/mulkano/print', [MulkanoController::class, 'printView']);
-    Route::get('/entry-exits/print', [EntryExitController::class, 'printView']);
-    Route::get('/sarafyanos/print', [SarafyanoController::class, 'printView']);
-    Route::get('/clubs/print', [ClubsController::class, 'printView']);
-    Route::get('/mahajerats/print', [MahajeratController::class, 'printView']);
-    Route::get('/soldiers/print', [SoldierController::class, 'printView']);
-    Route::get('/mawads/print', [MawadController::class, 'printView']);
-    Route::get('/lost-mujremeens/print', [LostMujremeenController::class, 'printView']);
-    Route::get('/old-soldiers-homes/print', [OldSoldiersHomesController::class, 'printView']);
-    Route::get('/robbers/print', [RobbersController::class, 'printView']);
-    Route::get('/non-responsable-people/print', [NonResponsablePeopleController::class, 'printView']);
-    Route::get('/mashkok-homes/print', [MashkokHomesController::class, 'printView']);
-    Route::get('/damage-places/print', [DamagePlacesController::class, 'printView']);
-    Route::get('/damage-rasan-places/print', [DamageRasanPlacesController::class, 'printView']);
-    Route::get('/mashkok-shops/print', [MashkokShopsController::class, 'printView']);
-    Route::get('/luchakano/print', [LuchakanoController::class, 'printView']);
-    Route::get('/schools/print', [SchoolController::class, 'printView']);
-    Route::get('/hado-bus-stops/print', [HadoBusStopController::class, 'printView']);
-    Route::get('/transport-companies/print', [TransportCompanyController::class, 'printView']);
-    Route::get('/car-sales-companies/print', [CarSalesCompanyController::class, 'printView']);
-    Route::get('/parkings/print', [ParkingController::class, 'printView']);
-    Route::get('/banks/print', [BankController::class, 'printView']);
-    Route::get('/rahnoma-mamlats/print', [RahnomaMamlatController::class, 'printView']);
-    Route::get('/apartments/print', [ApartmentController::class, 'printView']);
-    Route::get('/hosppitals/print', [HosppitalController::class, 'printView']);
-    Route::get('/work-shops/print', [WorkShopController::class, 'printView']);
-    Route::get('/sarayanos/print', [SarayanoController::class, 'printView']);
-    Route::get('/emarat-offices/print', [EmaratOfficeController::class, 'printView']);
-    Route::get('/hostels/print', [HostelController::class, 'printView']);
-    Route::get('/hotels/print', [HotelController::class, 'printView']);
-    Route::get('/madrasas/print', [MadrasaController::class, 'printView']);
-    Route::get('/mashkok-people/print', [MashkokPeopleController::class, 'printView']);
-    Route::get('/mujahedinos/print', [MujahedinoController::class, 'printView']);
-    Route::get('/old-jahadis/print', [OldJahadiController::class, 'printView']);
-    Route::get('/tujarans/print', [TujaranController::class, 'printView']);
-    Route::get('/masjids/print', [MasjidController::class, 'printView']);
-    Route::get('/highways/print', [HighwayController::class, 'printView']);
-    Route::get('/checkpoints/print', [CheckpointController::class, 'printView']);
-    Route::get('/companies/print', [CompanyController::class, 'printView']);
-    Route::get('/done-lost-places/print', [DoneLostPlaceController::class, 'printView']);
-    Route::get('/econemy-projects/print', [EconemyProjectController::class, 'printView']);
-    Route::get('/criminal-capture-places/print', [CriminalCapturePlaceController::class, 'printView']);
-    Route::get('/pumps/print', [PumpController::class, 'printView']); Route::get('/shoras/print', [ShoraController::class, 'printView']);
-    Route::get('/shoras/print', [ShoraController::class, 'printView']);
-    Route::get('/government-places/print', [GovernmentPlaceController::class, 'printView']);
-    Route::get('/super-markets/print', [SuperMarketController::class, 'printView']);
-    Route::get('/parks/print', [ParkController::class, 'printView']);
-    Route::get('/complexes/print', [ComplexController::class, 'printView']);
-    Route::get('/deplomaticplaces/print', [DeplomaticPlaceController::class, 'printView']);
-    Route::get('/universities/print', [UniversityController::class, 'printView']);
-    Route::get('/wakilanos/print', [WakilanoController::class, 'printView']);
-    Route::get('/badmashanos/print', [BadmashanoController::class, 'printView']);
+    Route::match(['get', 'post'], '/saeen-fasadas/print', [SaeenFasadController::class, 'printView']);
+    Route::match(['get', 'post'], '/fasads/print', [FasadController::class, 'printView']);
+    Route::match(['get', 'post'], '/jawasis/print', [JawasisController::class, 'printView']);
+    Route::match(['get', 'post'], '/heists/print', [HeistController::class, 'printView']);
+    Route::match(['get', 'post'], '/captives/print', [CaptiveController::class, 'printView']);
+    Route::match(['get', 'post'], '/mulkano/print', [MulkanoController::class, 'printView']);
+    Route::match(['get', 'post'], '/entry-exits/print', [EntryExitController::class, 'printView']);
+    Route::match(['get', 'post'], '/sarafyanos/print', [SarafyanoController::class, 'printView']);
+    Route::match(['get', 'post'], '/clubs/print', [ClubsController::class, 'printView']);
+    Route::match(['get', 'post'], '/mahajerats/print', [MahajeratController::class, 'printView']);
+    Route::match(['get', 'post'], '/soldiers/print', [SoldierController::class, 'printView']);
+    Route::match(['get', 'post'], '/mawads/print', [MawadController::class, 'printView']);
+    Route::match(['get', 'post'], '/lost-mujremeens/print', [LostMujremeenController::class, 'printView']);
+    Route::match(['get', 'post'], '/old-soldiers-homes/print', [OldSoldiersHomesController::class, 'printView']);
+    Route::match(['get', 'post'], '/robbers/print', [RobbersController::class, 'printView']);
+    Route::match(['get', 'post'], '/non-responsable-people/print', [NonResponsablePeopleController::class, 'printView']);
+    Route::match(['get', 'post'], '/mashkok-homes/print', [MashkokHomesController::class, 'printView']);
+    Route::match(['get', 'post'], '/damage-places/print', [DamagePlacesController::class, 'printView']);
+    Route::match(['get', 'post'], '/damage-rasan-places/print', [DamageRasanPlacesController::class, 'printView']);
+    Route::match(['get', 'post'], '/mashkok-shops/print', [MashkokShopsController::class, 'printView']);
+    Route::match(['get', 'post'], '/luchakano/print', [LuchakanoController::class, 'printView']);
+    Route::match(['get', 'post'], '/schools/print', [SchoolController::class, 'printView']);
+    Route::match(['get', 'post'], '/hado-bus-stops/print', [HadoBusStopController::class, 'printView']);
+    Route::match(['get', 'post'], '/transport-companies/print', [TransportCompanyController::class, 'printView']);
+    Route::match(['get', 'post'], '/car-sales-companies/print', [CarSalesCompanyController::class, 'printView']);
+    Route::match(['get', 'post'], '/parkings/print', [ParkingController::class, 'printView']);
+    Route::match(['get', 'post'], '/banks/print', [BankController::class, 'printView']);
+    Route::match(['get', 'post'], '/rahnoma-mamlats/print', [RahnomaMamlatController::class, 'printView']);
+    Route::match(['get', 'post'], '/apartments/print', [ApartmentController::class, 'printView']);
+    Route::match(['get', 'post'], '/hosppitals/print', [HosppitalController::class, 'printView']);
+    Route::match(['get', 'post'], '/work-shops/print', [WorkShopController::class, 'printView']);
+    Route::match(['get', 'post'], '/sarayanos/print', [SarayanoController::class, 'printView']);
+    Route::match(['get', 'post'], '/emarat-offices/print', [EmaratOfficeController::class, 'printView']);
+    Route::match(['get', 'post'], '/hostels/print', [HostelController::class, 'printView']);
+    Route::match(['get', 'post'], '/hotels/print', [HotelController::class, 'printView']);
+    Route::match(['get', 'post'], '/madrasas/print', [MadrasaController::class, 'printView']);
+    Route::match(['get', 'post'], '/mashkok-people/print', [MashkokPeopleController::class, 'printView']);
+    Route::match(['get', 'post'], '/mujahedinos/print', [MujahedinoController::class, 'printView']);
+    Route::match(['get', 'post'], '/old-jahadis/print', [OldJahadiController::class, 'printView']);
+    Route::match(['get', 'post'], '/tujarans/print', [TujaranController::class, 'printView']);
+    Route::match(['get', 'post'], '/masjids/print', [MasjidController::class, 'printView']);
+    Route::match(['get', 'post'], '/highways/print', [HighwayController::class, 'printView']);
+    Route::match(['get', 'post'], '/checkpoints/print', [CheckpointController::class, 'printView']);
+    Route::match(['get', 'post'], '/companies/print', [CompanyController::class, 'printView']);
+    Route::match(['get', 'post'], '/done-lost-places/print', [DoneLostPlaceController::class, 'printView']);
+    Route::match(['get', 'post'], '/econemy-projects/print', [EconemyProjectController::class, 'printView']);
+    Route::match(['get', 'post'], '/criminal-capture-places/print', [CriminalCapturePlaceController::class, 'printView']);
+    Route::match(['get', 'post'], '/pumps/print', [PumpController::class, 'printView']); Route::match(['get', 'post'], '/shoras/print', [ShoraController::class, 'printView']);
+    Route::match(['get', 'post'], '/shoras/print', [ShoraController::class, 'printView']);
+    Route::match(['get', 'post'], '/government-places/print', [GovernmentPlaceController::class, 'printView']);
+    Route::match(['get', 'post'], '/super-markets/print', [SuperMarketController::class, 'printView']);
+    Route::match(['get', 'post'], '/parks/print', [ParkController::class, 'printView']);
+    Route::match(['get', 'post'], '/complexes/print', [ComplexController::class, 'printView']);
+    Route::match(['get', 'post'], '/deplomaticplaces/print', [DeplomaticPlaceController::class, 'printView']);
+    Route::match(['get', 'post'], '/universities/print', [UniversityController::class, 'printView']);
+    Route::match(['get', 'post'], '/wakilanos/print', [WakilanoController::class, 'printView']);
+    Route::match(['get', 'post'], '/badmashanos/print', [BadmashanoController::class, 'printView']);
 
     // ---------------------- Security Assessments ----------------------
 
-    Route::get('/security-assessments/print', [
+    Route::match(['get', 'post'], '/security-assessments/print', [
         SecurityAssessmentController::class,
         'printView',
     ]);
@@ -350,7 +352,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ---------------------- Meetings ----------------------
 
-    Route::get('/meetings/print', [
+    Route::match(['get', 'post'], '/meetings/print', [
         MeetingController::class,
         'printView',
     ]);
@@ -421,7 +423,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ---------------------- Security Assessments ----------------------
 
-    Route::get('/security-assessments/print', [
+    Route::match(['get', 'post'], '/security-assessments/print', [
         SecurityAssessmentController::class,
         'printView',
     ]);
@@ -550,9 +552,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::delete('/mahajerats/{id}/picture', [MahajeratController::class, 'deletePicture']);
     // resources (API) => module: resources_api
-    Route::get('/outgoing-incomings/print', [OutgoingIncomingController::class, 'printView']);
+    Route::match(['get', 'post'], '/outgoing-incomings/print', [OutgoingIncomingController::class, 'printView']);
     protectResource('resources', 'resources_api', ResourceController::class);
-    Route::get('/khayrat-reports/print', [KhayratReportController::class, 'printView']);
+    Route::match(['get', 'post'], '/khayrat-reports/print', [KhayratReportController::class, 'printView']);
     Route::get('fasads/filter-options', [FasadController::class, 'filterOptions']);
 
     Route::get('saeen-fasads/filter-options', [SaeenFasadController::class, 'filterOptions']);

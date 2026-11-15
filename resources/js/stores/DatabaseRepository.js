@@ -60,6 +60,8 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       upcoming: 0,
       ongoing: 0,
       completed: 0,
+      suspicious: 0,
+      problems: 0,
     },
 
     // ====================== SECURITY ASSESSMENTS ======================
@@ -326,6 +328,8 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           upcoming: Number(response?.data?.card_counts?.upcoming ?? 0),
           ongoing: Number(response?.data?.card_counts?.ongoing ?? 0),
           completed: Number(response?.data?.card_counts?.completed ?? 0),
+          suspicious: Number(response?.data?.card_counts?.suspicious ?? 0),
+          problems: Number(response?.data?.card_counts?.problems ?? 0),
         };
 
         return response;
@@ -342,6 +346,8 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
           upcoming: 0,
           ongoing: 0,
           completed: 0,
+          suspicious: 0,
+          problems: 0,
         };
 
         throw error;
@@ -1007,8 +1013,9 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
 
           return {
             title: employee.code_number
-              ? `${label} (${employee.code_number})`
+              ? `${employee.code_number}`
               : label,
+            code: employee.code_number || '',
             value: employee.id,
           };
         });
@@ -2605,8 +2612,8 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
 
     <table>
     <tr>
-      <th colspan="2">د منبع کوډ</th>
-      <th colspan="2">د کارمند کوډ</th>
+      <th colspan="2">د منبع نوم</th>
+      <th colspan="2">د اړوند کارمند نوم</th>
       <th colspan="2">د پیښی نیټه</th>
       <th colspan="2">د پیښی ساعت</th>
       <th colspan="4">د پیښی نوعیت</th>
@@ -2617,7 +2624,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
       <td colspan="2">${esc(data.employee_code)}</td>
       <td colspan="2">${esc(data.event_date)}</td>
       <td colspan="2">${esc(data.event_hour)}</td>
-      <td colspan="4">${esc(data.event_specefic_type)}</td>
+      <td colspan="4">${esc(data.event_specefic_type || data.event_specific_type)}</td>
     </tr>
 
     <tr>
@@ -2629,7 +2636,7 @@ export const useDatabaseRepository = defineStore('DatabaseRepository', {
     <tr>
       <td colspan="4">${esc(data.target_person)}</td>
       <td colspan="4">${esc(data.criminal)}</td>
-      <td colspan="4">${esc(data.hamghagi)}</td>
+      <td colspan="4">${esc(data.hamghagi || data.talks)}</td>
     </tr>
     <tr>
       <th colspan="6">د پیښی ځای</th>

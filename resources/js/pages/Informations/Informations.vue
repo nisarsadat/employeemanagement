@@ -982,7 +982,7 @@
     { title: t('رهنمود رهبریت'), key: 'lead_drirection' },
     { title: t('تاریخ هم‌آهنگی'), key: 'hamahangi_date' },
     { title: t('شماره مکتوب'), key: 'maktop_number' },
-    { title: t('ارگان'), key: 'organ' },
+    { title: t('ارگان اطلاع'), key: 'organ' },
     { title: t('نتیجه'), key: 'result' },
     { title: t('ملاحظات'), key: 'note' },
   ]);

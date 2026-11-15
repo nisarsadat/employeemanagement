@@ -39,7 +39,7 @@ export const MODULE_PASHTO = {
   // notification + chat + reports + system
   notifications: 'نوتیفیکیشن',
   chatbox: 'چټ باکس',
-  khayratreport: 'د خیریت راپور',
+  khayratreport: 'د حاضری راپور',
   systemsetting: 'سیسټم تنظیمات',
   outgoingincomming: 'صادره/وارده مکتوبونه',
 

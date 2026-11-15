@@ -688,6 +688,7 @@ class FinanceController extends Controller
 
         $dates = Finance::query()
             ->whereNotNull($dateField)
+            ->distinct()
             ->pluck($dateField);
 
         $yearsMap = [];

@@ -14,6 +14,7 @@ use App\Models\Income;
 use App\Models\IncomeOil;
 use App\Models\ExpenseOil;
 use App\Models\KhayratReport;
+use App\Models\InformationCategory;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -278,9 +279,39 @@ class DashboardController extends Controller
         })->values();
 
         /* -------------------------------------------------
-        | ✅ RESOURCES TABLE - same point rule as employees, FINANCE period
-        | 1 information = 1, 2 events = 1, 20 khayrat reports = 1
+        | ✅ RESOURCES TABLE - FINANCE period
+        | information points come from the اطلاع کتگوری points,
+        | each event = 1, each khayrat report = 1,
+        | each day in the period with no khayrat report = -1
         |-------------------------------------------------*/
+        $categoryPoints = InformationCategory::query()
+            ->get(['information_category', 'points'])
+            ->mapWithKeys(function ($category) {
+                $name = trim((string) $category->information_category);
+
+                return [$name => (int) $category->points];
+            });
+
+        $informationPointsByResource = [];
+        Information::query()
+            ->select('resource_id', 'information_category', DB::raw('COUNT(*) as total'))
+            ->whereNotNull('resource_id')
+            ->when($financeFrom && $financeTo, fn ($q) => $this->applyDateRange($q, $informationDateCol, $financeFrom, $financeTo))
+            ->groupBy('resource_id', 'information_category')
+            ->get()
+            ->each(function ($row) use (&$informationPointsByResource, $categoryPoints) {
+                $category = trim((string) $row->information_category);
+                $points = (int) ($categoryPoints[$category] ?? 0);
+                $resourceId = (int) $row->resource_id;
+                $informationPointsByResource[$resourceId] = ($informationPointsByResource[$resourceId] ?? 0)
+                    + ($points * (int) $row->total);
+            });
+
+        $periodDays = 0;
+        if ($financeFrom && $financeTo) {
+            $periodDays = (int) $financeFrom->copy()->startOfDay()->diffInDays($financeTo->copy()->startOfDay()) + 1;
+        }
+
         $resourcesForRanking = Resource::query()
             ->select('id', 'name', 'nick_name', 'code_number', 'picture', 'activity')
             ->withCount([
@@ -295,6 +326,13 @@ class DashboardController extends Controller
             ])
             ->get();
 
+        $reportDaysByResource = KhayratReport::query()
+            ->select('resource_id', DB::raw('COUNT(DISTINCT DATE(`'.$khayratDateCol.'`)) as days'))
+            ->whereNotNull('resource_id')
+            ->when($financeFrom && $financeTo, fn ($q) => $this->applyDateRange($q, $khayratDateCol, $financeFrom, $financeTo))
+            ->groupBy('resource_id')
+            ->pluck('days', 'resource_id');
+
         $resourcesWithActivity = $resourcesForRanking
             ->filter(function ($r) {
                 return (
@@ -305,14 +343,18 @@ class DashboardController extends Controller
             })
             ->values();
 
-        $resourcesScored = $resourcesWithActivity->map(function ($r) {
+        $resourcesScored = $resourcesWithActivity->map(function ($r) use ($informationPointsByResource, $periodDays, $reportDaysByResource) {
             $events = (int) $r->events_count;
             $infos  = (int) $r->informations_count;
             $khayrat = (int) $r->khayrat_reports_count;
+            $reportDays = (int) ($reportDaysByResource[$r->id] ?? 0);
+            if ($periodDays > 0) {
+                $reportDays = min($reportDays, $periodDays);
+            }
+            $missedDays = $periodDays > 0 ? max(0, $periodDays - $reportDays) : 0;
+            $informationPoints = (int) ($informationPointsByResource[(int) $r->id] ?? 0);
 
-            $score = $infos
-                + intdiv($events, 2)
-                + intdiv($khayrat, 20);
+            $score = $informationPoints + $events + $khayrat - $missedDays;
 
             $picture = null;
             if ($r->picture) {
@@ -330,7 +372,9 @@ class DashboardController extends Controller
                 'activity'              => $r->activity,
                 'events_count'          => $events,
                 'informations_count'    => $infos,
+                'information_points'    => $informationPoints,
                 'khayrat_reports_count' => $khayrat,
+                'missed_report_days'    => $missedDays,
                 'total'                 => $score,
                 'score'                 => $score,
             ];
@@ -444,45 +488,17 @@ $informationsBySyasiType = (clone $informationBase)
     ->sortByDesc('count')
     ->values();
 
-        $informationsBySyasiType = (clone $informationBase)
-            ->select('syasi_info_type', DB::raw('COUNT(*) as total'))
-            ->groupBy('syasi_info_type')
-            ->get()
-            ->map(function ($row) {
-                $name = is_string($row->syasi_info_type) ? trim($row->syasi_info_type) : '';
-                return [
-                    'type'  => $name !== '' ? $name : 'نامعلوم',
-                    'count' => (int) $row->total,
-                ];
-            })
-            ->sortByDesc('count')
-            ->values();
-
-        $informationsBySyasiType = Information::query()
-            ->select('syasi_info_type', DB::raw('COUNT(*) as total'))
-            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
-            ->groupBy('syasi_info_type')
-            ->get()
-            ->map(function ($row) {
-                $name = is_string($row->syasi_info_type) ? trim($row->syasi_info_type) : '';
-                return [
-                    'type'  => $name !== '' ? $name : 'نامعلوم',
-                    'count' => (int) $row->total,
-                ];
-            })
-            ->sortByDesc('count')
-            ->values();
-
         /* -------------------------------------------------
         | EVENTS (MAIN period) + types chips
+        | Same date column as the event scores: event_date when it exists.
         |-------------------------------------------------*/
         $eventsTotal = Event::query()
-            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, $eventDateCol, $from, $to))
             ->count();
 
        $eventsByType = Event::query()
             ->select('event_type', 'event_specific_type')
-            ->when($from && $to, fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+            ->when($from && $to, fn ($q) => $this->applyDateRange($q, $eventDateCol, $from, $to))
             ->get()
             ->map(function ($row) {
                 $type = trim((string) ($row->event_type ?: $row->event_specific_type));
@@ -895,34 +911,46 @@ private function informationTypeCount($baseQuery, array $variants): int
      |=====================================================*/
     private function monthlyCount($query, string $dateCol, array $buckets): array
     {
-        return collect($buckets)->map(function ($b) use ($query, $dateCol) {
-            $count = (int) (clone $query)
-                ->whereBetween($dateCol, [$b['from'], $b['to']])
-                ->count();
-
-            return [
-                'key'   => $b['key'],
-                'month' => $b['month'],
-                'label' => $b['label'],
-                'value' => $count,
-            ];
-        })->values()->all();
+        return $this->monthlyAggregate($query, $dateCol, null, $buckets);
     }
 
     private function monthlySum($query, string $dateCol, string $sumCol, array $buckets): array
     {
-        return collect($buckets)->map(function ($b) use ($query, $dateCol, $sumCol) {
-            $sum = (float) (clone $query)
-                ->whereBetween($dateCol, [$b['from'], $b['to']])
-                ->sum($sumCol);
+        return $this->monthlyAggregate($query, $dateCol, $sumCol, $buckets);
+    }
 
-            return [
-                'key'   => $b['key'],
-                'month' => $b['month'],
-                'label' => $b['label'],
-                'value' => $sum,
+    /**
+     * One grouped pass over the same inclusive ranges whereBetween used.
+     */
+    private function monthlyAggregate($query, string $dateCol, ?string $sumCol, array $buckets): array
+    {
+        if ($buckets === []) {
+            return [];
+        }
+
+        $expressions = [];
+        $bindings = [];
+        foreach ($buckets as $i => $bucket) {
+            $measure = $sumCol ? "`{$sumCol}`" : '1';
+            $expressions[] = "SUM(CASE WHEN `{$dateCol}` BETWEEN ? AND ? THEN {$measure} ELSE 0 END) AS b{$i}";
+            $bindings[] = $bucket['from']->toDateTimeString();
+            $bindings[] = $bucket['to']->toDateTimeString();
+        }
+
+        $row = (clone $query)->selectRaw(implode(', ', $expressions), $bindings)->first();
+
+        $out = [];
+        foreach ($buckets as $i => $bucket) {
+            $alias = 'b'.$i;
+            $out[] = [
+                'key'   => $bucket['key'],
+                'month' => $bucket['month'],
+                'label' => $bucket['label'],
+                'value' => $sumCol ? (float) ($row->{$alias} ?? 0) : (int) ($row->{$alias} ?? 0),
             ];
-        })->values()->all();
+        }
+
+        return $out;
     }
 
     /* =====================================================
@@ -1094,32 +1122,40 @@ private function informationTypeCount($baseQuery, array $variants): int
 
             $usedTables[] = $table;
 
-            $rows = DB::table($table)
-                ->select($districtCol, DB::raw('COUNT(*) as total'))
-                ->when($dateCol && $from && $to, fn ($qq) => $qq->whereBetween($dateCol, [$from, $to]))
-                ->groupBy($districtCol)
-                ->get();
-
-            foreach ($rows as $r) {
-                $district = is_string($r->{$districtCol}) ? trim($r->{$districtCol}) : '';
-                if ($district === '') $district = 'نامعلوم';
-
-                if (!isset($districtMap[$district])) {
-                    $districtMap[$district] = [
-                        'zone'      => $district,
-                        'total'     => 0,
-                        'breakdown' => [],
-                    ];
-                }
-
-                $count = (int) $r->total;
-                $districtMap[$district]['total'] += $count;
-
-                if (!isset($districtMap[$district]['breakdown'][$table])) {
-                    $districtMap[$district]['breakdown'][$table] = 0;
-                }
-                $districtMap[$district]['breakdown'][$table] += $count;
+            if (!preg_match('/^[A-Za-z0-9_]+$/', $districtCol) || !preg_match('/^[A-Za-z0-9_]+$/', $table)) {
+                continue;
             }
+
+            $part = DB::table($table)
+                ->selectRaw("`{$districtCol}` as district_value, COUNT(*) as total, '{$table}' as format_table")
+                ->when($dateCol && $from && $to, fn ($qq) => $qq->whereBetween($dateCol, [$from, $to]))
+                ->groupBy($districtCol);
+
+            $union = isset($union) ? $union->unionAll($part) : $part;
+        }
+
+        $rows = isset($union) ? $union->get() : collect();
+
+        foreach ($rows as $r) {
+            $district = is_string($r->district_value) ? trim($r->district_value) : '';
+            if ($district === '') $district = 'نامعلوم';
+            $table = (string) $r->format_table;
+
+            if (!isset($districtMap[$district])) {
+                $districtMap[$district] = [
+                    'zone'      => $district,
+                    'total'     => 0,
+                    'breakdown' => [],
+                ];
+            }
+
+            $count = (int) $r->total;
+            $districtMap[$district]['total'] += $count;
+
+            if (!isset($districtMap[$district]['breakdown'][$table])) {
+                $districtMap[$district]['breakdown'][$table] = 0;
+            }
+            $districtMap[$district]['breakdown'][$table] += $count;
         }
 
         $zones = array_values($districtMap);

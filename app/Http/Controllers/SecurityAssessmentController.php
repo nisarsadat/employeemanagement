@@ -67,7 +67,10 @@ class SecurityAssessmentController extends Controller
     private function baseListQuery(): Builder
     {
         return SecurityAssessment::query()
-            ->with('officeEmployees:id,name,code_number');
+            ->with([
+                'officeEmployees:id,name,code_number',
+                'documents',
+            ]);
     }
 
     private function applySearch(
@@ -403,7 +406,8 @@ class SecurityAssessmentController extends Controller
                 ?? [];
 
             unset(
-                $data['office_employee_ids']
+                $data['office_employee_ids'],
+                $data['documents']
             );
 
             $assessment =
@@ -413,6 +417,8 @@ class SecurityAssessmentController extends Controller
             $assessment
                 ->officeEmployees()
                 ->sync($employeeIds);
+
+            $this->storeAssessmentDocuments($request, $assessment);
 
             NotificationService::recordForAllUsers(
                 actor: $request->user(),
@@ -471,7 +477,8 @@ class SecurityAssessmentController extends Controller
                 ?? [];
 
             unset(
-                $data['office_employee_ids']
+                $data['office_employee_ids'],
+                $data['documents']
             );
 
             $assessment->fill($data);
@@ -501,6 +508,8 @@ class SecurityAssessmentController extends Controller
             $assessment
                 ->officeEmployees()
                 ->sync($employeeIds);
+
+            $this->storeAssessmentDocuments($request, $assessment);
 
             NotificationService::recordForAllUsers(
                 actor: $request->user(),
@@ -808,5 +817,27 @@ class SecurityAssessmentController extends Controller
                     ),
             ]
         );
+    }
+
+    private function storeAssessmentDocuments(Request $request, SecurityAssessment $assessment): void
+    {
+        if (!$request->hasFile('documents')) {
+            return;
+        }
+
+        foreach ($request->file('documents') as $file) {
+            if (!$file) {
+                continue;
+            }
+
+            $path = $file->store("security-assessments/{$assessment->id}", 'public');
+
+            $assessment->documents()->create([
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'mime_type' => $file->getClientMimeType(),
+                'size_bytes' => $file->getSize(),
+            ]);
+        }
     }
 }

@@ -375,9 +375,9 @@ private function applyMonthYearFilter($query, ?int $year, ?int $month, string $d
 private function baseListQuery()
 {
     return Event::query()->with([
-        'resource:id,code_number',
-        'officeEmployee:id,code_number',
-        'akhistonkyEmployee:id,code_number',
+        'resource:id,code_number,name',
+        'officeEmployee:id,code_number,name',
+        'akhistonkyEmployee:id,code_number,name',
         'documents',
         'account:id,name,price',
         'finances',
@@ -463,31 +463,20 @@ private function buildCardCounts(
     $this->applyDateRangeFilter($base, $request, $dateField);
     $this->applyTypeFilter($base, $type);
 
+    $row = (clone $base)->selectRaw("
+        COUNT(*) as total,
+        SUM(CASE WHEN event_type LIKE '%سیاسی%' OR event_type LIKE '%سیاسي%' OR event_type LIKE '%syasi%' THEN 1 ELSE 0 END) as syasi,
+        SUM(CASE WHEN event_type LIKE '%جینایی%' OR event_type LIKE '%جنایی%' OR event_type LIKE '%جنایي%' OR event_type LIKE '%jinayee%' OR event_type LIKE '%jenayee%' THEN 1 ELSE 0 END) as jenayee,
+        SUM(CASE WHEN DATE(created_at) = ? THEN 1 ELSE 0 END) as today,
+        SUM(CASE WHEN finance_status IN ('unpaid', 'pending', 'ناپرداخت', 'not_paid') THEN 1 ELSE 0 END) as unpaid
+    ", [now()->toDateString()])->first();
+
     return [
-        'total'    => (clone $base)->count(),
-
-        'syasi'    => (clone $base)->where(function ($q) {
-            $q->where('event_type', 'like', '%سیاسی%')
-                ->orWhere('event_type', 'like', '%سیاسي%')
-                ->orWhere('event_type', 'like', '%syasi%');
-        })->count(),
-
-        'jenayee'  => (clone $base)->where(function ($q) {
-            $q->where('event_type', 'like', '%جینایی%')
-                ->orWhere('event_type', 'like', '%جنایی%')
-                ->orWhere('event_type', 'like', '%جنایي%')
-                ->orWhere('event_type', 'like', '%jinayee%')
-                ->orWhere('event_type', 'like', '%jenayee%');
-        })->count(),
-
-        'today'    => (clone $base)->whereDate('created_at', now()->toDateString())->count(),
-
-        'unpaid'   => (clone $base)->where(function ($q) {
-            $q->where('finance_status', 'unpaid')
-                ->orWhere('finance_status', 'pending')
-                ->orWhere('finance_status', 'ناپرداخت')
-                ->orWhere('finance_status', 'not_paid');
-        })->count(),
+        'total'    => (int) ($row->total ?? 0),
+        'syasi'    => (int) ($row->syasi ?? 0),
+        'jenayee'  => (int) ($row->jenayee ?? 0),
+        'today'    => (int) ($row->today ?? 0),
+        'unpaid'   => (int) ($row->unpaid ?? 0),
     ];
 }
 
@@ -503,6 +492,7 @@ public function dateOptions(Request $request)
 
     $dates = Event::query()
         ->whereNotNull($dateField)
+        ->distinct()
         ->pluck($dateField);
 
     $yearsMap = [];
@@ -1018,6 +1008,23 @@ public function destroy(Request $request, $id)
         ], 500);
     }
 }
+
+private function codeWithName($code, $name, $fallback = null): string
+{
+    $parts = collect([$code, $name])
+        ->map(fn ($value) => trim((string) $value))
+        ->filter()
+        ->values();
+
+    if ($parts->isNotEmpty()) {
+        return $parts->implode(' - ');
+    }
+
+    $fallbackText = trim((string) $fallback);
+
+    return $fallbackText !== '' ? $fallbackText : '-';
+}
+
 public function printView(Request $request)
 {
     $query = $this->baseListQuery();
@@ -1046,29 +1053,32 @@ public function printView(Request $request)
     );
 
 
-   $rows = $query
+    $rows = $query
     ->with([
-        'resource:id,code_number',
-        'officeEmployee:id,code_number',
-        'akhistonkyEmployee:id,code_number',
+        'resource:id,code_number,name',
+        'officeEmployee:id,code_number,name',
+        'akhistonkyEmployee:id,code_number,name',
     ])
     ->latest()
     ->get()
     ->map(function ($event) {
-        $event->resource_display =
-            $event->resource?->code_number
-            ?? $event->resource_id
-            ?? '-';
+        $event->resource_display = $this->codeWithName(
+            $event->resource?->code_number,
+            $event->resource?->name,
+            $event->resource_id
+        );
 
-        $event->office_employee_display =
-            $event->officeEmployee?->code_number
-            ?? $event->office_employee_id
-            ?? '-';
+        $event->office_employee_display = $this->codeWithName(
+            $event->officeEmployee?->code_number,
+            $event->officeEmployee?->name,
+            $event->office_employee_id
+        );
 
-        $event->office_employee_akhistonky_code =
-            $event->akhistonkyEmployee?->code_number
-            ?? $event->office_employee_akhistonky_id
-            ?? '-';
+        $event->office_employee_akhistonky_code = $this->codeWithName(
+            $event->akhistonkyEmployee?->code_number,
+            $event->akhistonkyEmployee?->name,
+            $event->office_employee_akhistonky_id
+        );
 
         if (!empty($event->event_date)) {
             try {

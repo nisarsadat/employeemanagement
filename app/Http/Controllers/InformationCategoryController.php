@@ -16,9 +16,10 @@ class InformationCategoryController extends Controller
     {
         $request->validate([
             'information_category' => 'required|string|max:255|unique:information_categories,information_category',
+            'points' => 'required|integer|min:0|max:1000',
         ]);
 
-        return InformationCategory::create($request->only('information_category'));
+        return InformationCategory::create($request->only('information_category', 'points'));
     }
 
     public function show(InformationCategory $informationCategory)
@@ -30,9 +31,10 @@ class InformationCategoryController extends Controller
     {
         $request->validate([
             'information_category' => 'required|string|max:255|unique:information_categories,information_category,' . $informationCategory->id,
+            'points' => 'required|integer|min:0|max:1000',
         ]);
 
-        $informationCategory->update($request->only('information_category'));
+        $informationCategory->update($request->only('information_category', 'points'));
 
         return $informationCategory;
     }

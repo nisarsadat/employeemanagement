@@ -144,7 +144,7 @@
             block
             class="text-none"
             prepend-icon="mdi-printer"
-            @click="printAll"
+            @click="printEmployees"
           >
             {{ t('چاپ') }}
           </v-btn>
@@ -1118,22 +1118,35 @@
       year: filterYear.value,
       month: filterMonth.value,
       date_field: 'join_date',
-      office_employee_info_id,
       status: selectedCardStatus.value,
       job_type: selectedCardJobType.value,
-      office_employee_id: relatedFilters.value.office_employee_id,
+      office_employee_id: routeEmployeeId.value,
+      office_employee_info_id: route.query?.office_employee_info_id || null,
+      office_employee_akhistonky_id: route.query?.office_employee_akhistonky_id || null,
       resource_id: relatedFilters.value.resource_id,
       information_id: relatedFilters.value.information_id,
       event_id: relatedFilters.value.event_id,
     }),
 
     getHeaders: () => headersFT.value,
-    getSelectedColumnKeys: () => selectedPrintColumns.value,
+    getSelectedColumnKeys: () => {
+      const selected = selectedPrintColumns.value || [];
+      return selected.length ? selected : buildDefaultPrintColumns();
+    },
     getTitle: () => t('چاپ کارمندان مدیریت'),
     getPrintLabels: () => printLabels.value,
     getLocale: () => locale.value,
     defaultFileName: 'office-employees-print',
   });
+
+  async function printEmployees() {
+    try {
+      await printAll();
+    } catch (e) {
+      console.error('printEmployees error', e);
+      showErrorMessage(t('خطا در چاپ'));
+    }
+  }
   onMounted(async () => {
     syncCardFiltersFromRoute();
 

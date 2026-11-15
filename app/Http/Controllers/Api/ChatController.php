@@ -59,25 +59,21 @@ class ChatController extends Controller
     {
         $auth = $request->user();
 
-        return Conversation::whereHas('participants', fn ($q) =>
+        $conversations = Conversation::whereHas('participants', fn ($q) =>
                 $q->where('user_id', $auth->id)
             )
             ->with([
                 'participants:id,name,image,last_seen_at',
                 'lastMessage.sender:id,name,image',
             ])
-            ->get()
-            ->map(function ($conv) use ($auth) {
-                $other = $conv->participants->firstWhere('id', '!=', $auth->id);
-                $pivot = $conv->participants->firstWhere('id', $auth->id)?->pivot;
+            ->get();
 
-                $unread = Message::where('conversation_id', $conv->id)
-                    ->where('sender_id', '!=', $auth->id)
-                    ->whereNull('seen_at')
-                    ->when($pivot?->last_read_at, fn ($q) =>
-                        $q->where('created_at', '>', $pivot->last_read_at)
-                    )
-                    ->count();
+        $unreadMap = $this->unreadCountsFor($auth->id, $conversations->pluck('id')->all());
+
+        return $conversations->map(function ($conv) use ($auth, $unreadMap) {
+                $other = $conv->participants->firstWhere('id', '!=', $auth->id);
+
+                $unread = (int) ($unreadMap[$conv->id] ?? 0);
 
                 return [
                     'id' => $conv->id,
@@ -97,6 +93,30 @@ class ChatController extends Controller
     /* =========================================================
      | FIND OR CREATE DIRECT CONVERSATION
      ========================================================= */
+    private function unreadCountsFor(int $userId, array $conversationIds): array
+    {
+        if ($conversationIds === []) {
+            return [];
+        }
+
+        return Message::query()
+            ->join('conversation_participants as cp', function ($join) use ($userId) {
+                $join->on('cp.conversation_id', '=', 'messages.conversation_id')
+                    ->where('cp.user_id', '=', $userId);
+            })
+            ->whereIn('messages.conversation_id', $conversationIds)
+            ->where('messages.sender_id', '!=', $userId)
+            ->whereNull('messages.seen_at')
+            ->where(function ($query) {
+                $query->whereNull('cp.last_read_at')
+                    ->orWhereColumn('messages.created_at', '>', 'cp.last_read_at');
+            })
+            ->groupBy('messages.conversation_id')
+            ->selectRaw('messages.conversation_id as conversation_id, COUNT(*) as unread_count')
+            ->pluck('unread_count', 'conversation_id')
+            ->all();
+    }
+
     private function findDirectConversation(int $a, int $b): ?Conversation
     {
         return Conversation::whereHas('participants', fn ($q) => $q->where('user_id', $a))
@@ -124,10 +144,19 @@ class ChatController extends Controller
         // mark as read (broadcasts MessageSeen)
         $this->markConversationAsRead($auth, $conversation);
 
-        $messages = Message::where('conversation_id', $conversation->id)
-            ->with(['sender:id,name,image', 'attachments', 'replyTo.sender:id,name,image'])
-            ->orderBy('id')
-            ->get();
+        $messagesQuery = Message::where('conversation_id', $conversation->id)
+            ->with(['sender:id,name,image', 'attachments', 'replyTo.sender:id,name,image']);
+
+        $limit = (int) $request->query('limit', 0);
+        $beforeId = (int) $request->query('before_id', 0);
+        if ($limit > 0) {
+            if ($beforeId > 0) {
+                $messagesQuery->where('id', '<', $beforeId);
+            }
+            $messages = $messagesQuery->orderByDesc('id')->limit(min($limit, 100))->get()->sortBy('id')->values();
+        } else {
+            $messages = $messagesQuery->orderBy('id')->get();
+        }
 
         return response()->json([
             'conversation' => ['id' => $conversation->id],
@@ -252,16 +281,25 @@ class ChatController extends Controller
             $q->where('user_id', $auth->id)
         )->get();
 
-        foreach ($conversations as $conversation) {
-            $ids = Message::where('conversation_id', $conversation->id)
+        $conversationIds = $conversations->pluck('id');
+        $unread = $conversationIds->isEmpty()
+            ? collect()
+            : Message::query()
+                ->whereIn('conversation_id', $conversationIds)
                 ->where('sender_id', '!=', $auth->id)
                 ->whereNull('seen_at')
-                ->pluck('id')
-                ->toArray();
+                ->get(['id', 'conversation_id'])
+                ->groupBy('conversation_id');
+
+        $allIds = $unread->flatten()->pluck('id');
+        if ($allIds->isNotEmpty()) {
+            Message::whereIn('id', $allIds)->update(['seen_at' => $now]);
+        }
+
+        foreach ($conversations as $conversation) {
+            $ids = ($unread->get($conversation->id) ?? collect())->pluck('id')->all();
 
             if ($ids) {
-                Message::whereIn('id', $ids)->update(['seen_at' => $now]);
-
                 Broadcasts::send(new MessageSeen(
                     sender_id: $auth->id,
                     conversation_id: $conversation->id,
@@ -269,10 +307,16 @@ class ChatController extends Controller
                     seen_at: $now->toIso8601String()
                 ), toOthers: true);
             }
+        }
 
-            $conversation->participants()->updateExistingPivot($auth->id, [
-                'last_read_at' => $now,
-            ]);
+        if ($conversationIds->isNotEmpty()) {
+            DB::table('conversation_participants')
+                ->where('user_id', $auth->id)
+                ->whereIn('conversation_id', $conversationIds)
+                ->update([
+                    'last_read_at' => $now,
+                    'updated_at' => $now,
+                ]);
         }
 
         return response()->json(['ok' => true]);

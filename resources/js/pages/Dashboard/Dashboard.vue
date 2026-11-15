@@ -1081,34 +1081,52 @@
                 </template>
 
                 <template #item.informations_count="{ item }">
-                  <v-btn
-                    size="small"
-                    variant="tonal"
-                    color="primary"
-                    class="text-none"
-                    @click.stop="goResourceInformations(item)"
-                  >
-                    <v-icon start size="16">mdi-file-document-multiple</v-icon>
-                    {{ num(item.informations_count) }}
-                  </v-btn>
+                  <div class="metric-with-point">
+                    <div class="metric-point">{{ pointLabel(informationPoints(item)) }}</div>
+                    <v-btn
+                      size="small"
+                      variant="tonal"
+                      color="primary"
+                      class="text-none"
+                      @click.stop="goResourceInformations(item)"
+                    >
+                      <v-icon start size="16">mdi-file-document-multiple</v-icon>
+                      {{ num(item.informations_count) }}
+                    </v-btn>
+                  </div>
                 </template>
 
                 <template #item.events_count="{ item }">
-                  <v-btn
-                    size="small"
-                    variant="tonal"
-                    color="deep-purple"
-                    class="text-none"
-                    @click.stop="goResourceEvents(item)"
-                  >
-                    <v-icon start size="16">mdi-calendar-alert</v-icon>
-                    {{ num(item.events_count) }}
-                  </v-btn>
+                  <div class="metric-with-point">
+                    <div class="metric-point">{{ pointLabel(eventPoints(item)) }}</div>
+                    <v-btn
+                      size="small"
+                      variant="tonal"
+                      color="deep-purple"
+                      class="text-none"
+                      @click.stop="goResourceEvents(item)"
+                    >
+                      <v-icon start size="16">mdi-calendar-alert</v-icon>
+                      {{ num(item.events_count) }}
+                    </v-btn>
+                  </div>
                 </template>
 
                 <template #item.khayrat_reports_count="{ item }">
-                  <div class="metric-chip">
-                    <span class="font-weight-bold">{{ num(item.khayrat_reports_count || 0) }}</span>
+                  <div class="metric-with-point">
+                    <div class="metric-point">{{ pointLabel(reportPoints(item)) }}</div>
+                    <div class="metric-chip">
+                      <span class="font-weight-bold">{{ num(item.khayrat_reports_count || 0) }}</span>
+                    </div>
+                  </div>
+                </template>
+
+                <template #item.missed_report_days="{ item }">
+                  <div class="metric-with-point">
+                    <div class="metric-point is-minus">{{ pointLabel(missedPoints(item)) }}</div>
+                    <div class="metric-chip">
+                      <span class="font-weight-bold">{{ num(item.missed_report_days || 0) }}</span>
+                    </div>
                   </div>
                 </template>
 
@@ -1892,7 +1910,7 @@
   /* progress bar measured against the عالی threshold (100 points) */
   function getScorePercentage(score) {
     const s = Number(score) || 0;
-    return Math.min((s / 100) * 100, 100);
+    return Math.min(Math.max((s / 100) * 100, 0), 100);
   }
 
   function getScoreColor(score) {
@@ -1926,8 +1944,10 @@
   );
 
   /* ===========================
-  Resources ranking (same point rule as employees)
-  1 information = 1, 2 events = 1, 20 khayrat = 1
+  Resources ranking
+  information points come from the category,
+  each event = 1, each khayrat report = 1,
+  each day in the period with no report = -1
   =========================== */
   const resourceSortOptions = computed(() => [
     { title: t('فعالیت (زیاد → کم)'), value: 'score_desc' },
@@ -1953,6 +1973,13 @@
       title: t('گزارش‌های خیرات'),
       key: 'khayrat_reports_count',
       width: 130,
+      sortable: false,
+      align: 'center',
+    },
+    {
+      title: t('ورځې بې راپور'),
+      key: 'missed_report_days',
+      width: 120,
       sortable: false,
       align: 'center',
     },
@@ -1983,14 +2010,38 @@
     return [...list].map((x) => ({ ...x, score: Number(x.score || x.total || 0) }));
   });
 
+  function informationPoints(item) {
+    const row = item?.raw ?? item ?? {};
+    if (row.information_points != null) return Number(row.information_points) || 0;
+    return Number(row.informations_count) || 0;
+  }
+
+  function eventPoints(item) {
+    return Number((item?.raw ?? item)?.events_count) || 0;
+  }
+
+  function reportPoints(item) {
+    return Number((item?.raw ?? item)?.khayrat_reports_count) || 0;
+  }
+
+  function missedPoints(item) {
+    return -(Number((item?.raw ?? item)?.missed_report_days) || 0);
+  }
+
+  function pointLabel(value) {
+    const n = Number(value) || 0;
+    return n > 0 ? `+${num(n)}` : num(n);
+  }
+
   function resourceScoreNumber(item) {
     if (item?.score != null && Number.isFinite(Number(item.score))) return Number(item.score);
 
     const events = Number(item?.events_count) || 0;
-    const informations = Number(item?.informations_count) || 0;
     const khayrat = Number(item?.khayrat_reports_count) || 0;
+    const informationPoints = Number(item?.information_points) || 0;
+    const missedDays = Number(item?.missed_report_days) || 0;
 
-    return informations + Math.floor(events / 2) + Math.floor(khayrat / 20);
+    return informationPoints + events + khayrat - missedDays;
   }
 
   function cmpResourceByKey(a, b, key) {
@@ -2783,6 +2834,24 @@
 
   .score-value-cell .score-label {
     margin-top: 2px;
+  }
+
+  .metric-with-point {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .metric-point {
+    font-weight: 900;
+    font-size: 0.95rem;
+    line-height: 1;
+    color: rgb(var(--v-theme-primary));
+  }
+
+  .metric-point.is-minus {
+    color: rgb(var(--v-theme-error));
   }
   :deep(.v-theme--dark) .stat-card {
     background: #1e1e1e;

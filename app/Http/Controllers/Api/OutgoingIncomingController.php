@@ -20,6 +20,7 @@ class OutgoingIncomingController extends Controller
         $search  = $request->get('search');
 
         $query = OutgoingIncoming::query()
+            ->with('documents')
             ->search($search)
             ->latest('id');
 
@@ -34,7 +35,11 @@ class OutgoingIncomingController extends Controller
 
         try {
             return DB::transaction(function () use ($request, $user) {
-                $row = OutgoingIncoming::create($request->validated());
+                $validated = $request->validated();
+                unset($validated['documents']);
+                $row = OutgoingIncoming::create($validated);
+                $this->storeSundryDocuments($request, $row);
+                $row->load('documents');
 
                 // 🔔 Notification: CREATED (a notification failure must never break the save)
                 try {
@@ -90,7 +95,7 @@ class OutgoingIncomingController extends Controller
 
     public function show(OutgoingIncoming $outgoingIncoming)
     {
-        return OutgoingIncomingResource::make($outgoingIncoming);
+        return OutgoingIncomingResource::make($outgoingIncoming->load('documents'));
     }
 
     public function update(UpdateOutgoingIncomingRequest $request, OutgoingIncoming $outgoingIncoming)
@@ -102,6 +107,7 @@ class OutgoingIncomingController extends Controller
                 // 🧮 build changes BEFORE update
                 $original  = $outgoingIncoming->getOriginal();
                 $validated = $request->validated();
+                unset($validated['documents']);
                 $changes   = [];
 
                 foreach ($validated as $field => $newValue) {
@@ -118,6 +124,8 @@ class OutgoingIncomingController extends Controller
 
                 // 🔄 apply update
                 $outgoingIncoming->update($validated);
+                $this->storeSundryDocuments($request, $outgoingIncoming);
+                $outgoingIncoming->load('documents');
 
                 // 🔔 Notification: UPDATED + changes (never break the update if it fails)
                 try {
@@ -436,4 +444,26 @@ public function printView(Request $request)
         'locale'          => $locale,
     ]);
 }
+
+    private function storeSundryDocuments(Request $request, OutgoingIncoming $row): void
+    {
+        if (!$request->hasFile('documents')) {
+            return;
+        }
+
+        foreach ($request->file('documents') as $file) {
+            if (!$file) {
+                continue;
+            }
+
+            $path = $file->store("outgoing_incomings/{$row->id}", 'public');
+
+            $row->documents()->create([
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'file_size' => $file->getSize(),
+                'mime_type' => $file->getClientMimeType(),
+            ]);
+        }
+    }
 }

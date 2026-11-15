@@ -250,6 +250,19 @@
             </template>
           </v-tooltip>
 
+          <v-tooltip :text="t('مشاهده اسناد')" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <v-icon
+                size="small"
+                v-bind="tooltipProps"
+                color="teal-darken-2"
+                @click.stop="openDocuments(item)"
+              >
+                mdi-file-eye
+              </v-icon>
+            </template>
+          </v-tooltip>
+
           <v-tooltip text="ویرایش" location="top">
             <template #activator="{ props: tooltipProps }">
               <v-icon
@@ -288,6 +301,29 @@
       @update:page="handlePageChange"
       @update:items-per-page="handlePerPageChange"
     />
+
+    <v-dialog v-model="docsDialog" max-width="520">
+      <v-card>
+        <v-card-title>{{ t('مشاهده اسناد') }}</v-card-title>
+        <v-card-text>
+          <div v-if="!docLinks.length">{{ t('سندی موجود نیست') }}</div>
+          <v-list v-else density="compact">
+            <v-list-item
+              v-for="doc in docLinks"
+              :key="doc.id || doc.url"
+              :href="doc.url"
+              target="_blank"
+              rel="noopener"
+              :title="doc.file_name || doc.original_name"
+            />
+          </v-list>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="docsDialog = false">{{ t('بستن') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Delete Confirm -->
     <DeleteConfirmDialog
@@ -405,8 +441,8 @@
     { title: t('صفحه پاسخ'), key: 'answer_page' },
     { title: t('پاسخ تاریخ'), key: 'answer_date' },
 
-    { title: t('صفحه'), key: 'page' },
     { title: t('دوسیه'), key: 'dusya' },
+    { title: t('صفحه'), key: 'page' },
     { title: t('صفحه فهرست'), key: 'fihrist_page' },
 
     { title: t('تعداد نقل'), key: 'naqal_count' },
@@ -485,13 +521,22 @@
     { title: t('پاسخ'), keys: ['answer_date', 'answer_page'] },
     {
       title: t('فهرست/شماره‌ها'),
-      keys: ['page', 'dusya', 'fihrist_page', 'naqal_count', 'awraq', 'zamima'],
+      keys: ['dusya', 'page', 'fihrist_page', 'naqal_count', 'awraq', 'zamima'],
     },
     { title: t('متن‌ها'), keys: ['tafseel', 'notes'] },
   ]);
 
   /* Error */
   const showError = ref(false);
+  const docsDialog = ref(false);
+  const docLinks = ref([]);
+
+  function openDocuments(payload) {
+    const row = getRow(payload);
+    const docs = row?.documents?.data || row?.documents || [];
+    docLinks.value = Array.isArray(docs) ? docs : [];
+    docsDialog.value = true;
+  }
   const errorMessage = ref('');
 
   function showErrorMessage(msg) {

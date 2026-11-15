@@ -347,23 +347,23 @@
             <v-row class="pa-3">
               <v-col cols="12" md="4">
                 <v-text-field
-                  v-model="form.page"
-                  :label="t('صفحه')"
-                  density="compact"
-                  variant="outlined"
-                  :error="hasError('page')"
-                  :error-messages="getErrorMessages('page')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="4">
-                <v-text-field
                   v-model="form.dusya"
                   :label="t('دوسیه')"
                   density="compact"
                   variant="outlined"
                   :error="hasError('dusya')"
                   :error-messages="getErrorMessages('dusya')"
+                />
+              </v-col>
+
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="form.page"
+                  :label="t('صفحه')"
+                  density="compact"
+                  variant="outlined"
+                  :error="hasError('page')"
+                  :error-messages="getErrorMessages('page')"
                 />
               </v-col>
 
@@ -418,6 +418,35 @@
                 />
               </v-col>
             </v-row>
+          </v-sheet>
+
+          <v-sheet class="section-card mb-4" rounded="lg" elevation="1">
+            <div class="pa-3">
+              <input ref="docsInput" class="d-none" type="file" multiple @change="onPickDocs" />
+              <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-paperclip" @click="docsInput?.click()">
+                {{ t('ذخیره اسناد') }}
+              </v-btn>
+              <div class="mt-2 d-flex flex-wrap ga-2">
+                <v-chip
+                  v-for="doc in form.existingDocs"
+                  :key="doc.id"
+                  tag="a"
+                  :href="doc.url"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  {{ doc.file_name }}
+                </v-chip>
+                <v-chip
+                  v-for="(file, index) in form._newDocs"
+                  :key="`new-${index}`"
+                  closable
+                  @click:close="form._newDocs.splice(index, 1)"
+                >
+                  {{ file.name }}
+                </v-chip>
+              </div>
+            </div>
           </v-sheet>
 
           <!-- ACTIONS -->
@@ -574,9 +603,17 @@
     zamima: '',
 
     notes: '',
+    existingDocs: [],
+    _newDocs: [],
   });
 
   const form = ref(blankForm());
+  const docsInput = ref(null);
+
+  function onPickDocs(event) {
+    form.value._newDocs = Array.from(event.target.files || []);
+    if (docsInput.value) docsInput.value.value = '';
+  }
 
 
   /* Map API -> form */
@@ -596,8 +633,8 @@
     b.reyasat_outgoing_date = x.reyasat_outgoing_date ?? '';
     b.reyasat_outgoing_page = x.reyasat_outgoing_page ?? '';
 
-    b.reyasat_incomming_date = x.reyasat_outgoing_date ?? '';
-    b.reyasat_incomming_page = x.reyasat_outgoing_page ?? '';
+    b.reyasat_incomming_date = x.reyasat_incomming_date ?? '';
+    b.reyasat_incomming_page = x.reyasat_incomming_page ?? '';
 
     b.loy_reyasat_outgoing_date = x.loy_reyasat_outgoing_date ?? '';
     b.loy_reyasat_outgoing_page = x.loy_reyasat_outgoing_page ?? '';
@@ -621,6 +658,9 @@
     b.zamima = x.zamima ?? '';
 
     b.notes = x.notes ?? '';
+    const docs = x.documents?.data || x.documents || [];
+    b.existingDocs = Array.isArray(docs) ? docs : [];
+    b._newDocs = [];
 
     return b;
   }
@@ -642,19 +682,17 @@
 
   /* Payload builder (no files ✅) */
   function buildPayload() {
-    const { id, ...p } = form.value; // ✅ remove id
+    const fd = new FormData();
+    const skip = new Set(['id', 'existingDocs', '_newDocs']);
 
-    ['naqal_count', 'awraq', 'zamima'].forEach((k) => {
-      if (p[k] === '') return;
-      const n = Number(p[k]);
-      p[k] = Number.isFinite(n) ? n : p[k];
+    Object.entries(form.value).forEach(([key, value]) => {
+      if (skip.has(key) || value === null || value === undefined) return;
+      if (Array.isArray(value)) return;
+      fd.append(key, typeof value === 'string' ? value.trim() : String(value));
     });
 
-    Object.keys(p).forEach((k) => {
-      if (typeof p[k] === 'string') p[k] = p[k].trim();
-    });
-
-    return p;
+    (form.value._newDocs || []).forEach((file) => fd.append('documents[]', file));
+    return fd;
   }
 
   /* Submit */
